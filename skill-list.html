@@ -1,0 +1,79 @@
+<script>
+  function onClickSkill(value) {
+    console.log(value);
+  }
+
+  function onUpdateStat(value) {
+    console.log(value);
+  }
+
+  function onRollSkill() {
+    console.log("Roll skill");
+  }
+</script>
+
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    min-width: 150px;
+  "
+>
+  <div style="width: 30px; min-width: 30px">
+    <portrait width="30px" height="30px" name="portrait"></portrait>
+  </div>
+
+  <div style="min-width: 60px; width: 100%">
+    <namefield
+      placeholder="Skill name..."
+      size="xs"
+      width="100%"
+      field="namefield"
+      variant="tooltip-underline"
+      onclick="onClickSkill(value)"
+    ></namefield>
+  </div>
+
+  <stringfield
+    placeholder="Group..."
+    size="xs"
+    width="120px"
+    label="Group"
+    field="group"
+    variant="tooltip-underline"
+  ></stringfield>
+
+  <numberfield
+    placeholder="0"
+    size="xs"
+    width="100px"
+    field="rank"
+    label="Rank"
+    variant="tooltip"
+  ></numberfield>
+
+  <iconbutton
+    size="sm"
+    field="stat"
+    variant="default"
+    onchange="onUpdateStat(value)"
+    options='[{"label": "Brawn", "value": "brawn", "icon": "IconHexagonLetterBFilled"}, 
+      {"label": "Agility", "value": "agility", "icon": "IconHexagonLetterAFilled"}, 
+      {"label": "Intellect", "value": "intellect", "icon": "IconHexagonLetterIFilled"}, 
+      {"label": "Cunning", "value": "cunning", "icon": "IconHexagonLetterCFilled"}, 
+      {"label": "Willpower", "value": "willpower", "icon": "IconHexagonLetterWFilled"}, 
+      {"label": "Presence", "value": "presence", "icon": "IconHexagonLetterPFilled"}]'
+  ></iconbutton>
+
+  <button
+    size="xs"
+    field="stat"
+    width="80px"
+    variant="outline"
+    color="primary"
+    label="Roll"
+    onclick="onRollSkill()"
+  ></button>
+</div>

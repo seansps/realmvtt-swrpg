@@ -486,6 +486,59 @@ function updateAttribute({
   }
 }
 
+function updateAttributes(record, moreValuesToSet = undefined) {
+  const valuesToSet = moreValuesToSet || {};
+
+  // List of all characteristics
+  const characteristics = [
+    "brawn",
+    "agility",
+    "intellect",
+    "cunning",
+    "willpower",
+    "presence",
+  ];
+
+  // Update each characteristic using updateAttribute
+  characteristics.forEach((attribute) => {
+    const currentValue = parseInt(record?.data?.[attribute] || "0", 10);
+    updateAttribute({
+      record,
+      attribute,
+      value: currentValue,
+      moreValuesToSet: valuesToSet,
+    });
+  });
+
+  // Also update wounds and strain to recalculate remaining values
+  const currentWounds = parseInt(record?.data?.wounds || "0", 10);
+  const currentStrain = parseInt(record?.data?.strain || "0", 10);
+
+  updateAttribute({
+    record,
+    attribute: "wounds",
+    value: currentWounds,
+    moreValuesToSet: valuesToSet,
+  });
+
+  updateAttribute({
+    record,
+    attribute: "strain",
+    value: currentStrain,
+    moreValuesToSet: valuesToSet,
+  });
+
+  // Recalculate thresholds to account for modifiers that directly affect derived stats
+  // (like Soak Value Bonus, Wound Threshold Bonus, etc.)
+  recalculateThresholds(record, valuesToSet);
+
+  // If moreValuesToSet was passed, we've already merged everything
+  // Otherwise, set the values directly
+  if (!moreValuesToSet) {
+    api.setValues(valuesToSet);
+  }
+}
+
 function recalculateThresholds(record, moreValuesToSet = undefined) {
   const valuesToSet = moreValuesToSet || {};
 

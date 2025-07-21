@@ -43,7 +43,7 @@
 
       // Recalculate thresholds with new species data
       api.getRecord("characters", record._id, (updatedRecord) => {
-        recalculateThresholds(updatedRecord, valuesToSet);
+        updateAttributes(updatedRecord, valuesToSet);
         api.setValues(valuesToSet);
       });
     };
@@ -70,22 +70,32 @@
         "fields.careers.hidden": false,
       };
 
-      api.setValues(valuesToSet);
+      api.setValues(valuesToSet, (updatedRecord) => {
+        updateAttributes(updatedRecord, valuesToSet);
+      });
     });
   }
 
   function onDeleteSpecies() {
-    api.setValues({
+    const valuesToSet = {
       "data.speciesName": "",
       "fields.species.hidden": true,
-    });
+    };
+
+    updateAttributes(record, valuesToSet);
+
+    api.setValues(valuesToSet);
   }
 
   function onDeleteCareer() {
-    api.setValues({
+    const valuesToSet = {
       "data.careerName": "",
       "fields.careers.hidden": true,
-    });
+    };
+
+    updateAttributes(record, valuesToSet);
+
+    api.setValues(valuesToSet);
   }
 
   function updateForceRating() {
@@ -100,10 +110,6 @@
   }
 
   function onLoadCharacter() {
-    // Initialize calculated values
-    recalculateThresholds(record);
-    updateForceRating();
-
     // Initialize skills if needed
     // TODO
   }
@@ -205,8 +211,10 @@
       display: flex;
       flex-direction: row;
       gap: 8px;
+      width: 100%;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
     "
   >
     <div
@@ -388,6 +396,7 @@
       gap: 6px;
       width: 100%;
       justify-content: center;
+      flex-wrap: wrap;
     "
   >
     <numberfield

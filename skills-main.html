@@ -1,0 +1,55 @@
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 4px;
+  "
+>
+  <div style="display: flex; gap: 4px">
+    <div
+      style="width: 125px; height: 125px; min-height: 125px; min-width: 125px"
+    >
+      <portrait width="125px" height="125px" field="portrait"></portrait>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 4px;
+      "
+    >
+      <dropdown
+        field="stat"
+        variant="default"
+        label="Attribute"
+        placeholder="Select Attribute..."
+        options='[{"label": "Brawn", "value": "brawn"}, 
+        {"label": "Agility", "value": "agility"}, 
+        {"label": "Intellect", "value": "intellect"}, 
+        {"label": "Cunning", "value": "cunning"}, 
+        {"label": "Willpower", "value": "willpower"}, 
+        {"label": "Presence", "value": "presence"}]'
+      ></dropdown>
+
+      <stringfield
+        field="group"
+        label="Group"
+        placeholder="Enter Group..."
+      ></stringfield>
+    </div>
+  </div>
+
+  <div style="margin-top: 8px; margin-bottom: 8px">
+    <divider label="Description"></divider>
+  </div>
+
+  <richtextfield
+    placeholder="Enter description..."
+    field="description"
+    label="Description"
+  ></richtextfield>
+</div>

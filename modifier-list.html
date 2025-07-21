@@ -1,0 +1,117 @@
+<script>
+  function onFieldChange(value) {
+    // Set the actual "field" value to match
+    const modifierDataPath = getNearestParentDataPath(dataPath);
+    api.setValues(
+      {
+        [`${modifierDataPath}.data.field`]: value,
+      },
+      (recordUpdated) => {
+        if (recordUpdated.recordType === "characters") {
+          updateAttributes(recordUpdated);
+        }
+      }
+    );
+  }
+
+  function onValueChange(value) {
+    if (record.recordType === "characters") {
+      updateAttributes(record);
+    }
+  }
+
+  function onTypeChange(value) {
+    if (record.recordType === "characters") {
+      updateAttributes(record);
+    }
+  }
+</script>
+<div
+  style="
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    flex-wrap: wrap;
+  "
+>
+  <dropdown
+    size="xs"
+    field="type"
+    placeholder="Select Modifier Type"
+    label="Modifier Type"
+    onchange="onTypeChange(value);"
+    options='[{"label": "Characteristic Bonus", "value": "characteristicBonus"},
+        {"label": "Characteristic Penalty", "value": "characteristicPenalty"},
+        {"label": "Ability Check Bonus", "value": "abilityBonus"}, 
+        {"label": "Ability Check Penalty", "value": "abilityPenalty"},
+        {"label": "Skill Check Bonus", "value": "skillBonus"}, 
+        {"label": "Skill Check Penalty", "value": "skillPenalty"},
+        {"label": "Attack Bonus", "value": "attackBonus"},
+        {"label": "Attack Penalty", "value": "attackPenalty"},
+        {"label": "Damage Bonus", "value": "damageBonus"},
+        {"label": "Damage Penalty", "value": "damagePenalty"},
+        {"label": "Defense Bonus", "value": "defenseBonus"},
+        {"label": "Defense Penalty", "value": "defensePenalty"},
+        {"label": "Soak Value Bonus", "value": "soakBonus"},
+        {"label": "Soak Value Penalty", "value": "soakPenalty"},
+        {"label": "Wound Threshold Bonus", "value": "woundThresholdBonus"},
+        {"label": "Strain Threshold Bonus", "value": "strainThresholdBonus"},
+        {"label": "Force Rating Bonus", "value": "forceRatingBonus"},
+        {"label": "Healing Bonus", "value": "healingBonus"},
+        {"label": "Healing Penalty", "value": "healingPenalty"},
+        {"label": "Strain Recovery Bonus", "value": "strainRecoveryBonus"},
+        {"label": "Critical Injury Recovery Bonus", "value": "criticalRecoveryBonus"},
+        {"label": "Initiative Bonus", "value": "initiativeBonus"},
+        {"label": "Initiative Penalty", "value": "initiativePenalty"}]'
+  >
+  </dropdown>
+
+  <stringfield
+    size="xs"
+    field="field"
+    label="Field"
+    placeholder="Enter Field, if any..."
+  ></stringfield>
+</div>
+
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  "
+>
+  <dropdown
+    size="xs"
+    field="valueType"
+    placeholder="Select Value Type"
+    label="Value Type"
+    options='[{"label": "Number", "value": "number"}, 
+        {"label": "String", "value": "string"}, {"label": "From Field", "value": "field"}]'
+    onchange="onValueChange();"
+  >
+  </dropdown>
+
+  <stringfield
+    width="35%"
+    size="xs"
+    field="value"
+    label="Value"
+    placeholder="Enter Value"
+    onchange="onValueChange();"
+  ></stringfield>
+
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <checkbox size="xs" field="active" label="Active by Default"></checkbox>
+    <checkbox
+      size="xs"
+      hidden="true"
+      field="itemOnly"
+      label="Only Applies To This Item"
+    ></checkbox>
+  </div>
+</div>
