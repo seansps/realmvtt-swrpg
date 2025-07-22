@@ -1,0 +1,228 @@
+<script></script>
+
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  "
+>
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      textalign="center"
+      field="brawn"
+      label="Brawn"
+      onchange="updateAttribute({ record, attribute: 'brawn', value })"
+      onclick="rollCheck('brawn');"
+    ></numberfield>
+    <button
+      field="Brawn Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('brawn');"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      field="agility"
+      label="Agility"
+      textalign="center"
+      onchange="updateAttribute({ record, attribute: 'agility', value })"
+      onclick="rollCheck('agility');"
+    ></numberfield>
+    <button
+      field="Agility Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('agility');"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      field="intellect"
+      textalign="center"
+      label="Intellect"
+      onchange="updateAttribute({ record, attribute: 'intellect', value })"
+      onclick="rollCheck('intellect');"
+    ></numberfield>
+    <button
+      field="Intellect Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('intellect');"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      textalign="center"
+      field="cunning"
+      label="Cunning"
+      onchange="updateAttribute({ record, attribute: 'cunning', value })"
+      onclick="rollCheck('cunning');"
+    ></numberfield>
+    <button
+      field="Cunning Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('cunning');"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      textalign="center"
+      field="willpower"
+      label="Willpower"
+      onchange="updateAttribute({ record, attribute: 'willpower', value })"
+      onclick="rollCheck('willpower');"
+    ></numberfield>
+    <button
+      field="Willpower Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('willpower');"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="80px"
+      textalign="center"
+      field="presence"
+      label="Presence"
+      onchange="updateAttribute({ record, attribute: 'presence', value })"
+      onclick="rollCheck('presence');"
+    ></numberfield>
+    <button
+      field="Presence Check"
+      size="xs"
+      width="80px"
+      variant="outline"
+      label="Roll"
+      onclick="rollCheck('presence');"
+    ></button>
+  </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px">
+  <label
+    field="skills"
+    label="Skills"
+    variant="bold"
+    size="md"
+    textalign="center"
+  ></label>
+  <div
+    style="display: flex; flex-direction: row; gap: 8px; align-items: center"
+  >
+    <dropdown
+      width="120px"
+      field="groupFilter"
+      disablediflocked="false"
+      options='[{"label": "All", "value": ""}, {"label": "General", "value": "General"}, {"label": "Combat", "value": "Combat"}, {"label": "Knowledge", "value": "Knowledge"}]'
+      size="xs"
+      label="Filter by Group"
+      placeholder="All"
+    ></dropdown>
+    <dropdown
+      width="120px"
+      field="attributeFilter"
+      disablediflocked="false"
+      options='[{"label": "All", "value": ""}, {"label": "Brawn", "value": "brawn"}, {"label": "Agility", "value": "agility"}, {"label": "Intellect", "value": "intellect"}, {"label": "Cunning", "value": "cunning"}, {"label": "Willpower", "value": "willpower"}, {"label": "Presence", "value": "presence"}]'
+      size="xs"
+      label="Filter by Attribute"
+      placeholder="All"
+    ></dropdown>
+  </div>
+  <div style="display: flex; flex-direction: row">
+    <div style="width: 80px">
+      <label
+        field="skillsLabel1"
+        label="Career"
+        width="100%"
+        variant="bold"
+        size="xs"
+        textalign="left"
+      ></label>
+    </div>
+    <div style="min-width: 60px; width: 100%">
+      <label
+        field="skillsLabel2"
+        label="Name"
+        variant="bold"
+        width="100%"
+        size="xs"
+        textalign="left"
+      ></label>
+    </div>
+    <div style="width: 120px">
+      <label
+        field="skillsLabel3"
+        label="Group"
+        variant="bold"
+        width="100%"
+        size="xs"
+        textalign="left"
+      ></label>
+    </div>
+    <div style="width: 100px">
+      <label
+        field="skillsLabel4"
+        label="Rank"
+        variant="bold"
+        width="100%"
+        size="xs"
+        textalign="left"
+      ></label>
+    </div>
+    <div style="width: 170px"></div>
+    <box field="skillsSpacer" width="30px" hideonlocked="true"> </box>
+  </div>
+  <list listtype="skill_list" field="skills" height="100%"></list>
+</div>

@@ -1,14 +1,20 @@
 <script>
-  function onClickSkill(value) {
-    console.log(value);
-  }
-
-  function onUpdateStat(value) {
-    console.log(value);
-  }
-
   function onRollSkill() {
-    console.log("Roll skill");
+    let skillDataPath = dataPath.replace(".data.stat", "");
+    let skill = api.getValue(skillDataPath);
+    rollSkill(record, skill);
+  }
+
+  function onOpenSkill() {
+    let skillDataPath = dataPath.replace(".data.openSkillBtn", "");
+    let skill = api.getValue(skillDataPath);
+    const skillName = skill.name;
+
+    const record = api.getRecordByTypeAndName("skills", skillName, (record) => {
+      if (record) {
+        api.openRecord(record);
+      }
+    });
   }
 </script>
 
@@ -21,9 +27,15 @@
     min-width: 150px;
   "
 >
-  <div style="width: 30px; min-width: 30px">
-    <portrait width="30px" height="30px" name="portrait"></portrait>
-  </div>
+  <iconbutton
+    size="sm"
+    field="openSkillBtn"
+    variant="default"
+    onclick="onOpenSkill()"
+    options='[{"label": "View Skill Details", "value": "openSkill", "icon": "IconTools"}]'
+  ></iconbutton>
+
+  <checkbox field="careerOrMinionSkill" size="xs"></checkbox>
 
   <div style="min-width: 60px; width: 100%">
     <namefield
@@ -32,7 +44,6 @@
       width="100%"
       field="namefield"
       variant="tooltip-underline"
-      onclick="onClickSkill(value)"
     ></namefield>
   </div>
 
@@ -58,7 +69,6 @@
     size="sm"
     field="stat"
     variant="default"
-    onchange="onUpdateStat(value)"
     options='[{"label": "Brawn", "value": "brawn", "icon": "IconHexagonLetterBFilled"}, 
       {"label": "Agility", "value": "agility", "icon": "IconHexagonLetterAFilled"}, 
       {"label": "Intellect", "value": "intellect", "icon": "IconHexagonLetterIFilled"}, 

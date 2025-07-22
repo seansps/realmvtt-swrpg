@@ -539,6 +539,75 @@ function updateAttributes(record, moreValuesToSet = undefined) {
   }
 }
 
+function getAllStarWarsSkills() {
+  const skills = [
+    { name: "Astrogation", stat: "intellect", group: "General" },
+    { name: "Athletics", stat: "brawn", group: "General" },
+    { name: "Brawl", stat: "brawn", group: "Combat" },
+    { name: "Charm", stat: "presence", group: "General" },
+    { name: "Coercion", stat: "willpower", group: "General" },
+    { name: "Computers", stat: "intellect", group: "General" },
+    { name: "Cool", stat: "presence", group: "General" },
+    { name: "Coordination", stat: "agility", group: "General" },
+    { name: "Core Worlds", stat: "intellect", group: "Knowledge" },
+    { name: "Deception", stat: "cunning", group: "General" },
+    { name: "Discipline", stat: "willpower", group: "General" },
+    { name: "Education", stat: "intellect", group: "Knowledge" },
+    { name: "Gunnery", stat: "agility", group: "Combat" },
+    { name: "Leadership", stat: "presence", group: "General" },
+    { name: "Lightsaber", stat: "brawn", group: "Combat" },
+    { name: "Lore", stat: "intellect", group: "Knowledge" },
+    { name: "Mechanics", stat: "intellect", group: "General" },
+    { name: "Medicine", stat: "intellect", group: "General" },
+    { name: "Melee", stat: "brawn", group: "Combat" },
+    { name: "Negotiation", stat: "presence", group: "General" },
+    { name: "Outer Rim", stat: "intellect", group: "Knowledge" },
+    { name: "Perception", stat: "cunning", group: "General" },
+    { name: "Piloting (Planetary)", stat: "agility", group: "General" },
+    { name: "Piloting (Space)", stat: "agility", group: "General" },
+    { name: "Ranged (Heavy)", stat: "agility", group: "Combat" },
+    { name: "Ranged (Light)", stat: "agility", group: "Combat" },
+    { name: "Resilience", stat: "brawn", group: "General" },
+    { name: "Skulduggery", stat: "cunning", group: "General" },
+    { name: "Stealth", stat: "agility", group: "General" },
+    { name: "Streetwise", stat: "cunning", group: "General" },
+    { name: "Survival", stat: "cunning", group: "General" },
+    { name: "Underworld", stat: "intellect", group: "Knowledge" },
+    { name: "Vigilance", stat: "willpower", group: "General" },
+    { name: "Xenology", stat: "intellect", group: "Knowledge" },
+  ];
+
+  return skills;
+}
+
+function initializeSkills(record) {
+  const existingSkills = record?.data?.skills || [];
+
+  // Only initialize if no skills exist
+  if (existingSkills.length === 0) {
+    const allSkills = getAllStarWarsSkills();
+
+    // Create array of all skill objects
+    const skillObjects = allSkills.map((skill) => ({
+      _id: generateUuid(),
+      name: skill.name,
+      unidentifiedName: skill.name,
+      recordType: "skill",
+      identified: true,
+      icon: "IconTools",
+      data: {
+        group: skill.group,
+        stat: skill.stat,
+      },
+    }));
+
+    // Set all skills at once
+    api.setValues({
+      "data.skills": skillObjects,
+    });
+  }
+}
+
 function recalculateThresholds(record, moreValuesToSet = undefined) {
   const valuesToSet = moreValuesToSet || {};
 
@@ -580,4 +649,91 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
     // Set the values directly
     api.setValues(valuesToSet);
   }
+}
+
+function rollCheck(attribute) {
+  const characteristicValue = parseInt(record?.data?.[attribute] || "0", 10);
+
+  const metadata = {
+    rollName: `${capitalize(attribute)}`,
+    tooltip: `${capitalize(attribute)} Ability Check Roll`,
+    characteristic: characteristicValue,
+  };
+
+  const modifiers = getEffectsAndModifiersForToken(
+    record,
+    ["abilityBonus", "abilityPenalty"],
+    attribute
+  );
+
+  // Star Wars RPG narrative dice system
+  api.promptRoll(
+    `${capitalize(attribute)} Check`,
+    `${characteristicValue}ability`,
+    modifiers,
+    metadata,
+    "ability"
+  );
+}
+
+function rollSkill(record, skill) {
+  const attributeValue = parseInt(
+    record?.data?.[skill.data?.stat || "brawn"] || "0",
+    10
+  );
+  const skillRank = parseInt(skill.data?.rank || "0", 10);
+
+  // Star Wars RPG skill dice mechanics:
+  // Start with Ability dice equal to the characteristic
+  // Upgrade dice equal to skill rank from Ability to Proficiency
+  // If skill rank > characteristic, add extra Ability dice
+
+  let abilityDice = attributeValue;
+  let proficiencyDice = 0;
+
+  if (skillRank > 0) {
+    const upgrades = Math.min(skillRank, attributeValue);
+    proficiencyDice = upgrades;
+    abilityDice =
+      Math.max(0, abilityDice - upgrades) +
+      Math.max(0, skillRank - attributeValue);
+  }
+
+  // Build the dice string
+  let diceString = "";
+  if (abilityDice > 0) {
+    diceString += `${abilityDice}ability`;
+  }
+  if (proficiencyDice > 0) {
+    if (diceString) diceString += " ";
+    diceString += `${proficiencyDice}proficiency`;
+  }
+
+  // Fallback if no dice (shouldn't happen normally)
+  if (!diceString) {
+    diceString = "1ability";
+  }
+
+  const metadata = {
+    rollName: `${skill.name}`,
+    tooltip: `${skill.name} Skill Check Roll`,
+    characteristic: attributeValue,
+    skillRank: skillRank,
+    attributeName: skill.data?.stat || "Brawn",
+  };
+
+  const modifiers = getEffectsAndModifiersForToken(
+    record,
+    ["skillBonus", "skillPenalty"],
+    skill.name
+  );
+
+  // Star Wars RPG narrative dice system
+  api.promptRoll(
+    `${skill.name} Check`,
+    diceString,
+    modifiers,
+    metadata,
+    "skill"
+  );
 }

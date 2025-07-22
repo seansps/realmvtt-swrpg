@@ -1,27 +1,4 @@
 <script>
-  function rollCheck(attribute) {
-    const characteristicValue = parseInt(record?.data?.[attribute] || "0", 10);
-
-    const metadata = {
-      rollName: `${capitalize(attribute)}`,
-      tooltip: `${capitalize(attribute)} Check`,
-      characteristic: characteristicValue,
-    };
-
-    // Star Wars RPG narrative dice system
-    api.promptRoll(
-      `${capitalize(attribute)} Check`,
-      `${characteristicValue}ability`,
-      [],
-      metadata,
-      "ability"
-    );
-  }
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
   function onDrop(type, recordLink) {
     if (type === "species") {
       onDropSpecies(type, recordLink);
@@ -111,7 +88,7 @@
 
   function onLoadCharacter() {
     // Initialize skills if needed
-    // TODO
+    initializeSkills(record);
   }
 
   function rest() {
