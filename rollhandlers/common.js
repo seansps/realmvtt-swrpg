@@ -265,40 +265,38 @@ function getEffectsAndModifiersForToken(
   });
 
   // Now collect all modifiers from Species, Careers, Talents, and Items
-  const species = target?.data?.species || [];
-  const careers = target?.data?.careers || [];
-  const talents = [];
-  // Each career has a career tree, which has a list of talents
-  careers.forEach((career) => {
-    const careerTree = career.data?.talentTree || [];
-    careerTree.forEach((talent) => {
-      if (talent.data?.active) {
-        talents.push(talent);
-      }
-    });
-  });
-
   // Ensure items is an array before filtering
   const items = Array.isArray(target?.data?.inventory)
     ? target?.data?.inventory
     : [];
 
   // Get all career features
-  const classes = target?.data?.classes || [];
-  const classFeatures = [];
-  classes.forEach((c) => {
+  const careers = target?.data?.careers || [];
+  const careerFeatures = [];
+  careers.forEach((c) => {
     const features = c.data?.features || [];
     features.forEach((feature) => {
-      classFeatures.push(feature);
+      careerFeatures.push(feature);
     });
   });
 
   // Get all species features
+  const species = target?.data?.species || [];
   const speciesFeatures = [];
   species.forEach((s) => {
-    const features = s.data?.talentTree || [];
+    const features = s.data?.features || [];
     features.forEach((feature) => {
       speciesFeatures.push(feature);
+    });
+  });
+
+  // Get all talents
+  const talents = target?.data?.talents || [];
+  const talentFeatures = [];
+  talents.forEach((t) => {
+    const features = t.data?.features || [];
+    features.forEach((feature) => {
+      talentFeatures.push(feature);
     });
   });
 
@@ -326,9 +324,9 @@ function getEffectsAndModifiersForToken(
     (item) => item.data?.carried === "equipped"
   );
   [
-    ...classFeatures,
     ...speciesFeatures,
-    ...talents,
+    ...talentFeatures,
+    ...careerFeatures,
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,

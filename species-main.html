@@ -1,0 +1,209 @@
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 4px;
+  "
+>
+  <div style="display: flex; gap: 4px">
+    <div
+      style="width: 125px; height: 125px; min-height: 125px; min-width: 125px"
+    >
+      <portrait width="125px" height="125px" field="portrait"></portrait>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 4px;
+      "
+    >
+      <div style="display: flex; gap: 4px; align-items: flex-end">
+        <numberfield
+          width="200px"
+          field="woundThreshold"
+          label="Wound Threshold"
+          placeholder="Enter Wound Threshold..."
+        ></numberfield>
+        <label
+          variant="bold"
+          size="sm"
+          textalign="center"
+          label="+ Brawn"
+        ></label>
+      </div>
+      <div style="display: flex; gap: 4px; align-items: flex-end">
+        <numberfield
+          width="200px"
+          field="strainThreshold"
+          label="Strain Threshold"
+          placeholder="Enter Strain Threshold..."
+        ></numberfield>
+        <label
+          variant="bold"
+          size="sm"
+          textalign="center"
+          label="+ Willpower"
+        ></label>
+      </div>
+    </div>
+  </div>
+
+  <numberfield
+    width="100%"
+    field="startingXp"
+    label="Starting XP"
+    placeholder="Enter Starting XP..."
+  ></numberfield>
+
+  <label
+    variant="bold"
+    size="md"
+    textalign="center"
+    label="Initial Characteristics"
+  ></label>
+
+  <div
+    style="
+      display: flex;
+      gap: 4px;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 4px;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          textalign="center"
+          field="brawn"
+          label="Brawn"
+        ></numberfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          field="agility"
+          label="Agility"
+          textalign="center"
+        ></numberfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          field="intellect"
+          textalign="center"
+          label="Intellect"
+        ></numberfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          textalign="center"
+          field="cunning"
+          label="Cunning"
+        ></numberfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          textalign="center"
+          field="willpower"
+          label="Willpower"
+        ></numberfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        "
+      >
+        <numberfield
+          placeholder="0"
+          size="sm"
+          width="65px"
+          textalign="center"
+          field="presence"
+          label="Presence"
+        ></numberfield>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 8px; margin-bottom: 8px">
+    <divider label="Description"></divider>
+  </div>
+
+  <richtextfield
+    placeholder="Enter Species description..."
+    field="description"
+    label="Description"
+  ></richtextfield>
+</div>

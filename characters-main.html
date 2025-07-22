@@ -12,16 +12,30 @@
     const speciesName = recordLink.tooltip;
     const speciesObj = { ...recordLink.value };
 
-    const setValues = () => {
+    const setValues = (updatedRecord) => {
+      // Set species name, initial characteristics, initial XP
+      const xpSpent = parseInt(record?.data?.spentXp || "0", 10);
+      const xpCur = parseInt(record?.data?.xp || "0", 10);
       const valuesToSet = {
         "data.speciesName": speciesName,
         "fields.species.hidden": false,
+        "data.brawn": speciesObj?.data?.brawn || 0,
+        "data.agility": speciesObj?.data?.agility || 0,
+        "data.intellect": speciesObj?.data?.intellect || 0,
+        "data.cunning": speciesObj?.data?.cunning || 0,
+        "data.willpower": speciesObj?.data?.willpower || 0,
+        "data.presence": speciesObj?.data?.presence || 0,
+        "data.xp": xpCur,
       };
 
-      // Recalculate thresholds with new species data
-      api.getRecord("characters", record._id, (updatedRecord) => {
-        updateAttributes(updatedRecord, valuesToSet);
-        api.setValues(valuesToSet);
+      if (xpSpent === 0 || xpCur === 0) {
+        // We have no XP or haven't spent XP, so just set our current XP to initial XP
+        valuesToSet["data.xp"] = speciesObj?.data?.startingXp || 0;
+      }
+
+      // First set the values, then update the attributes to get the new thresholds
+      api.setValues(valuesToSet, (updatedRecord2) => {
+        updateAttributes(updatedRecord2);
       });
     };
 
@@ -147,7 +161,7 @@
         ></stringfield>
         <list
           width="fit-content"
-          height="30px"
+          height="42px"
           hidden="true"
           listtype="character_species_list"
           field="species"
@@ -172,7 +186,7 @@
         ></stringfield>
         <list
           width="fit-content"
-          height="30px"
+          height="42px"
           hidden="true"
           listtype="character_career_list"
           field="careers"
@@ -365,7 +379,6 @@
   </div>
 
   <!-- Third Flex Row: Health Stats -->
-  <divider label="Health & Defense"></divider>
   <div
     style="
       display: flex;
@@ -388,15 +401,17 @@
       placeholder="0"
       size="sm"
       width="120px"
+      icon="IconHeartFilled"
       field="woundThreshold"
       label="Wound Threshold"
-      color="green"
+      color="pink"
     ></numberfield>
 
     <numberfield
       placeholder="0"
       size="sm"
       width="90px"
+      icon="IconBandageFilled"
       field="wounds"
       label="Wounds"
       color="red"
@@ -410,7 +425,7 @@
       width="120px"
       field="strainThreshold"
       label="Strain Threshold"
-      color="green"
+      color="blue"
     ></numberfield>
 
     <numberfield
@@ -419,7 +434,7 @@
       width="90px"
       field="strain"
       label="Strain"
-      color="blue"
+      color="cyan"
       minvalue="0"
       onchange="updateAttribute({ record, attribute: 'strain', value })"
     ></numberfield>
@@ -453,6 +468,22 @@
       icon="IconShield"
       label="Defense (Ranged)"
       color="violet"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="115px"
+      field="spentXp"
+      label="Spent XP"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="115px"
+      field="xp"
+      label="Total XP"
     ></numberfield>
 
     <iconbutton
