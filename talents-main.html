@@ -1,0 +1,59 @@
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 4px;
+  "
+>
+  <div style="display: flex; gap: 4px">
+    <div
+      style="width: 125px; height: 125px; min-height: 125px; min-width: 125px"
+    >
+      <portrait width="125px" height="125px" field="portrait"></portrait>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 4px;
+      "
+    >
+      <div style="display: flex; gap: 4px; align-items: flex-end">
+        <dropdown
+          width="100%"
+          field="rank"
+          label="Ranked"
+          placeholder="No"
+          options='[{"label": "No", "value": "no"}, {"label": "Yes", "value": "yes"}]'
+        ></dropdown>
+        <dropdown
+          width="100%"
+          field="forceTalent"
+          label="Force Talent"
+          placeholder="No"
+          options='[{"label": "No", "value": "no"}, {"label": "Yes", "value": "yes"}]'
+        ></dropdown>
+      </div>
+      <stringfield
+        width="100%"
+        field="activation"
+        label="Activation"
+        placeholder="Enter Activation..."
+      ></stringfield>
+    </div>
+  </div>
+
+  <div style="margin-top: 8px; margin-bottom: 8px">
+    <divider label="Description"></divider>
+  </div>
+
+  <richtextfield
+    placeholder="Enter description..."
+    field="description"
+    label="Description"
+  ></richtextfield>
+</div>
