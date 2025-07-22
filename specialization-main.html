@@ -1,6 +1,57 @@
 <script>
   function onLoad() {
-    // TODO if this is on a character sheet, show all talent chosen buttons
+    const recordType = record.recordType;
+    let nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const specialization = api.getValue(nearestParentDataPath);
+
+    if (!specialization) {
+      return;
+    }
+
+    const initalized = specialization?.data?.initalized || false;
+
+    console.log("initalized", initalized);
+
+    if (recordType === "characters" && !initalized) {
+      // Check if any talent buttons are hidden
+      const listsToCheck = [
+        "talent1_1",
+        "talent1_2",
+        "talent1_3",
+        "talent1_4",
+        "talent2_1",
+        "talent2_2",
+        "talent2_3",
+        "talent2_4",
+        "talent3_1",
+        "talent3_2",
+        "talent3_3",
+        "talent3_4",
+        "talent4_1",
+        "talent4_2",
+        "talent4_3",
+        "talent4_4",
+        "talent5_1",
+        "talent5_2",
+        "talent5_3",
+        "talent5_4",
+      ];
+      const valuesToSet = {
+        [`${nearestParentDataPath}.data.initalized`]: true,
+      };
+      listsToCheck.forEach((list) => {
+        if (
+          specialization?.data?.[list] &&
+          specialization?.data?.[list].length > 0
+        ) {
+          valuesToSet[
+            `${nearestParentDataPath}.data.${list}.0.fields.chosen.hidden`
+          ] = false;
+        }
+      });
+      console.log("INITIALIZING", valuesToSet);
+      api.setValues(valuesToSet);
+    }
   }
 </script>
 

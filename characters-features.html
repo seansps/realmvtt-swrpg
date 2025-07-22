@@ -1,0 +1,82 @@
+<script>
+  function onDrop(type, recordLink) {
+    if (type === "specializations") {
+      onDropSpecialization(type, recordLink);
+    }
+  }
+
+  function onDropSpecialization(type, recordLink) {
+    const specializationName = recordLink.tooltip;
+    const specializationObj = { ...recordLink.value, icon: "IconBadges" };
+
+    api.addValue("data.specializations", specializationObj, () => {
+      const valuesToSet = {};
+
+      // Mark all career skills
+      const careerSkills = specializationObj?.data?.skills || "";
+      const careerSkillsArray = careerSkills.toLowerCase().split(",");
+      // Filter empty strings and trim whitespace
+      const careerSkillsArrayFiltered = careerSkillsArray
+        .filter((skill) => skill.trim() !== "")
+        .map((skill) => skill.trim());
+      const skills = record?.data?.skills || [];
+      skills.forEach((skill, index) => {
+        if (
+          careerSkillsArrayFiltered.includes(skill.name.toLowerCase().trim())
+        ) {
+          valuesToSet[`data.skills.${index}.data.careerOrMinionSkill`] = true;
+        }
+      });
+
+      if (Object.keys(valuesToSet).length > 0) {
+        api.setValues(valuesToSet);
+      }
+    });
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+  <label
+    variant="bold"
+    size="md"
+    label="Specializations"
+    textalign="center"
+  ></label>
+
+  <label
+    size="sm"
+    label="Click a Specialization's Icon to View the Tree and Add Talents"
+    textalign="center"
+  ></label>
+
+  <list listtype="character_specialization_list" field="specializations"></list>
+
+  <divider></divider>
+  <label variant="bold" size="md" label="Talents" textalign="center"></label>
+
+  <divider></divider>
+
+  <label
+    variant="bold"
+    size="md"
+    label="Species Features"
+    textalign="center"
+  ></label>
+  <list listtype="character_species_details_list" field="species"></list>
+  <label
+    field="speciesDetailsLabel"
+    size="sm"
+    width="100%"
+    variant="unstyled"
+    textalign="center"
+    label="Drag and Drop a Species on the Main Tab"
+  ></label>
+
+  <divider></divider>
+  <label
+    variant="bold"
+    size="md"
+    label="Force Powers"
+    textalign="center"
+  ></label>
+</div>

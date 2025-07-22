@@ -2,7 +2,7 @@
   function onDrop(type, recordLink) {
     if (type === "species") {
       onDropSpecies(type, recordLink);
-    } else if (type === "career") {
+    } else if (type === "careers") {
       onDropCareer(type, recordLink);
     }
   }
@@ -10,7 +10,7 @@
   function onDropSpecies(type, recordLink) {
     const species = record?.data?.species || [];
     const speciesName = recordLink.tooltip;
-    const speciesObj = { ...recordLink.value };
+    const speciesObj = { ...recordLink.value, icon: "IconAlien" };
 
     const setValues = (updatedRecord) => {
       // Set species name, initial characteristics, initial XP
@@ -26,6 +26,7 @@
         "data.willpower": speciesObj?.data?.willpower || 0,
         "data.presence": speciesObj?.data?.presence || 0,
         "data.xp": xpCur,
+        "fields.speciesDetailsLabel.hidden": true,
       };
 
       if (xpSpent === 0 || xpCur === 0) {
@@ -52,7 +53,7 @@
   function onDropCareer(type, recordLink) {
     const careers = record?.data?.careers || [];
     const careerName = recordLink.tooltip;
-    const careerObj = { ...recordLink.value };
+    const careerObj = { ...recordLink.value, icon: "IconBadge" };
 
     // We allow multiple careers, so we just add it to the list
     api.addValue("data.careers", careerObj, () => {
@@ -60,6 +61,22 @@
         "data.careerName": careerName,
         "fields.careers.hidden": false,
       };
+
+      // Mark all career skills
+      const careerSkills = careerObj?.data?.skills || "";
+      const careerSkillsArray = careerSkills.toLowerCase().split(",");
+      // Filter empty strings and trim whitespace
+      const careerSkillsArrayFiltered = careerSkillsArray
+        .filter((skill) => skill.trim() !== "")
+        .map((skill) => skill.trim());
+      const skills = record?.data?.skills || [];
+      skills.forEach((skill, index) => {
+        if (
+          careerSkillsArrayFiltered.includes(skill.name.toLowerCase().trim())
+        ) {
+          valuesToSet[`data.skills.${index}.data.careerOrMinionSkill`] = true;
+        }
+      });
 
       api.setValues(valuesToSet, (updatedRecord) => {
         updateAttributes(updatedRecord, valuesToSet);
@@ -71,6 +88,7 @@
     const valuesToSet = {
       "data.speciesName": "",
       "fields.species.hidden": true,
+      "fields.speciesDetailsLabel.hidden": false,
     };
 
     updateAttributes(record, valuesToSet);

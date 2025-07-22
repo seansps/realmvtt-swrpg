@@ -1,0 +1,31 @@
+<div style="display: flex; flex-direction: column; gap: 4px">
+  <div style="display: flex; flex-direction: row; gap: 4px">
+    <namefield
+      width="100%"
+      size="sm"
+      field="name"
+      variant="unstyled"
+      bold="true"
+      multiline="true"
+      placeholder="Enter short name..."
+    ></namefield>
+  </div>
+  <accordion size="xs" field="descriptionAcc" label="Description">
+    <richtextfield
+      field="description"
+      size="sm"
+      width="100%"
+      placeholder="Enter description..."
+      disablecontrols="true"
+      multiline="true"
+    ></richtextfield>
+  </accordion>
+  <accordion
+    size="xs"
+    field="modifiersAcc"
+    label="Modifiers"
+    hideonlocked="true"
+  >
+    <list listtype="modifier_list" field="modifiers"></list>
+  </accordion>
+</div>

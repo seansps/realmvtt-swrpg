@@ -270,16 +270,6 @@ function getEffectsAndModifiersForToken(
     ? target?.data?.inventory
     : [];
 
-  // Get all career features
-  const careers = target?.data?.careers || [];
-  const careerFeatures = [];
-  careers.forEach((c) => {
-    const features = c.data?.features || [];
-    features.forEach((feature) => {
-      careerFeatures.push(feature);
-    });
-  });
-
   // Get all species features
   const species = target?.data?.species || [];
   const speciesFeatures = [];
@@ -326,7 +316,6 @@ function getEffectsAndModifiersForToken(
   [
     ...speciesFeatures,
     ...talentFeatures,
-    ...careerFeatures,
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,
