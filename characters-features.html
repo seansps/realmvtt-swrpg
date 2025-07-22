@@ -7,7 +7,7 @@
 
   function onDropSpecialization(type, recordLink) {
     const specializationName = recordLink.tooltip;
-    const specializationObj = { ...recordLink.value, icon: "IconBadges" };
+    const specializationObj = { ...recordLink.value, icon: "IconStars" };
 
     api.addValue("data.specializations", specializationObj, () => {
       const valuesToSet = {};
