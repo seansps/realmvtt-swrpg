@@ -1,0 +1,64 @@
+<script>
+  function toggleChosen(value) {
+    // TODO add/remove talent to talents list and recalc attribs
+    console.log(value);
+  }
+</script>
+
+<!-- This 'list' represents one talent slot in a Spec Tree -->
+<div style="display: flex; gap: 4px">
+  <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
+    <portrait width="34px" height="34px" field="portrait"></portrait>
+  </div>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      field="ranked"
+      variant="default"
+      disablediflocked="true"
+      size="sm"
+      options='[{"label": "Ranked", "value": "Yes", "icon": "IconBadges"}, 
+  {"label": "Unranked", "value": "No", "icon": "IconArrowBadgeDown"}]'
+    ></iconbutton>
+    <iconbutton
+      hidden="true"
+      field="chosen"
+      variant="outline"
+      color="primary"
+      onchange="toggleChosen(value);"
+      size="sm"
+      options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"}, 
+{"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'
+    ></iconbutton>
+  </div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+  <namefield
+    width="100%"
+    field="namefield"
+    variant="tooltip-underline"
+    label="Name"
+    placeholder="Enter Name..."
+  ></namefield>
+  <stringfield
+    width="100%"
+    field="activation"
+    label="Activation"
+    variant="tooltip-underline"
+    placeholder="Activation..."
+  ></stringfield>
+</div>
+<accordion
+  width="100%"
+  field="talentAccordion"
+  label="Description"
+  size="xs"
+  variant="separated"
+>
+  <richtextfield
+    width="100%"
+    field="description"
+    label="Description"
+    placeholder="Enter Description..."
+    disablecontrols="true"
+  ></richtextfield>
+</accordion>
