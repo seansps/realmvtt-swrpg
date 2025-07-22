@@ -421,19 +421,22 @@ function updateAttribute({
 
   // Recalculate derived attributes based on which attribute changed
   if (attribute === "brawn") {
-    // Update Wound Threshold: species base + brawn
-    const species = record?.data?.species?.[0];
-    const speciesWoundThreshold = species?.data?.woundThreshold || 10;
-    const woundThreshold = speciesWoundThreshold + parseInt(value || "0", 10);
-    valuesToSet["data.woundThreshold"] = woundThreshold;
+    // Only set wound threshold if it's undefined (first time)
+    if (record?.data?.woundThreshold === undefined) {
+      const species = record?.data?.species?.[0];
+      const speciesWoundThreshold = species?.data?.woundThreshold || 10;
+      const woundThreshold = speciesWoundThreshold + parseInt(value || "0", 10);
+      valuesToSet["data.woundThreshold"] = woundThreshold;
+    }
 
-    // Update Soak Value: brawn + armor soak
+    // Update Soak Value: brawn + armor soak (always updates)
     const armorSoak = parseInt(record?.data?.armorSoak || "0", 10);
     const soakValue = parseInt(value || "0", 10) + armorSoak;
     valuesToSet["data.soakValue"] = soakValue;
 
-    // Update wounds remaining with new threshold
+    // Update wounds remaining with current threshold
     const currentWounds = parseInt(record?.data?.wounds || "0", 10);
+    const woundThreshold = parseInt(record?.data?.woundThreshold || "0", 10);
     valuesToSet["data.woundsRemaining"] = Math.max(
       0,
       woundThreshold - currentWounds
@@ -441,14 +444,18 @@ function updateAttribute({
   }
 
   if (attribute === "willpower") {
-    // Update Strain Threshold: species base + willpower
-    const species = record?.data?.species?.[0];
-    const speciesStrainThreshold = species?.data?.strainThreshold || 10;
-    const strainThreshold = speciesStrainThreshold + parseInt(value || "0", 10);
-    valuesToSet["data.strainThreshold"] = strainThreshold;
+    // Only set strain threshold if it's undefined (first time)
+    if (record?.data?.strainThreshold === undefined) {
+      const species = record?.data?.species?.[0];
+      const speciesStrainThreshold = species?.data?.strainThreshold || 10;
+      const strainThreshold =
+        speciesStrainThreshold + parseInt(value || "0", 10);
+      valuesToSet["data.strainThreshold"] = strainThreshold;
+    }
 
-    // Update strain remaining with new threshold
+    // Update strain remaining with current threshold
     const currentStrain = parseInt(record?.data?.strain || "0", 10);
+    const strainThreshold = parseInt(record?.data?.strainThreshold || "0", 10);
     valuesToSet["data.strainRemaining"] = Math.max(
       0,
       strainThreshold - currentStrain
