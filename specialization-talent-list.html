@@ -5,38 +5,97 @@
     const dataPathToTalent = dataPath.replace("data.chosen", "");
     const talent = api.getValue(dataPathToTalent);
 
+    const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
+
+    const talentIdToUse = rankedTalent
+      ? talent._id
+      : `${talent._id}-${dataPathToTalent}`;
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
     if (value === "yes") {
       // Add talent to talents list and add cost to spent xp
-      api.addValue(
-        "data.talents",
-        {
-          ...talent,
-          // TODO check if it's ranked and if so update rank of existting
-          // ELSE add datapath to id
-          // Add the datapath to ensure we can add duplicates
-          _id: `${talent._id}-${dataPathToTalent}`,
-          icon: "IconStar",
-        },
-        (recordUpdated) => {
-          const valuesToSet = {
-            [`${dataPathToTalent}.data.xpSpent`]:
-              (talent.data?.cost || 0) + (recordUpdated.data.xpSpent || 0),
-          };
-          api.setValues(valuesToSet);
-        }
-      );
+      if (existingTalentIndex !== -1) {
+        // Update the rank
+        api.setValues(
+          {
+            [`data.talents.${existingTalentIndex}.data.rank`]:
+              (existingTalent?.data?.rank || 0) + 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else {
+        // Add it to the talents list
+        const newTalents = [
+          ...talents,
+          {
+            ...talent,
+            _id: talentIdToUse,
+            data: {
+              ...talent.data,
+              rank: 1,
+            },
+            icon: "IconStar",
+          },
+        ];
+        api.setValues(
+          {
+            [`data.talents`]: newTalents,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
     } else {
       // Remove talent from talents list and subtract cost from spent xp
-      const indexToTalent = talents.findIndex(
-        (t) => t._id === `${talent._id}-${dataPathToTalent}`
-      );
-      api.removeValue("data.talents", indexToTalent, (recordUpdated) => {
-        const valuesToSet = {
-          [`${dataPathToTalent}.data.xpSpent`]:
-            (recordUpdated.data.xpSpent || 0) - (talent.data?.cost || 0),
-        };
-        api.setValues(valuesToSet);
-      });
+      if (
+        existingTalentIndex !== -1 &&
+        existingTalent?.data?.rank &&
+        existingTalent?.data?.rank > 1
+      ) {
+        // We are deducting a rank
+        api.setValues(
+          {
+            [`data.talents.${existingTalentIndex}.data.rank`]:
+              existingTalent?.data?.rank - 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else if (existingTalentIndex !== -1) {
+        // We are removing the talent
+        api.removeValue(
+          "data.talents",
+          existingTalentIndex,
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
     }
   }
 </script>
