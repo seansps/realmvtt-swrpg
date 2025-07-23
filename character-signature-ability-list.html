@@ -2,28 +2,29 @@
   <div
     style="display: flex; flex-direction: row; gap: 4px; align-items: center"
   >
-    <div style="width: 42px; height: 42px; min-height: 42px; min-width: 42px">
-      <portrait width="42px" height="42px" field="portrait"></portrait>
+    <div style="width: 30px; height: 30px; min-height: 30px; min-width: 30px">
+      <portrait width="30px" height="30px" field="portrait"></portrait>
     </div>
     <namefield
       field="name"
-      size="md"
+      size="sm"
       width="100%"
       variant="unstyled"
       bold="true"
-      placeholder="Specialization Name..."
+      placeholder="Signature Ability Name..."
     ></namefield>
   </div>
   <label
-    field="signatureAbilityLabel"
+    field="upgradesLabel"
     size="sm"
     variant="bold"
     textalign="center"
-    label="Signature Ability"
+    label="Upgrades"
   ></label>
   <list
-    field="signatureAbility"
-    listtype="character_signature_ability_list"
-    variant="striped"
+    field="talents"
+    listtype="character_talents_list"
+    variant="outline"
+    size="xs"
   ></list>
 </div>

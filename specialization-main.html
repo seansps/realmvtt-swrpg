@@ -36,6 +36,7 @@
       ];
       const valuesToSet = {
         [`${nearestParentDataPath}.data.initalized`]: true,
+        [`${nearestParentDataPath}.fields.signatureAbility.hidden`]: false,
       };
       listsToCheck.forEach((list) => {
         if (
@@ -73,6 +74,60 @@
         [`${dataPath}.0.data.cost`]: cost,
       });
     }
+  }
+
+  function onDrop(type, recordLink) {
+    // If the signature ability is dropped, we add it
+    if (type === "signature_abilities") {
+      onDropSignatureAbility(recordLink);
+    }
+  }
+
+  function onDropSignatureAbility(recordLink) {
+    // Get the signature ability
+    const signatureAbilityObj = {
+      ...recordLink.value,
+      icon: "IconMichelinStar",
+    };
+
+    // If on a character, we add it to the signature ability list and add the cost to the spent xp
+    if (record.recordType === "characters") {
+      // If the signature ability is changed, we need to deduct the cost from the spent xp
+      // Requery character to get latest spent xp
+      const recordId = record._id;
+      api.getRecord("characters", recordId, (recordUpdated) => {
+        api.addValue(
+          `${dataPath}.signatureAbility`,
+          signatureAbilityObj,
+          (recordUpdated2) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (signatureAbilityObj.data?.cost || 0) +
+                (recordUpdated.data.spentXp || 0),
+              [`${dataPath}.oldCost`]: signatureAbilityObj.data?.cost || 0,
+            };
+
+            api.setValues(valuesToSet);
+          }
+        );
+      });
+    }
+  }
+
+  function onSignatureAbilityChange() {
+    // If the signature ability is changed, we need to deduct the cost from the spent xp
+    // Requery character to get latest spent xp
+    const recordId = record._id;
+    api.getRecord("characters", recordId, (recordUpdated) => {
+      const dataPathToSpecialization = getNearestParentDataPath(dataPath);
+      const specialization = api.getValue(dataPathToSpecialization);
+      const valuesToSet = {
+        [`data.spentXp`]:
+          (recordUpdated.data.spentXp || 0) -
+          (specialization.data.oldCost || 0),
+      };
+      api.setValues(valuesToSet);
+    });
   }
 </script>
 
@@ -870,3 +925,11 @@
     </div>
   </div>
 </div>
+
+<!-- List here for signature ability, only allowing 1, and only shown if on a character -->
+<list
+  field="signatureAbility"
+  hidden="true"
+  listtype="specialization_signature_ability_list"
+  onchange="onSignatureAbilityChange();"
+></list>
