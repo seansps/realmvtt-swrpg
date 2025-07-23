@@ -1,5 +1,14 @@
 <script>
   function toggleChosen(value) {
+    // If this is on spec tree, call toggleChosenSpecTalent
+    if (dataPath.includes("data.specializations")) {
+      toggleChosenSpecTalent(value);
+    } else if (dataPath.includes("data.signatureabilities")) {
+      toggleChosenSignatureAbility(value);
+    }
+  }
+
+  function toggleChosenSpecTalent(value) {
     // TODO add/remove talent to talents list and recalc attribs
     const talents = record.data.talents || [];
     const dataPathToTalent = dataPath.replace("data.chosen", "");
@@ -96,6 +105,26 @@
           }
         );
       }
+    }
+  }
+
+  function toggleChosenSignatureAbility(value) {
+    // For signature abilities, we simple add/remove the XP cost
+    const dataPathToSignatureAbility = dataPath.replace("data.chosen", "");
+    const signatureAbility = api.getValue(dataPathToSignatureAbility);
+
+    if (value === "yes") {
+      // Add the XP cost to the spent xp
+      api.setValues({
+        [`data.spentXp`]:
+          (signatureAbility.data?.cost || 0) + (record.data.spentXp || 0),
+      });
+    } else {
+      // Subtract the XP cost from the spent xp
+      api.setValues({
+        [`data.spentXp`]:
+          (record.data.spentXp || 0) - (signatureAbility.data?.cost || 0),
+      });
     }
   }
 </script>

@@ -1,0 +1,537 @@
+<script>
+  function onLoad() {
+    const recordType = record.recordType;
+    let nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const specialization = api.getValue(nearestParentDataPath);
+
+    if (!specialization) {
+      return;
+    }
+
+    const initalized = specialization?.data?.initalized || false;
+
+    if (recordType === "characters" && !initalized) {
+      // Check if any talent buttons are hidden
+      const listsToCheck = [
+        "talent1_1",
+        "talent1_2",
+        "talent1_3",
+        "talent1_4",
+        "talent2_1",
+        "talent2_2",
+        "talent2_3",
+        "talent2_4",
+      ];
+      const valuesToSet = {
+        [`${nearestParentDataPath}.data.initalized`]: true,
+      };
+      listsToCheck.forEach((list) => {
+        if (
+          specialization?.data?.[list] &&
+          specialization?.data?.[list].length > 0
+        ) {
+          valuesToSet[
+            `${nearestParentDataPath}.data.${list}.0.fields.chosen.hidden`
+          ] = false;
+        }
+      });
+      api.setValues(valuesToSet);
+    }
+  }
+
+  function onTalentChange() {
+    // Dynamically set initial cost
+    const talents = api.getValue(dataPath);
+
+    if (talents && talents.length > 0) {
+      let cost = 10;
+      if (dataPath.includes("talent1")) {
+        cost = 10;
+      } else if (dataPath.includes("talent2")) {
+        cost = 15;
+      }
+
+      api.setValues({
+        [`${dataPath}.0.data.cost`]: cost,
+      });
+    }
+  }
+</script>
+
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 4px;
+  "
+>
+  <div style="display: flex; gap: 4px; width: 100%">
+    <div style="width: 60px; height: 60px; min-height: 60px; min-width: 60px">
+      <portrait width="60px" height="60px" field="portrait"></portrait>
+    </div>
+    <div style="display: flex; flex-direction: row; gap: 4px; width: 400px">
+      <stringfield
+        onload="onLoad();"
+        width="100%"
+        field="career"
+        label="Career"
+        placeholder="Enter Required Career..."
+      ></stringfield>
+      <numberfield
+        width="100%"
+        field="cost"
+        label="Cost"
+        placeholder="Enter Cost..."
+      ></numberfield>
+    </div>
+  </div>
+
+  <label
+    variant="bold"
+    size="md"
+    textalign="center"
+    label="Ability and Talents"
+  ></label>
+
+  <!-- Connectors to Spec Tree -->
+  <div
+    style="
+      display: flex;
+      gap: 36px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        width: 250px;
+      "
+    >
+      <iconbutton
+        field="connector0_1"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+      ></iconbutton>
+    </div>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        width: 250px;
+      "
+    >
+      <iconbutton
+        field="connector0_2"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+      ></iconbutton>
+    </div>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        width: 250px;
+      "
+    >
+      <iconbutton
+        field="connector0_3"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+      ></iconbutton>
+    </div>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        width: 250px;
+      "
+    >
+      <iconbutton
+        field="connector0_4"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+      ></iconbutton>
+    </div>
+  </div>
+
+  <!-- Skill and Difficulty -->
+  <div style="margin-top: 8px">
+    <div style="display: flex; gap: 4px; width: 100%">
+      <dropdown
+        width="100%"
+        field="skill"
+        label="Skill"
+        placeholder="Select Skill to Roll if Applicable..."
+        options='[{"label": "None", "value": "None"}, {"label": "Astrogation", "value": "Astrogation"}, {"label": "Athletics", "value": "Athletics"}, {"label": "Brawl", "value": "Brawl"}, {"label": "Charm", "value": "Charm"}, {"label": "Coercion", "value": "Coercion"}, {"label": "Computers", "value": "Computers"}, {"label": "Cool", "value": "Cool"}, {"label": "Coordination", "value": "Coordination"}, {"label": "Core Worlds", "value": "Core Worlds"}, {"label": "Deception", "value": "Deception"}, {"label": "Discipline", "value": "Discipline"}, {"label": "Education", "value": "Education"}, {"label": "Gunnery", "value": "Gunnery"}, {"label": "Leadership", "value": "Leadership"}, {"label": "Lightsaber", "value": "Lightsaber"}, {"label": "Lore", "value": "Lore"}, {"label": "Mechanics", "value": "Mechanics"}, {"label": "Medicine", "value": "Medicine"}, {"label": "Melee", "value": "Melee"}, {"label": "Negotiation", "value": "Negotiation"}, {"label": "Outer Rim", "value": "Outer Rim"}, {"label": "Perception", "value": "Perception"}, {"label": "Piloting (Planetary)", "value": "Piloting (Planetary)"}, {"label": "Piloting (Space)", "value": "Piloting (Space)"}, {"label": "Ranged (Heavy)", "value": "Ranged (Heavy)"}, {"label": "Ranged (Light)", "value": "Ranged (Light)"}, {"label": "Resilience", "value": "Resilience"}, {"label": "Skulduggery", "value": "Skulduggery"}, {"label": "Stealth", "value": "Stealth"}, {"label": "Streetwise", "value": "Streetwise"}, {"label": "Survival", "value": "Survival"}, {"label": "Underworld", "value": "Underworld"}, {"label": "Vigilance", "value": "Vigilance"}, {"label": "Xenology", "value": "Xenology"}]'
+      ></dropdown>
+      <dropdown
+        width="100%"
+        field="difficulty"
+        label="Difficulty"
+        placeholder="Select Difficulty..."
+        options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
+        {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
+        {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
+      ></dropdown>
+    </div>
+    <label
+      variant="bold"
+      size="sm"
+      textalign="left"
+      label="Description"
+    ></label>
+    <richtextfield
+      width="100%"
+      field="description"
+      label="Description"
+      placeholder="Enter Description..."
+    ></richtextfield>
+  </div>
+
+  <!-- Row 1 - Talents -->
+  <div
+    style="
+      display: flex;
+      gap: 4px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <!-- Talent 1 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <iconbutton
+        field="connector1_1"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+      <list
+        field="talent1_1"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+      <!-- Connection Vertical -->
+      <iconbutton
+        field="connector2_1"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector1_2"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 2 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <iconbutton
+        field="connector1_2"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+      <list
+        field="talent1_2"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+      <!-- Connection Vertical -->
+      <iconbutton
+        field="connector2_2"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector1_3"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 3 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <iconbutton
+        field="connector1_3"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+      <list
+        field="talent1_3"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+      <!-- Connection Vertical -->
+      <iconbutton
+        field="connector2_3"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector1_4"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 4 (no horizontal connector after this) -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <iconbutton
+        field="connector1_4"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+      <list
+        field="talent1_4"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+      <!-- Connection Vertical -->
+      <iconbutton
+        field="connector2_4"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+      ></iconbutton>
+    </div>
+  </div>
+
+  <!-- Row 2 - Talents -->
+  <div
+    style="
+      display: flex;
+      gap: 4px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <!-- Talent 1 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <list
+        field="talent2_1"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector2_2"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 2 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <list
+        field="talent2_2"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector2_3"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 3 -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <list
+        field="talent2_3"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+    </div>
+
+    <!-- Connection Horizontal -->
+    <iconbutton
+      field="h_connector2_4"
+      variant="default"
+      size="md"
+      disablediflocked="true"
+      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+    ></iconbutton>
+
+    <!-- Talent 4 (no horizontal connector after this) -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <list
+        field="talent2_4"
+        size="xs"
+        variant="outline"
+        width="250px"
+        height="200px"
+        listtype="specialization_talent_list"
+        onchange="onTalentChange();"
+      ></list>
+    </div>
+  </div>
+</div>
