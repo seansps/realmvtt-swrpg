@@ -1,0 +1,80 @@
+<script>
+  function rollInit() {
+    rollInitiative(record);
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+  <label size="md" variant="bold" label="Attacks" textalign="center"></label>
+
+  <div
+    style="
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+      align-items: center;
+    "
+  >
+    <label size="xs" variant="bold" label="Initiative Skill:"></label>
+    <dropdown
+      field="initiativeSkill"
+      placeholder="Select Initiative Skill..."
+      disablediflocked="false"
+      defaultvalue="Vigilance"
+      options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
+    ></dropdown>
+
+    <button
+      field="rollInitBtn"
+      size="xs"
+      icon="D20"
+      label="Initiative"
+      variant="outline"
+      onclick="rollInit();"
+    ></button>
+  </div>
+
+  <div
+    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
+  >
+    <list listtype="character_attack_list" variant="striped" field="inventory">
+    </list>
+  </div>
+
+  <label
+    size="md"
+    variant="bold"
+    label="Signature Abilities"
+    textalign="center"
+  ></label>
+
+  <div
+    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
+  >
+    <list
+      listtype="character_signature_ability_actions_list"
+      variant="striped"
+      field="specializations"
+    >
+    </list>
+  </div>
+
+  <label
+    size="md"
+    variant="bold"
+    label="Force Powers"
+    textalign="center"
+  ></label>
+
+  <div
+    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
+  >
+    <list
+      listtype="character_force_power_actions_list"
+      variant="striped"
+      field="specializations"
+    >
+    </list>
+  </div>
+</div>

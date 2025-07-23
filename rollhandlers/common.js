@@ -138,6 +138,129 @@ function checkForReplacements(value, replacements = {}, recordOverride = null) {
   return value;
 }
 
+// Function to parse Star Wars/Genesys dice results
+function parseGenesysResults(diceResults) {
+  let numSuccess = 0;
+  let numAdvantage = 0;
+  let numThreat = 0;
+  let numDespair = 0;
+  let numTriumph = 0;
+  let numFailure = 0;
+
+  diceResults.forEach((die) => {
+    const dieType = die.type.toLowerCase();
+    const dieValue = die.value;
+
+    if (dieType === "ability") {
+      // Ability die (d8)
+      if (dieValue === 1) {
+        // No Op
+      } else if (dieValue === 2 || dieValue === 3) {
+        numSuccess++;
+      } else if (dieValue === 4) {
+        numSuccess += 2;
+      } else if (dieValue === 5 || dieValue === 6) {
+        numAdvantage++;
+      } else if (dieValue === 7) {
+        numSuccess++;
+        numAdvantage++;
+      } else if (dieValue === 8) {
+        numAdvantage += 2;
+      }
+    } else if (dieType === "difficulty") {
+      // Difficulty die (d8)
+      if (dieValue === 1) {
+        // No Op
+      } else if (dieValue === 2) {
+        numFailure++;
+      } else if (dieValue === 3) {
+        numFailure += 2;
+      } else if (dieValue === 4 || dieValue === 5 || dieValue === 6) {
+        numThreat++;
+      } else if (dieValue === 7) {
+        numThreat += 2;
+      } else if (dieValue === 8) {
+        numFailure++;
+        numThreat++;
+      }
+    } else if (dieType === "proficiency") {
+      // Proficiency die (d12)
+      if (dieValue === 1) {
+        // No Op
+      } else if (dieValue === 2 || dieValue === 3) {
+        numSuccess++;
+      } else if (dieValue === 4 || dieValue === 5) {
+        numSuccess += 2;
+      } else if (dieValue === 6) {
+        numAdvantage++;
+      } else if (dieValue === 7 || dieValue === 8 || dieValue === 9) {
+        numSuccess++;
+        numAdvantage++;
+      } else if (dieValue === 10 || dieValue === 11) {
+        numAdvantage += 2;
+      } else if (dieValue === 12) {
+        numTriumph++;
+      }
+    } else if (dieType === "challenge") {
+      // Challenge die (d12)
+      if (dieValue === 1) {
+        // No Op
+      } else if (dieValue === 2 || dieValue === 3) {
+        numFailure++;
+      } else if (dieValue === 4 || dieValue === 5) {
+        numFailure += 2;
+      } else if (dieValue === 6 || dieValue === 7) {
+        numThreat++;
+      } else if (dieValue === 8 || dieValue === 9) {
+        numFailure++;
+        numThreat++;
+      } else if (dieValue === 10 || dieValue === 11) {
+        numThreat += 2;
+      } else if (dieValue === 12) {
+        numDespair++;
+      }
+    } else if (dieType === "boost") {
+      // Boost die (d6)
+      if (dieValue === 1 || dieValue === 2) {
+        // No Op
+      } else if (dieValue === 3) {
+        numSuccess++;
+      } else if (dieValue === 4) {
+        numSuccess++;
+        numAdvantage++;
+      } else if (dieValue === 5) {
+        numAdvantage += 2;
+      } else if (dieValue === 6) {
+        numAdvantage++;
+      }
+    } else if (dieType === "setback") {
+      // Setback die (d6)
+      if (dieValue === 1 || dieValue === 2) {
+        // No Op
+      } else if (dieValue === 3 || dieValue === 4) {
+        numFailure++;
+      } else if (dieValue === 5 || dieValue === 6) {
+        numThreat++;
+      }
+    }
+  });
+
+  // Cancel out failures/threats with successes/advantages
+  const finalSuccesses = numSuccess + numTriumph - numFailure - numDespair;
+  const finalAdvantages = numAdvantage - numThreat;
+
+  return {
+    successes: finalSuccesses,
+    advantages: finalAdvantages,
+    rawSuccesses: numSuccess,
+    rawAdvantages: numAdvantage,
+    rawFailures: numFailure,
+    rawThreats: numThreat,
+    triumphs: numTriumph,
+    despairs: numDespair,
+  };
+}
+
 // Collects all modifiers from effects and features for a token or record
 function getEffectsAndModifiersForToken(
   target,
@@ -663,7 +786,7 @@ function rollCheck(attribute) {
   );
 }
 
-function rollSkill(record, skill) {
+function rollSkill(record, skill, additionalMetadata = {}) {
   const attributeValue = parseInt(
     record?.data?.[skill.data?.stat || "brawn"] || "0",
     10
@@ -703,10 +826,12 @@ function rollSkill(record, skill) {
 
   const metadata = {
     rollName: `${skill.name}`,
+    rollType: "skill",
     tooltip: `${skill.name} Skill Check Roll`,
     characteristic: attributeValue,
     skillRank: skillRank,
     attributeName: skill.data?.stat || "Brawn",
+    ...additionalMetadata,
   };
 
   const modifiers = getEffectsAndModifiersForToken(
@@ -721,6 +846,30 @@ function rollSkill(record, skill) {
     diceString,
     modifiers,
     metadata,
-    "skill"
+    metadata.rollType
   );
+}
+
+function rollInitiative(record) {
+  const initiativeSkill = record?.data?.initiativeSkill || "Vigilance";
+
+  // Get the spell by path to ensure most up-to-date value
+  const skills = record?.data?.skills || [];
+  const skill = skills.find((skill) => skill.name === initiativeSkill);
+
+  if (!skill) {
+    api.showNotification(
+      `No skill found for ${initiativeSkill}. Please add the Skills in their sheet.`,
+      "red",
+      "Skill Not Found"
+    );
+    return;
+  }
+
+  rollSkill(record, skill, {
+    rollName: "Initiative",
+    tooltip: `Initiative Roll with ${record?.data?.initiativeSkill}`,
+    rollType: "initiative",
+    characteristic: initiativeSkill,
+  });
 }
