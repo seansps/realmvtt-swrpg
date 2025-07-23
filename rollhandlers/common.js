@@ -282,13 +282,6 @@ function getEffectsAndModifiersForToken(
 
   // Get all talents
   const talents = target?.data?.talents || [];
-  const talentFeatures = [];
-  talents.forEach((t) => {
-    const features = t.data?.features || [];
-    features.forEach((feature) => {
-      talentFeatures.push(feature);
-    });
-  });
 
   // NPCs get features
   const npcFeatures = target?.data?.features || [];
@@ -315,7 +308,7 @@ function getEffectsAndModifiersForToken(
   );
   [
     ...speciesFeatures,
-    ...talentFeatures,
+    ...talents,
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,

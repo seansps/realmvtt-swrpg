@@ -1,7 +1,43 @@
 <script>
   function toggleChosen(value) {
     // TODO add/remove talent to talents list and recalc attribs
-    console.log(value);
+    const talents = record.data.talents || [];
+    const dataPathToTalent = dataPath.replace("data.chosen", "");
+    const talent = api.getValue(dataPathToTalent);
+
+    if (value === "yes") {
+      // Add talent to talents list and add cost to spent xp
+      api.addValue(
+        "data.talents",
+        {
+          ...talent,
+          // TODO check if it's ranked and if so update rank of existting
+          // ELSE add datapath to id
+          // Add the datapath to ensure we can add duplicates
+          _id: `${talent._id}-${dataPathToTalent}`,
+          icon: "IconStar",
+        },
+        (recordUpdated) => {
+          const valuesToSet = {
+            [`${dataPathToTalent}.data.xpSpent`]:
+              (talent.data?.cost || 0) + (recordUpdated.data.xpSpent || 0),
+          };
+          api.setValues(valuesToSet);
+        }
+      );
+    } else {
+      // Remove talent from talents list and subtract cost from spent xp
+      const indexToTalent = talents.findIndex(
+        (t) => t._id === `${talent._id}-${dataPathToTalent}`
+      );
+      api.removeValue("data.talents", indexToTalent, (recordUpdated) => {
+        const valuesToSet = {
+          [`${dataPathToTalent}.data.xpSpent`]:
+            (recordUpdated.data.xpSpent || 0) - (talent.data?.cost || 0),
+        };
+        api.setValues(valuesToSet);
+      });
+    }
   }
 </script>
 
@@ -16,8 +52,8 @@
       variant="default"
       disablediflocked="true"
       size="sm"
-      options='[{"label": "Ranked", "value": "Yes", "icon": "IconBadges"}, 
-  {"label": "Unranked", "value": "No", "icon": "IconArrowBadgeDown"}]'
+      options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"}, 
+  {"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
     ></iconbutton>
     <iconbutton
       hidden="true"
