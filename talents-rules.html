@@ -1,2 +1,28 @@
+<label
+  variant="bold"
+  size="md"
+  textalign="center"
+  label="Settings for Active Talents"
+></label>
+<div style="display: flex; gap: 4px; width: 100%">
+  <dropdown
+    width="100%"
+    field="skill"
+    searchable="true"
+    label="Skill"
+    placeholder="Select Skill to Roll if Applicable..."
+    options='[{"label": "None", "value": "None"}, {"label": "Astrogation", "value": "Astrogation"}, {"label": "Athletics", "value": "Athletics"}, {"label": "Brawl", "value": "Brawl"}, {"label": "Charm", "value": "Charm"}, {"label": "Coercion", "value": "Coercion"}, {"label": "Computers", "value": "Computers"}, {"label": "Cool", "value": "Cool"}, {"label": "Coordination", "value": "Coordination"}, {"label": "Core Worlds", "value": "Core Worlds"}, {"label": "Deception", "value": "Deception"}, {"label": "Discipline", "value": "Discipline"}, {"label": "Education", "value": "Education"}, {"label": "Gunnery", "value": "Gunnery"}, {"label": "Leadership", "value": "Leadership"}, {"label": "Lightsaber", "value": "Lightsaber"}, {"label": "Lore", "value": "Lore"}, {"label": "Mechanics", "value": "Mechanics"}, {"label": "Medicine", "value": "Medicine"}, {"label": "Melee", "value": "Melee"}, {"label": "Negotiation", "value": "Negotiation"}, {"label": "Outer Rim", "value": "Outer Rim"}, {"label": "Perception", "value": "Perception"}, {"label": "Piloting (Planetary)", "value": "Piloting (Planetary)"}, {"label": "Piloting (Space)", "value": "Piloting (Space)"}, {"label": "Ranged (Heavy)", "value": "Ranged (Heavy)"}, {"label": "Ranged (Light)", "value": "Ranged (Light)"}, {"label": "Resilience", "value": "Resilience"}, {"label": "Skulduggery", "value": "Skulduggery"}, {"label": "Stealth", "value": "Stealth"}, {"label": "Streetwise", "value": "Streetwise"}, {"label": "Survival", "value": "Survival"}, {"label": "Underworld", "value": "Underworld"}, {"label": "Vigilance", "value": "Vigilance"}, {"label": "Xenology", "value": "Xenology"}]'
+  ></dropdown>
+  <dropdown
+    width="100%"
+    field="difficulty"
+    label="Difficulty"
+    placeholder="Select Difficulty..."
+    options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
+      {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
+      {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
+  ></dropdown>
+</div>
+
 <label variant="bold" size="md" textalign="center" label="Modifiers"></label>
 <list listtype="modifier_list" field="modifiers"></list>

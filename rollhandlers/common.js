@@ -929,10 +929,13 @@ function useAbility(record, ability) {
 ${abilityDescription}
 `;
 
-  const type =
+  let type =
     ability.recordType === "signature_abilities"
       ? "Signature Ability"
       : "Force Power";
+  if (ability.recordType === "talents") {
+    type = "Active Talent";
+  }
 
   const tags = [
     {

@@ -1,0 +1,297 @@
+<script>
+  function toggleChosen(value) {
+    // If this is on spec tree, call toggleChosenSpecTalent
+    if (dataPath.includes("data.signatureAbility")) {
+      toggleChosenSignatureAbility(value);
+    } else {
+      toggleChosenSpecTalent(value);
+    }
+  }
+
+  function toggleChosenSpecTalent(value) {
+    // TODO add/remove talent to talents list and recalc attribs
+    const talents = record.data.talents || [];
+    const dataPathToTalent = dataPath.replace("data.chosen", "");
+    const talent = api.getValue(dataPathToTalent);
+
+    const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
+
+    const talentIdToUse = rankedTalent
+      ? talent._id
+      : `${talent._id}-${dataPathToTalent}`;
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
+    if (value === "yes") {
+      // Add talent to talents list and add cost to spent xp
+      if (existingTalentIndex !== -1) {
+        // Update the rank
+        api.setValues(
+          {
+            [`data.talents.${existingTalentIndex}.data.rank`]:
+              (existingTalent?.data?.rank || 0) + 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else {
+        // Add it to the talents list
+        const newTalents = [
+          ...talents,
+          {
+            ...talent,
+            _id: talentIdToUse,
+            data: {
+              ...talent.data,
+              rank: 1,
+            },
+            icon: "IconStar",
+          },
+        ];
+        api.setValues(
+          {
+            [`data.talents`]: newTalents,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
+    } else {
+      // Remove talent from talents list and subtract cost from spent xp
+      if (
+        existingTalentIndex !== -1 &&
+        existingTalent?.data?.rank &&
+        existingTalent?.data?.rank > 1
+      ) {
+        // We are deducting a rank
+        api.setValues(
+          {
+            [`data.talents.${existingTalentIndex}.data.rank`]:
+              existingTalent?.data?.rank - 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else if (existingTalentIndex !== -1) {
+        // We are removing the talent
+        api.removeValue(
+          "data.talents",
+          existingTalentIndex,
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
+    }
+  }
+
+  function toggleChosenSignatureAbility(value) {
+    // For signature abilities, we add/remove the XP cost and add the talent to the signature ability's
+    // talent list
+    const dataPathToSignatureAbilityUpdate = dataPath.replace(
+      "data.chosen",
+      ""
+    );
+    const signatureAbilityUpgrade = api.getValue(
+      dataPathToSignatureAbilityUpdate
+    );
+
+    const signatureAbilityDataPath = getNearestParentDataPath(
+      dataPathToSignatureAbilityUpdate
+    );
+    const signatureAbility = api.getValue(signatureAbilityDataPath);
+
+    const rankedTalent =
+      signatureAbilityUpgrade?.data?.ranked === "yes" ? true : false;
+
+    const talentIdToUse = rankedTalent
+      ? signatureAbilityUpgrade._id
+      : `${signatureAbilityUpgrade._id}-${dataPathToSignatureAbilityUpdate}`;
+
+    const talents = signatureAbility.data.talents || [];
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
+    if (value === "yes") {
+      // Add talent to talents list and add cost to spent xp
+      if (existingTalentIndex !== -1) {
+        // Update the rank
+        api.setValues(
+          {
+            [`${signatureAbilityDataPath}.data.talents.${existingTalentIndex}.data.rank`]:
+              (existingTalent?.data?.rank || 0) + 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (signatureAbilityUpgrade.data?.cost || 0) +
+                (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else {
+        // Add it to the talents list
+        const newTalents = [
+          ...talents,
+          {
+            ...signatureAbilityUpgrade,
+            _id: talentIdToUse,
+            data: {
+              ...signatureAbilityUpgrade.data,
+              rank: 1,
+            },
+            icon: "IconStar",
+          },
+        ];
+        api.setValues(
+          {
+            [`${signatureAbilityDataPath}.data.talents`]: newTalents,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (signatureAbilityUpgrade.data?.cost || 0) +
+                (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
+    } else {
+      // Remove talent from talents list and subtract cost from spent xp
+      if (
+        existingTalentIndex !== -1 &&
+        existingTalent?.data?.rank &&
+        existingTalent?.data?.rank > 1
+      ) {
+        // We are deducting a rank
+        api.setValues(
+          {
+            [`${signatureAbilityDataPath}.data.talents.${existingTalentIndex}.data.rank`]:
+              existingTalent?.data?.rank - 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) -
+                (signatureAbilityUpgrade.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else if (existingTalentIndex !== -1) {
+        // We are removing the talent
+        api.removeValue(
+          `${signatureAbilityDataPath}.data.talents`,
+          existingTalentIndex,
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) -
+                (signatureAbilityUpgrade.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
+    }
+  }
+</script>
+
+<!-- This 'list' represents one talent slot in a Spec Tree -->
+<div style="display: flex; gap: 4px">
+  <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
+    <portrait width="34px" height="34px" field="portrait"></portrait>
+  </div>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      field="ranked"
+      variant="default"
+      disablediflocked="true"
+      size="sm"
+      options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"}, 
+  {"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
+    ></iconbutton>
+    <iconbutton
+      hidden="true"
+      field="chosen"
+      variant="outline"
+      color="primary"
+      onchange="toggleChosen(value);"
+      size="sm"
+      options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"}, 
+{"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'
+    ></iconbutton>
+  </div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+  <namefield
+    width="100%"
+    field="namefield"
+    variant="tooltip-underline"
+    label="Name"
+    placeholder="Enter Name..."
+  ></namefield>
+</div>
+<accordion
+  width="100%"
+  field="talentAccordion"
+  label="Description"
+  size="xs"
+  variant="separated"
+>
+  <richtextfield
+    width="100%"
+    field="description"
+    label="Description"
+    placeholder="Enter Description..."
+    disablecontrols="true"
+  ></richtextfield>
+</accordion>
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  "
+>
+  <numberfield
+    width="100px"
+    textalign="center"
+    field="cost"
+    label="Cost"
+    variant="tooltip"
+    hidecontrols="true"
+    placeholder="Enter Cost..."
+  ></numberfield>
+</div>
