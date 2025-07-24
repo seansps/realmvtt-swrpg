@@ -271,7 +271,8 @@ function getEffectsAndModifiersForToken(
   // If Weapon is provided, we also look on it and attachments on it
   weapon = undefined,
   // If Ammo is provided, we also look for modifiers on it
-  ammoItem = undefined
+  ammoItem = undefined,
+  ability = undefined
 ) {
   if (!target) {
     return [];
@@ -425,6 +426,9 @@ function getEffectsAndModifiersForToken(
       weaponId: weapon?._id,
     }));
 
+  // If ability is provided, add any talents from it
+  const abilityTalents = [...(ability?.data?.talents || [])];
+
   // Filter items that are not equipped
   const equippedItems = items.filter(
     (item) => item.data?.carried === "equipped"
@@ -435,6 +439,7 @@ function getEffectsAndModifiersForToken(
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,
+    ...abilityTalents,
     ...(weapon ? [weapon] : []),
     ...(ammoItem ? [ammoItem] : []),
   ].forEach((feature) => {
@@ -786,7 +791,12 @@ function rollCheck(attribute) {
   );
 }
 
-function rollSkill(record, skill, additionalMetadata = {}) {
+function rollSkill(
+  record,
+  skill,
+  additionalMetadata = {},
+  ability = undefined
+) {
   const attributeValue = parseInt(
     record?.data?.[skill.data?.stat || "brawn"] || "0",
     10
@@ -824,6 +834,23 @@ function rollSkill(record, skill, additionalMetadata = {}) {
     diceString = "1ability";
   }
 
+  // If difficulty, add it to the dice string
+  if (additionalMetadata.difficulty) {
+    let difficultyDice = 1;
+    if (additionalMetadata.difficulty === "Easy") {
+      difficultyDice = 1;
+    } else if (additionalMetadata.difficulty === "Average") {
+      difficultyDice = 2;
+    } else if (additionalMetadata.difficulty === "Hard") {
+      difficultyDice = 3;
+    } else if (additionalMetadata.difficulty === "Daunting") {
+      difficultyDice = 4;
+    } else if (additionalMetadata.difficulty === "Formidable") {
+      difficultyDice = 5;
+    }
+    diceString += ` ${difficultyDice}difficulty`;
+  }
+
   const metadata = {
     rollName: `${skill.name}`,
     rollType: "skill",
@@ -834,10 +861,16 @@ function rollSkill(record, skill, additionalMetadata = {}) {
     ...additionalMetadata,
   };
 
+  // Get modifiers for skills and the ability if provided
   const modifiers = getEffectsAndModifiersForToken(
     record,
     ["skillBonus", "skillPenalty"],
-    skill.name
+    skill.name,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    ability
   );
 
   // Star Wars RPG narrative dice system
@@ -872,4 +905,65 @@ function rollInitiative(record) {
     rollType: "initiative",
     characteristic: initiativeSkill,
   });
+}
+
+function useAbility(record, ability) {
+  const abilityName = ability.name;
+  const portrait = ability.portrait;
+  const description = ability.data?.description || "";
+
+  const skillRoll = ability.data?.skill || "";
+  const difficulty = ability.data?.difficulty || "";
+
+  const itemIcon = portrait
+    ? `![${abilityName}](${assetUrl}${portrait}?width=40&height=40) `
+    : "";
+  const abilityDescription = api.richTextToMarkdown(description || "");
+
+  // For abilitiies that don't have a primary skill, we use the ability name as the header
+  // and output the description with the icon
+  const abilityText = `
+#### ${itemIcon}${abilityName}
+
+---
+${abilityDescription}
+`;
+
+  const type =
+    ability.recordType === "signature_abilities"
+      ? "Signature Ability"
+      : "Force Power";
+
+  const tags = [
+    {
+      name: type,
+      tooltip: `${type}: ${abilityName}`,
+    },
+  ];
+
+  api.sendMessage(abilityText, undefined, [], tags);
+
+  // If skillRoll, roll
+  if (skillRoll) {
+    const skills = record?.data?.skills || [];
+    const skill = skills.find((skill) => skill.name === skillRoll);
+
+    if (!skill) {
+      api.showNotification(
+        `No skill found for ${skillRoll}. Please add the Skills in their sheet.`,
+        "red",
+        "Skill Not Found"
+      );
+      return;
+    }
+
+    rollSkill(
+      record,
+      skill,
+      {
+        difficulty: difficulty,
+      },
+      ability
+    );
+  }
 }
