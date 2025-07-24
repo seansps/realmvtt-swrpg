@@ -1,0 +1,131 @@
+<script>
+  function toggleChosen(value) {
+    toggleChosenUpgrade(value);
+  }
+
+  function toggleChosenUpgrade(value) {
+    // For force powers, we add/remove the XP cost and add the talent to the force power's
+    // talent list
+    const dataPathToForcePowerUpdate = dataPath.replace("data.chosen", "");
+    const forcePowerUpgrade = api.getValue(dataPathToForcePowerUpdate);
+
+    const forcePowerDataPath = getNearestParentDataPath(
+      dataPathToForcePowerUpdate
+    );
+    const forcePower = api.getValue(forcePowerDataPath);
+
+    const talentIdToUse = `${forcePowerUpgrade._id}-${dataPathToForcePowerUpdate}`;
+
+    const talents = forcePower.data.talents || [];
+
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
+    if (value === "yes") {
+      // Add talent to talents list and add cost to spent xp
+      const newTalents = [
+        ...talents,
+        {
+          ...forcePowerUpgrade,
+          _id: talentIdToUse,
+          data: {
+            ...forcePowerUpgrade.data,
+            rank: 1,
+          },
+          icon: "IconStar",
+        },
+      ];
+      api.setValues(
+        {
+          [`${forcePowerDataPath}.data.talents`]: newTalents,
+        },
+        (recordUpdated) => {
+          const valuesToSet = {
+            [`data.spentXp`]:
+              (forcePowerUpgrade.data?.cost || 0) +
+              (recordUpdated.data.spentXp || 0),
+          };
+          api.setValues(valuesToSet);
+        }
+      );
+    } else if (existingTalentIndex !== -1) {
+      // Remove talent from talents list and subtract cost from spent xp
+      api.removeValue(
+        `${forcePowerDataPath}.data.talents`,
+        existingTalentIndex,
+        (recordUpdated) => {
+          const valuesToSet = {
+            [`data.spentXp`]:
+              (recordUpdated.data.spentXp || 0) -
+              (forcePowerUpgrade.data?.cost || 0),
+          };
+          api.setValues(valuesToSet);
+        }
+      );
+    }
+  }
+</script>
+
+<!-- This 'list' represents one talent slot in a Force Power -->
+<div style="display: flex; gap: 4px">
+  <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
+    <portrait width="34px" height="34px" field="portrait"></portrait>
+  </div>
+  <div style="display: flex; align-items: center; gap: 4px; width: 100%">
+    <namefield
+      width="100%"
+      field="namefield"
+      variant="tooltip-underline"
+      label="Name"
+      placeholder="Enter Name..."
+    ></namefield>
+  </div>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      hidden="true"
+      field="chosen"
+      variant="outline"
+      color="primary"
+      onchange="toggleChosen(value);"
+      size="sm"
+      options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"}, 
+{"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'
+    ></iconbutton>
+  </div>
+</div>
+<accordion
+  width="100%"
+  field="talentAccordion"
+  label="Description"
+  size="xs"
+  variant="separated"
+>
+  <richtextfield
+    width="100%"
+    field="description"
+    label="Description"
+    placeholder="Enter Description..."
+    disablecontrols="true"
+  ></richtextfield>
+</accordion>
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  "
+>
+  <numberfield
+    width="100px"
+    textalign="center"
+    field="cost"
+    label="Cost"
+    variant="tooltip"
+    hidecontrols="true"
+    placeholder="Enter Cost..."
+  ></numberfield>
+</div>

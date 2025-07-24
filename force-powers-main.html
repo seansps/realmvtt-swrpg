@@ -1,5 +1,6 @@
 <script>
   function onLoad() {
+    // TODO FIX THIS
     const recordType = record.recordType;
     let nearestParentDataPath = getNearestParentDataPath(dataPath);
     const specialization = api.getValue(nearestParentDataPath);
@@ -29,10 +30,6 @@
         "talent4_2",
         "talent4_3",
         "talent4_4",
-        "talent5_1",
-        "talent5_2",
-        "talent5_3",
-        "talent5_4",
       ];
       const valuesToSet = {
         [`${nearestParentDataPath}.data.initalized`]: true,
@@ -52,82 +49,79 @@
     }
   }
 
-  function onTalentChange() {
-    // Dynamically set initial cost
-    const talents = api.getValue(dataPath);
+  function onHideTalentChange(value, talentList) {
+    const valuesToShow = [];
+    const valuesToHide = [];
 
-    if (talents && talents.length > 0) {
-      let cost = 5;
-      if (dataPath.includes("talent1")) {
-        cost = 5;
-      } else if (dataPath.includes("talent2")) {
-        cost = 10;
-      } else if (dataPath.includes("talent3")) {
-        cost = 15;
-      } else if (dataPath.includes("talent4")) {
-        cost = 20;
-      } else if (dataPath.includes("talent5")) {
-        cost = 25;
+    if (value === "Yes") {
+      valuesToHide.push(talentList);
+
+      // If we're hiding a talent, we need to also hide the horizontal connector to its left
+      if (talentList === "talent1_2") {
+        valuesToHide.push("h_connector1_2");
+      } else if (talentList === "talent1_3") {
+        valuesToHide.push("h_connector1_3");
+      } else if (talentList === "talent1_4") {
+        valuesToHide.push("h_connector1_4");
+      } else if (talentList === "talent2_2") {
+        valuesToHide.push("h_connector2_2");
+      } else if (talentList === "talent2_3") {
+        valuesToHide.push("h_connector2_3");
+      } else if (talentList === "talent2_4") {
+        valuesToHide.push("h_connector2_4");
+      } else if (talentList === "talent3_2") {
+        valuesToHide.push("h_connector3_2");
+      } else if (talentList === "talent3_3") {
+        valuesToHide.push("h_connector3_3");
+      } else if (talentList === "talent3_4") {
+        valuesToHide.push("h_connector3_4");
+      } else if (talentList === "talent4_2") {
+        valuesToHide.push("h_connector4_2");
+      } else if (talentList === "talent4_3") {
+        valuesToHide.push("h_connector4_3");
+      } else if (talentList === "talent4_4") {
+        valuesToHide.push("h_connector4_4");
       }
+    } else {
+      valuesToShow.push(talentList);
 
-      api.setValues({
-        [`${dataPath}.0.data.cost`]: cost,
+      // If we're showing a talent, we need to also show the horizontal connector to its left
+      if (talentList === "talent1_2") {
+        valuesToShow.push("h_connector1_2");
+      } else if (talentList === "talent1_3") {
+        valuesToShow.push("h_connector1_3");
+      } else if (talentList === "talent1_4") {
+        valuesToShow.push("h_connector1_4");
+      } else if (talentList === "talent2_2") {
+        valuesToShow.push("h_connector2_2");
+      } else if (talentList === "talent2_3") {
+        valuesToShow.push("h_connector2_3");
+      } else if (talentList === "talent2_4") {
+        valuesToShow.push("h_connector2_4");
+      } else if (talentList === "talent3_2") {
+        valuesToShow.push("h_connector3_2");
+      } else if (talentList === "talent3_3") {
+        valuesToShow.push("h_connector3_3");
+      } else if (talentList === "talent3_4") {
+        valuesToShow.push("h_connector3_4");
+      } else if (talentList === "talent4_2") {
+        valuesToShow.push("h_connector4_2");
+      } else if (talentList === "talent4_3") {
+        valuesToShow.push("h_connector4_3");
+      } else if (talentList === "talent4_4") {
+        valuesToShow.push("h_connector4_4");
+      }
+    }
+
+    if (valuesToHide.length > 0) {
+      api.setHidden(valuesToHide, true, () => {
+        if (valuesToShow.length > 0) {
+          api.setHidden(valuesToShow, false);
+        }
       });
+    } else if (valuesToShow.length > 0) {
+      api.setHidden(valuesToShow, false);
     }
-  }
-
-  function onDrop(type, recordLink) {
-    // If the signature ability is dropped, we add it
-    if (type === "signature_abilities") {
-      onDropSignatureAbility(recordLink);
-    }
-  }
-
-  function onDropSignatureAbility(recordLink) {
-    // Get the signature ability
-    const signatureAbilityObj = {
-      ...recordLink.value,
-      icon: "IconMichelinStar",
-    };
-
-    // If on a character, we add it to the signature ability list and add the cost to the spent xp
-    if (record.recordType === "characters") {
-      // If the signature ability is changed, we need to deduct the cost from the spent xp
-      // Requery character to get latest spent xp
-      const recordId = record._id;
-      api.getRecord("characters", recordId, (recordUpdated) => {
-        api.addValue(
-          `${dataPath}.signatureAbility`,
-          signatureAbilityObj,
-          (recordUpdated2) => {
-            const valuesToSet = {
-              [`data.spentXp`]:
-                (signatureAbilityObj.data?.cost || 0) +
-                (recordUpdated.data.spentXp || 0),
-              [`${dataPath}.oldCost`]: signatureAbilityObj.data?.cost || 0,
-            };
-
-            api.setValues(valuesToSet);
-          }
-        );
-      });
-    }
-  }
-
-  function onSignatureAbilityChange() {
-    // If the signature ability is changed, we need to deduct the cost from the spent xp
-    // Requery character to get latest spent xp
-    const recordId = record._id;
-    api.getRecord("characters", recordId, (recordUpdated) => {
-      const dataPathToSpecialization = getNearestParentDataPath(dataPath);
-      const specialization = api.getValue(dataPathToSpecialization);
-      const valuesToSet = {
-        [`data.spentXp`]:
-          (recordUpdated.data.spentXp || 0) -
-          (specialization.data.oldCost || 0),
-      };
-      api.setValues(valuesToSet);
-    });
   }
 </script>
 
@@ -205,15 +199,17 @@
         options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
       ></iconbutton>
-      <list
-        field="talent1_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
-      ></list>
+      <div style="position: relative">
+        <list
+          field="talent1_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <!-- The first FP upgrade option cannot be hidden -->
+      </div>
       <!-- Connection Vertical -->
       <iconbutton
         field="connector2_1"
@@ -245,32 +241,58 @@
         align-items: center;
       "
     >
-      <iconbutton
-        field="connector1_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector1_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide1_2"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent1_2');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                    {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
       <list
         field="talent1_2"
         size="xs"
+        hidden="false"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector2_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide2_2"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent2_2');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                  {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -293,32 +315,57 @@
         align-items: center;
       "
     >
-      <iconbutton
-        field="connector1_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector1_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide1_3"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent1_3');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
       <list
         field="talent1_3"
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector2_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide2_3"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent2_3');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -341,32 +388,57 @@
         align-items: center;
       "
     >
-      <iconbutton
-        field="connector1_4"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector1_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide1_4"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent1_4');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
       <list
         field="talent1_4"
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_4"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector2_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide2_4"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent2_4');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
   </div>
 
@@ -395,9 +467,8 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
       <iconbutton
@@ -435,19 +506,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector3_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector3_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide3_2"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent3_2');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -475,19 +558,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector3_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector3_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide3_3"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent3_3');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -515,19 +610,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector3_4"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector3_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide3_4"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent3_4');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
   </div>
 
@@ -556,9 +663,8 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
       <iconbutton
@@ -596,19 +702,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector4_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector4_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide4_2"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent4_2');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -636,19 +754,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector4_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector4_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide4_3"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent4_3');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
@@ -676,19 +806,31 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector4_4"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="display: flex; gap: 4px; align-items: center">
+        <iconbutton
+          field="connector4_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+        <!-- Hide button -->
+        <iconbutton
+          field="hide4_4"
+          hideonlocked="true"
+          onchange="onHideTalentChange(value, 'talent4_4');"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+        ></iconbutton>
+      </div>
     </div>
   </div>
 
@@ -717,9 +859,8 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
     </div>
 
@@ -748,9 +889,8 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
     </div>
 
@@ -779,9 +919,8 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
     </div>
 
@@ -810,18 +949,9 @@
         size="xs"
         variant="outline"
         width="250px"
-        height="200px"
-        listtype="specialization_talent_list"
-        onchange="onTalentChange();"
+        height="150px"
+        listtype="force_power_talent_list"
       ></list>
     </div>
   </div>
 </div>
-
-<!-- List here for signature ability, only allowing 1, and only shown if on a character -->
-<list
-  field="signatureAbility"
-  hidden="true"
-  listtype="specialization_signature_ability_list"
-  onchange="onSignatureAbilityChange();"
-></list>
