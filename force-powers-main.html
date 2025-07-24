@@ -59,28 +59,40 @@
       // If we're hiding a talent, we need to also hide the horizontal connector to its left
       if (talentList === "talent1_2") {
         valuesToHide.push("h_connector1_2");
+        valuesToShow.push("no_talent1_2");
       } else if (talentList === "talent1_3") {
         valuesToHide.push("h_connector1_3");
+        valuesToShow.push("no_talent1_3");
       } else if (talentList === "talent1_4") {
         valuesToHide.push("h_connector1_4");
+        valuesToShow.push("no_talent1_4");
       } else if (talentList === "talent2_2") {
         valuesToHide.push("h_connector2_2");
+        valuesToShow.push("no_talent2_2");
       } else if (talentList === "talent2_3") {
         valuesToHide.push("h_connector2_3");
+        valuesToShow.push("no_talent2_3");
       } else if (talentList === "talent2_4") {
         valuesToHide.push("h_connector2_4");
+        valuesToShow.push("no_talent2_4");
       } else if (talentList === "talent3_2") {
         valuesToHide.push("h_connector3_2");
+        valuesToShow.push("no_talent3_2");
       } else if (talentList === "talent3_3") {
         valuesToHide.push("h_connector3_3");
+        valuesToShow.push("no_talent3_3");
       } else if (talentList === "talent3_4") {
         valuesToHide.push("h_connector3_4");
+        valuesToShow.push("no_talent3_4");
       } else if (talentList === "talent4_2") {
         valuesToHide.push("h_connector4_2");
+        valuesToShow.push("no_talent4_2");
       } else if (talentList === "talent4_3") {
         valuesToHide.push("h_connector4_3");
+        valuesToShow.push("no_talent4_3");
       } else if (talentList === "talent4_4") {
         valuesToHide.push("h_connector4_4");
+        valuesToShow.push("no_talent4_4");
       }
     } else {
       valuesToShow.push(talentList);
@@ -88,28 +100,40 @@
       // If we're showing a talent, we need to also show the horizontal connector to its left
       if (talentList === "talent1_2") {
         valuesToShow.push("h_connector1_2");
+        valuesToHide.push("no_talent1_2");
       } else if (talentList === "talent1_3") {
         valuesToShow.push("h_connector1_3");
+        valuesToHide.push("no_talent1_3");
       } else if (talentList === "talent1_4") {
         valuesToShow.push("h_connector1_4");
+        valuesToHide.push("no_talent1_4");
       } else if (talentList === "talent2_2") {
         valuesToShow.push("h_connector2_2");
+        valuesToHide.push("no_talent2_2");
       } else if (talentList === "talent2_3") {
         valuesToShow.push("h_connector2_3");
+        valuesToHide.push("no_talent2_3");
       } else if (talentList === "talent2_4") {
         valuesToShow.push("h_connector2_4");
+        valuesToHide.push("no_talent2_4");
       } else if (talentList === "talent3_2") {
         valuesToShow.push("h_connector3_2");
+        valuesToHide.push("no_talent3_2");
       } else if (talentList === "talent3_3") {
         valuesToShow.push("h_connector3_3");
+        valuesToHide.push("no_talent3_3");
       } else if (talentList === "talent3_4") {
         valuesToShow.push("h_connector3_4");
+        valuesToHide.push("no_talent3_4");
       } else if (talentList === "talent4_2") {
         valuesToShow.push("h_connector4_2");
+        valuesToHide.push("no_talent4_2");
       } else if (talentList === "talent4_3") {
         valuesToShow.push("h_connector4_3");
+        valuesToHide.push("no_talent4_3");
       } else if (talentList === "talent4_4") {
         valuesToShow.push("h_connector4_4");
+        valuesToHide.push("no_talent4_4");
       }
     }
 
@@ -271,6 +295,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent1_2"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -344,6 +386,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent1_3"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -417,6 +477,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent1_4"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -509,6 +587,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent2_2"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -561,6 +657,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent2_3"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -613,6 +727,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent2_4"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -705,6 +837,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent3_2"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -757,6 +907,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent3_3"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -809,6 +977,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent3_4"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
         <iconbutton
@@ -892,6 +1078,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent4_2"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
     </div>
 
     <!-- Connection Horizontal -->
@@ -922,6 +1126,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent4_3"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
     </div>
 
     <!-- Connection Horizontal -->
@@ -952,6 +1174,24 @@
         height="150px"
         listtype="force_power_talent_list"
       ></list>
+      <box
+        field="no_talent4_4"
+        width="284px"
+        height="150px"
+        variant="card"
+        hidden="true"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          "
+        >
+          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        </div>
+      </box>
     </div>
   </div>
 </div>

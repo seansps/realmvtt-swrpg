@@ -922,7 +922,7 @@ function useAbility(record, ability) {
 
   // For abilitiies that don't have a primary skill, we use the ability name as the header
   // and output the description with the icon
-  const abilityText = `
+  let abilityText = `
 #### ${itemIcon}${abilityName}
 
 ---
@@ -943,6 +943,25 @@ ${abilityDescription}
       tooltip: `${type}: ${abilityName}`,
     },
   ];
+
+  if (type === "Force Power" || type === "Signature Ability") {
+    // Add details on upgrades to the description
+    const upgrades = ability.data?.talents || [];
+    let upgradesText = upgrades
+      .map(
+        (upgrade) =>
+          `- ${upgrade.name}${
+            upgrade.data?.rank && upgrade.data?.rank > 1
+              ? ` (${upgrade.data?.rank})`
+              : ""
+          }`
+      )
+      .join("\n");
+
+    if (upgradesText) {
+      abilityText += `\n\nUpgrades:\n${upgradesText}`;
+    }
+  }
 
   api.sendMessage(abilityText, undefined, [], tags);
 
@@ -968,5 +987,29 @@ ${abilityDescription}
       },
       ability
     );
+  }
+
+  // If forcePower, roll force power
+  if (type === "Force Power") {
+    // Get the number of remaining force dice (total -committed)
+    const totalForceDice = record?.data?.remainingForce || 0;
+    if (totalForceDice <= 0) {
+      api.showNotification(
+        `No force dice are available to use this power.`,
+        "red",
+        "No Force Dice"
+      );
+    } else {
+      api.promptRoll(
+        `${ability.name} Force Power Roll`,
+        `${totalForceDice} force`,
+        [],
+        {
+          tooltip: `Force Power Roll for ${ability.name}`,
+          rollName: `Force Power`,
+        },
+        "force"
+      );
+    }
   }
 }

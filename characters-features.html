@@ -2,6 +2,8 @@
   function onDrop(type, recordLink) {
     if (type === "specializations") {
       onDropSpecialization(type, recordLink);
+    } else if (type === "force_powers") {
+      onDropForcePower(type, recordLink);
     }
   }
 
@@ -31,6 +33,21 @@
       if (Object.keys(valuesToSet).length > 0) {
         api.setValues(valuesToSet);
       }
+    });
+  }
+
+  function onDropForcePower(type, recordLink) {
+    const forcePowerName = recordLink.tooltip;
+    const forcePowerObj = { ...recordLink.value, icon: "IconWand" };
+
+    api.addValue("data.forcePowers", forcePowerObj, () => {
+      const valuesToSet = {};
+
+      // Add cost to spent xp
+      valuesToSet[`data.spentXp`] =
+        (record?.data?.spentXp || 0) + (forcePowerObj?.data?.cost || 0);
+
+      api.setValues(valuesToSet);
     });
   }
 </script>
@@ -91,4 +108,10 @@
     label="Force Powers"
     textalign="center"
   ></label>
+
+  <list
+    listtype="character_force_powers_list"
+    field="forcePowers"
+    variant="striped"
+  ></list>
 </div>

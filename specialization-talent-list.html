@@ -9,7 +9,6 @@
   }
 
   function toggleChosenSpecTalent(value) {
-    // TODO add/remove talent to talents list and recalc attribs
     const talents = record.data.talents || [];
     const dataPathToTalent = dataPath.replace("data.chosen", "");
     const talent = api.getValue(dataPathToTalent);

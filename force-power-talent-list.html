@@ -6,18 +6,24 @@
   function toggleChosenUpgrade(value) {
     // For force powers, we add/remove the XP cost and add the talent to the force power's
     // talent list
-    const dataPathToForcePowerUpdate = dataPath.replace("data.chosen", "");
-    const forcePowerUpgrade = api.getValue(dataPathToForcePowerUpdate);
+    const dataPathToForcePowerUpgrade = dataPath.replace("data.chosen", "");
+    const forcePowerUpgrade = api.getValue(dataPathToForcePowerUpgrade);
 
     const forcePowerDataPath = getNearestParentDataPath(
-      dataPathToForcePowerUpdate
+      dataPathToForcePowerUpgrade
     );
     const forcePower = api.getValue(forcePowerDataPath);
 
-    const talentIdToUse = `${forcePowerUpgrade._id}-${dataPathToForcePowerUpdate}`;
+    const rankedTalent =
+      forcePowerUpgrade?.data?.ranked === "yes" ? true : false;
+
+    const talentIdToUse = rankedTalent
+      ? forcePowerUpgrade._id
+      : `${forcePowerUpgrade._id}-${dataPathToForcePowerUpgrade}`;
 
     const talents = forcePower.data.talents || [];
 
+    // If it is ranked, check if it already exists in the talents list
     const existingTalent = talents.find((t) => t._id === talentIdToUse);
     const existingTalentIndex = talents.findIndex(
       (t) => t._id === talentIdToUse
@@ -25,45 +31,87 @@
 
     if (value === "yes") {
       // Add talent to talents list and add cost to spent xp
-      const newTalents = [
-        ...talents,
-        {
-          ...forcePowerUpgrade,
-          _id: talentIdToUse,
-          data: {
-            ...forcePowerUpgrade.data,
-            rank: 1,
+      if (existingTalentIndex !== -1) {
+        // Update the rank
+        api.setValues(
+          {
+            [`${forcePowerDataPath}.data.talents.${existingTalentIndex}.data.rank`]:
+              (existingTalent?.data?.rank || 0) + 1,
           },
-          icon: "IconStar",
-        },
-      ];
-      api.setValues(
-        {
-          [`${forcePowerDataPath}.data.talents`]: newTalents,
-        },
-        (recordUpdated) => {
-          const valuesToSet = {
-            [`data.spentXp`]:
-              (forcePowerUpgrade.data?.cost || 0) +
-              (recordUpdated.data.spentXp || 0),
-          };
-          api.setValues(valuesToSet);
-        }
-      );
-    } else if (existingTalentIndex !== -1) {
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (forcePowerUpgrade.data?.cost || 0) +
+                (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else {
+        // Add it to the talents list
+        const newTalents = [
+          ...talents,
+          {
+            ...forcePowerUpgrade,
+            _id: talentIdToUse,
+            data: {
+              ...forcePowerUpgrade.data,
+              rank: 1,
+            },
+            icon: "IconStar",
+          },
+        ];
+        api.setValues(
+          {
+            [`${forcePowerDataPath}.data.talents`]: newTalents,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (forcePowerUpgrade.data?.cost || 0) +
+                (recordUpdated.data.spentXp || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
+    } else {
       // Remove talent from talents list and subtract cost from spent xp
-      api.removeValue(
-        `${forcePowerDataPath}.data.talents`,
-        existingTalentIndex,
-        (recordUpdated) => {
-          const valuesToSet = {
-            [`data.spentXp`]:
-              (recordUpdated.data.spentXp || 0) -
-              (forcePowerUpgrade.data?.cost || 0),
-          };
-          api.setValues(valuesToSet);
-        }
-      );
+      if (
+        existingTalentIndex !== -1 &&
+        existingTalent?.data?.rank &&
+        existingTalent?.data?.rank > 1
+      ) {
+        // We are deducting a rank
+        api.setValues(
+          {
+            [`${forcePowerDataPath}.data.talents.${existingTalentIndex}.data.rank`]:
+              existingTalent?.data?.rank - 1,
+          },
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) -
+                (forcePowerUpgrade.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      } else if (existingTalentIndex !== -1) {
+        // We are removing the talent
+        api.removeValue(
+          `${forcePowerDataPath}.data.talents`,
+          existingTalentIndex,
+          (recordUpdated) => {
+            const valuesToSet = {
+              [`data.spentXp`]:
+                (recordUpdated.data.spentXp || 0) -
+                (forcePowerUpgrade.data?.cost || 0),
+            };
+            api.setValues(valuesToSet);
+          }
+        );
+      }
     }
   }
 </script>
@@ -83,6 +131,14 @@
     ></namefield>
   </div>
   <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      field="ranked"
+      variant="default"
+      disablediflocked="true"
+      size="sm"
+      options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"}, 
+{"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
+    ></iconbutton>
     <iconbutton
       hidden="true"
       field="chosen"

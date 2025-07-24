@@ -1,0 +1,30 @@
+<div style="display: flex; flex-direction: column; gap: 4px">
+  <div
+    style="display: flex; flex-direction: row; gap: 4px; align-items: center"
+  >
+    <div style="width: 30px; height: 30px; min-height: 30px; min-width: 30px">
+      <portrait width="30px" height="30px" field="portrait"></portrait>
+    </div>
+    <namefield
+      field="name"
+      size="sm"
+      width="100%"
+      variant="unstyled"
+      bold="true"
+      placeholder="Force Power Name..."
+    ></namefield>
+  </div>
+  <label
+    field="upgradesLabel"
+    size="sm"
+    variant="bold"
+    textalign="center"
+    label="Upgrades"
+  ></label>
+  <list
+    field="talents"
+    listtype="character_upgrades_list"
+    variant="outline"
+    size="xs"
+  ></list>
+</div>
