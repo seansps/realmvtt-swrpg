@@ -1,0 +1,837 @@
+<script>
+  function showHideValues(typeStr) {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(nearestParentDataPath) || record;
+
+    // If this is an nested item, just return. (Like a weapon attachment)
+    let pathToFields = "fields";
+    if (nearestParentDataPath !== "") {
+      pathToFields = `${nearestParentDataPath}.fields`;
+    }
+    let pathToData = "data";
+    if (nearestParentDataPath !== "") {
+      pathToData = `${nearestParentDataPath}.data`;
+    }
+
+    const valuesToSet = {
+      [`${pathToFields}.weaponProperties.hidden`]: true,
+      [`${pathToFields}.packProperties.hidden`]: true,
+      [`${pathToFields}.rangedWeaponProperties.hidden`]: true,
+      [`${pathToFields}.weaponType.hidden`]: true,
+      [`${pathToFields}.ammoType.hidden`]: true,
+      [`${pathToFields}.magazine.hidden`]: true,
+      [`${pathToFields}.weaponAttachmentProperties.hidden`]: true,
+      [`${pathToFields}.armorAttachmentProperties.hidden`]: true,
+      [`${pathToFields}.hardpoints.hidden`]: true,
+      [`${pathToFields}.armorProperties.hidden`]: true,
+      [`${pathToFields}.weaponAttachedLabel.hidden`]: true,
+      [`${pathToFields}.weaponAttached.hidden`]: true,
+      [`${pathToFields}.drugProperties.hidden`]: true,
+      [`${pathToFields}.consumableProperties.hidden`]:
+        item?.data?.consumable || item?.data?.hasUseBtn ? false : true,
+      [`${pathToFields}.animationProps.hidden`]: true,
+      // The below fields are only displayed on the attack list
+      [`${pathToFields}.generalWeaponProperties.hidden`]: true,
+      [`${pathToFields}.attackDividerBox.hidden`]: false,
+      [`${pathToFields}.autoFireBtn.hidden`]: true,
+      [`${pathToFields}.stunBtn.hidden`]: true,
+    };
+
+    if (typeStr === "armor") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+      valuesToSet[`${pathToFields}.armorProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.curheadSp.hidden`] = true;
+      valuesToSet[`${pathToFields}.curbodySp.hidden`] = true;
+      valuesToSet[`${pathToFields}.curshieldSp.hidden`] = true;
+    } else if (typeStr === "drug") {
+      valuesToSet[`${pathToFields}.drugProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
+    } else if (typeStr === "general") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = false;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+    } else if (typeStr === "melee weapon") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponType.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponAttachmentsProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+      valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
+      // Defaults for melee weapons
+      valuesToSet[`${pathToData}.weaponSkill`] = "Brawling";
+      valuesToSet[`${pathToData}.rof`] = "1";
+      valuesToSet[`${pathToData}.handsRequired`] = "1";
+      valuesToSet[`${pathToData}.quality`] = "average";
+      valuesToSet[`${pathToData}.exotic`] = "false";
+      valuesToSet[`${pathToData}.concealable`] = "false";
+    } else if (typeStr === "ranged weapon") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.rangedWeaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.ammoType.hidden`] = false;
+      valuesToSet[`${pathToFields}.magazine.hidden`] = false;
+      valuesToSet[`${pathToFields}.dvProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponAttachmentsProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+      valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.attackByRangeBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.reloadBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.ammo.hidden`] = false;
+      valuesToSet[`${pathToFields}.ammoCount.hidden`] = false;
+      valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
+      // Defaults for ranged weapons
+      valuesToSet[`${pathToData}.weaponSkill`] = "Archery";
+      valuesToSet[`${pathToData}.rof`] = "1";
+      valuesToSet[`${pathToData}.handsRequired`] = "1";
+      valuesToSet[`${pathToData}.quality`] = "average";
+      valuesToSet[`${pathToData}.exotic`] = "false";
+      valuesToSet[`${pathToData}.concealable`] = "false";
+    } else if (typeStr === "pack") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
+      valuesToSet[`${pathToFields}.packProperties.hidden`] = false;
+    } else if (typeStr === "weapon attachment") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.weaponAttachmentProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.slots.hidden`] = false;
+    } else if (typeStr === "armor attachment") {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.slots.hidden`] = false;
+    } else {
+      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
+    }
+
+    api.setValues(valuesToSet);
+  }
+
+  function isAttachment(value) {
+    const isWeapon =
+      value.data?.type === "ranged weapon" ||
+      value.data?.type === "melee weapon";
+    const isArmor = record?.data?.type === "armor";
+
+    if (isWeapon) {
+      return value.data?.type === "weapon attachment";
+    } else if (isArmor) {
+      return value.data?.type === "armor attachment";
+    }
+
+    return false;
+  }
+
+  function isWeapon(value) {
+    return (
+      value.data?.type === "ranged weapon" ||
+      value.data?.type === "melee weapon"
+    );
+  }
+
+  function onHardpointsChange(value) {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(nearestParentDataPath) || record;
+    const itemType = item?.data?.type;
+
+    if (
+      (itemType === "armor" ||
+        itemType === "ranged weapon" ||
+        itemType === "melee weapon") &&
+      value > 0
+    ) {
+      api.setHidden("attachmentsProperties", false);
+    } else if (value < 1) {
+      api.setHidden("attachmentsProperties", true);
+    }
+  }
+
+  function onAttachmentTypeChange(value) {
+    // Rebuild the attachment data path incase this is a nested item
+    let attachmentDataPath = dataPath.replace(/data.attachmentType[.]?/, "");
+    const valuesToSet = {
+      [`${attachmentDataPath}fields.dvProperties.hidden`]: true,
+      [`${attachmentDataPath}fields.afDvProperties.hidden`]: true,
+      [`${attachmentDataPath}fields.magazineSize.hidden`]: true,
+      [`${attachmentDataPath}fields.weaponAttached.hidden`]: true,
+      [`${attachmentDataPath}fields.weaponAttachedLabel.hidden`]: true,
+    };
+
+    if (value === "altRange") {
+      valuesToSet[`${attachmentDataPath}fields.dvProperties.hidden`] = false;
+      valuesToSet[`${attachmentDataPath}fields.afDvProperties.hidden`] = false;
+    } else if (value === "magazine") {
+      valuesToSet[`${attachmentDataPath}fields.magazineSize.hidden`] = false;
+    } else if (value === "weapon") {
+      valuesToSet[`${attachmentDataPath}fields.weaponAttached.hidden`] = false;
+      valuesToSet[
+        `${attachmentDataPath}fields.weaponAttachedLabel.hidden`
+      ] = false;
+    }
+
+    api.setValues(valuesToSet);
+  }
+
+  function showHideUseValues(value) {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+
+    // If this is an nested item, just return. (Like a weapon attachment)
+    let pathToFields = "fields";
+    if (nearestParentDataPath !== "") {
+      pathToFields = `${nearestParentDataPath}.fields`;
+    }
+
+    const valuesToSet = {};
+
+    if (value) {
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
+    } else if (!record.data?.consumable) {
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = true;
+    }
+
+    api.setValues(valuesToSet);
+  }
+
+  function showHideConsumableValues(value) {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+
+    // If this is an nested item, just return. (Like a weapon attachment)
+    let pathToFields = "fields";
+    if (nearestParentDataPath !== "") {
+      pathToFields = `${nearestParentDataPath}.fields`;
+    }
+
+    const valuesToSet = {};
+
+    if (value) {
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
+    } else if (!record.data?.hasUseBtn) {
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = true;
+    }
+
+    api.setValues(valuesToSet);
+  }
+
+  function getWeaponSkillOptions() {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(nearestParentDataPath) || record;
+    const itemType = item?.data?.type;
+    if (itemType === "melee weapon") {
+      return [
+        { label: "Brawling", value: "Brawling" },
+        { label: "Martial Arts", value: "Martial Arts" },
+        { label: "Melee Weapon", value: "Melee Weapon" },
+      ];
+    }
+    return [
+      { label: "Archery", value: "Archery" },
+      { label: "Autofire", value: "Autofire" },
+      { label: "Handgun", value: "Handgun" },
+      { label: "Heavy Weapons", value: "Heavy Weapons" },
+      { label: "Shoulder Arms", value: "Shoulder Arms" },
+      { label: "Pilot Sea Vehicle", value: "Pilot Sea Vehicle" },
+      { label: "Pilot Air Vehicle", value: "Pilot Air Vehicle" },
+      { label: "Drive Land Vehicle", value: "Drive Land Vehicle" },
+      { label: "Drive Sea Vehicle", value: "Drive Sea Vehicle" },
+      { label: "Drive Air Vehicle", value: "Drive Air Vehicle" },
+    ];
+  }
+
+  function onAttachmentsChange() {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(nearestParentDataPath) || record;
+
+    // If this is an nested item, just return. (Like a weapon attachment)
+    let pathToFields = "fields";
+    if (nearestParentDataPath !== "") {
+      pathToFields = `${nearestParentDataPath}.fields`;
+    }
+    let pathToData = "data";
+    if (nearestParentDataPath !== "") {
+      pathToData = `${nearestParentDataPath}.data`;
+    }
+
+    const attachments = value || [];
+    const isArmor = record?.data?.type === "armor";
+
+    // Make sure all attachments are of type "weapon attachment" or "armor attachment"
+    const valuesToSet = {};
+    attachments.forEach((attachment, index) => {
+      if (attachment.data?.type !== "weapon attachment" && !isArmor) {
+        valuesToSet[`${pathToData}.type`] = "weapon attachment";
+        valuesToSet[
+          `${pathToFields}.weaponAttachmentProperties.hidden`
+        ] = false;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      } else if (attachment.data?.type !== "armor attachment" && isArmor) {
+        valuesToSet[`${pathToData}.type`] = "armor attachment";
+        valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      }
+    });
+
+    // Get slots used
+    let slotsUsed = 0;
+    attachments.forEach((attachment) => {
+      slotsUsed += attachment.data?.slots || 0;
+    });
+
+    const hardpoints = record.data?.hardpoints || 0;
+    valuesToSet[`${pathToData}.slotsUsed`] = Math.min(slotsUsed, hardpoints);
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
+</script>
+
+<div
+  style="display: flex; flex-direction: column; width: 100%; margin-bottom: 4px"
+>
+  <div style="display: flex; gap: 4px">
+    <div
+      style="width: 125px; height: 125px; min-height: 125px; min-width: 125px"
+    >
+      <portrait width="125px" height="125px" field="portrait"></portrait>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 4px;
+      "
+    >
+      <dropdown
+        multiselect="1"
+        placeholder="Select Type"
+        onchange="showHideValues(value);"
+        s
+        field="type"
+        label="Type"
+        defaultvalue="gear"
+        options='[{"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Ranged Weapon", "value": "ranged weapon"},  {"label": "Armor", "value": "armor"}, {"label": "Weapon Attachment", "value": "weapon attachment"}, {"label": "Armor Attachment", "value": "armor attachment"}, {"label": "Item Pack", "value": "pack"}]'
+      >
+      </dropdown>
+      <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+        <stringfield
+          width="100%"
+          field="subtype"
+          label="Subtype"
+          placeholder="Enter Subtype..."
+          hidewhenidentified="false"
+        ></stringfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other General Properties -->
+  <box field="otherGeneralProperties" hidewhenidentified="false">
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <stringfield
+        width="100%"
+        field="price"
+        label="Price"
+        placeholder="Enter price..."
+        hidewhenidentified="false"
+      ></stringfield>
+      <numberfield
+        width="100%"
+        field="encumbrance"
+        label="Encumbrance"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        field="rarity"
+        label="Rarity"
+        placeholder="0"
+      ></numberfield>
+    </div>
+    <div style="display: flex; flex-direction: row; gap: 16px; margin-top: 8px">
+      <checkbox
+        field="hasUseBtn"
+        label="Has Use"
+        textalign="left"
+        size="sm"
+        onchange="showHideUseValues(value);"
+      ></checkbox>
+      <checkbox
+        field="consumable"
+        label="Consumable"
+        textalign="left"
+        size="sm"
+        onchange="showHideConsumableValues(value);"
+      ></checkbox>
+    </div>
+  </box>
+
+  <!-- Weapon Properties -->
+
+  <box field="weaponProperties" hidden="true" hidewhenidentified="false">
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <stringfield
+        width="100%"
+        field="damage"
+        label="Damage"
+        placeholder="Enter Damage..."
+      ></stringfield>
+      <dropdown
+        width="100%"
+        field="weaponSkill"
+        label="Weapon Skill"
+        placeholder="Select Weapon Skill..."
+        optionsfunction="return getWeaponSkillOptions();"
+      >
+      </dropdown>
+      <numberfield
+        width="100%"
+        field="magazine"
+        label="Magazine Size"
+        placeholder="Enter Size..."
+        minvalue="0"
+      ></numberfield>
+    </div>
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <dropdown
+        width="100%"
+        field="weaponType"
+        label="Weapon Type"
+        placeholder="Select Weapon Type..."
+        options='[{"label": "Light", "value": "light"}, {"label": "Medium", "value": "medium"}, {"label": "Heavy", "value": "heavy"}, {"label": "Very Heavy", "value": "very heavy"}]'
+      ></dropdown>
+      <dropdown
+        width="100%"
+        field="ammoType"
+        label="Ammo Type"
+        placeholder="Select Ammo Type..."
+        options='[{"label": "Arrow", "value": "arrow"}, {"label": "Grenade", "value": "grenade"}, {"label": "M Pistol", "value": "m pistol"}, {"label": "H Pistol", "value": "h pistol"}, {"label": "VH Pistol", "value": "vh pistol"}, {"label": "Rifle", "value": "rifle"}, {"label": "Rocket", "value": "rocket"}, {"label": "Shotgun Shell", "value": "shotgun shell"}, {"label": "Slug", "value": "slug"}]'
+      ></dropdown>
+      <numberfield
+        width="100%"
+        field="rof"
+        label="Rate of Fire"
+        placeholder="Enter Rate of Fire..."
+        defaultvalue="1"
+        minvalue="1"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        field="handsRequired"
+        label="Hands Required"
+        placeholder="Enter Hands Required..."
+        defaultvalue="1"
+        minvalue="1"
+      ></numberfield>
+    </div>
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <dropdown
+        width="100%"
+        field="quality"
+        label="Quality"
+        placeholder="Select Quality..."
+        defaultvalue="average"
+        options='[{"label": "Poor", "value": "poor"}, {"label": "Average", "value": "average"}, {"label": "Excellent", "value": "excellent"}]'
+      ></dropdown>
+      <dropdown
+        width="100%"
+        field="exotic"
+        label="Exotic"
+        placeholder="Select if Exotic..."
+        defaultvalue="false"
+        options='[{"label": "Yes", "value": "true"}, {"label": "No", "value": "false"}]'
+      ></dropdown>
+      <dropdown
+        width="100%"
+        field="concealable"
+        label="Can be Concealed?"
+        placeholder="Select if Concealable..."
+        defaultvalue="false"
+        options='[{"label": "Yes", "value": "true"}, {"label": "No", "value": "false"}]'
+      ></dropdown>
+    </div>
+    <numberfield
+      width="120px"
+      field="hardpoints"
+      label="Hard Points"
+      placeholder="Enter HP..."
+      onchange="onHardpointsChange(value);"
+      minvalue="0"
+    ></numberfield>
+  </box>
+
+  <box field="rangedWeaponProperties" hidden="true" hidewhenidentified="false">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 8px;
+        align-items: flex-end;
+      "
+    >
+      <checkbox
+        field="autofire"
+        label="Autofire"
+        textalign="left"
+        size="sm"
+        onchange="onAutofireChange(value);"
+      ></checkbox>
+      <stringfield
+        width="100%"
+        field="autofireDamage"
+        label="Autofire Damage"
+        placeholder="Enter Damage..."
+      ></stringfield>
+      <numberfield
+        width="100%"
+        field="afMultiplierMax"
+        label="Max Autofire Multiplier"
+        placeholder="Enter Max Multiplier..."
+        minvalue="1"
+      ></numberfield>
+    </div>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        margin-top: 8px;
+      "
+    >
+      <checkbox
+        field="suppressiveFire"
+        label="Suppressive Fire"
+        textalign="left"
+        onchange="onSuppressiveFireChange(value);"
+        size="sm"
+      ></checkbox>
+      <checkbox
+        field="arrows"
+        label="Arrows"
+        textalign="left"
+        size="sm"
+      ></checkbox>
+      <checkbox
+        field="shotgunShells"
+        label="Shotgun Shells"
+        textalign="left"
+        size="sm"
+      ></checkbox>
+      <checkbox
+        field="explosives"
+        label="Explosives"
+        textalign="left"
+        size="sm"
+      ></checkbox>
+    </div>
+    <stringfield
+      width="100%"
+      field="otherSpecial"
+      label="Other Special Features"
+      multiline="true"
+      placeholder="Enter features..."
+    ></stringfield>
+  </box>
+
+  <box
+    field="armorAttachmentsProperties"
+    hidden="true"
+    hidewhenidentified="false"
+  >
+    TODO
+  </box>
+
+  <!-- Weapon/Armor Attachment Properties -->
+  <box
+    field="weaponAttachmentProperties"
+    hidden="true"
+    hidewhenidentified="false"
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+        align-items: flex-end;
+      "
+    >
+      <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+        <dropdown
+          width="100%"
+          field="attachmentType"
+          label="Attachment Type"
+          placeholder="Select Type..."
+          options='[{"label": "Standard", "value": "standard"}, {"label": "Altered Range", "value": "altRange"}, {"label": "Magazine", "value": "magazine"}, {"label": "Weapon", "value": "weapon"}]'
+          onchange="onAttachmentTypeChange(value);"
+        ></dropdown>
+
+        <numberfield
+          width="100%"
+          field="slots"
+          label="Slots Required"
+          placeholder="Enter Slots..."
+          minvalue="0"
+        ></numberfield>
+
+        <numberfield
+          width="100%"
+          field="magazineSize"
+          label="Magazine Size"
+          placeholder="Enter Size..."
+          minvalue="0"
+        ></numberfield>
+      </div>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 4px;
+        margin-top: 4px;
+      "
+    >
+      <label
+        field="weaponAttachedLabel"
+        label="Attached Weapon"
+        hidden="true"
+        size="sm"
+        variant="bold"
+        textalign="center"
+      ></label>
+      <list
+        listtype="attachment_weapon_select_list"
+        field="weaponAttached"
+        variant="outline"
+        hidden="true"
+        allowadd="return isWeapon(value);"
+      ></list>
+    </div>
+  </box>
+
+  <!-- Armor Properties -->
+  <box field="armorProperties" hidden="true" hidewhenidentified="false">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 8px;
+        align-items: center;
+      "
+    >
+      <numberfield
+        width="100%"
+        field="sp"
+        label="SP"
+        placeholder="Enter SP..."
+        minvalue="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        field="penalty"
+        label="Penalty"
+        placeholder="Enter Penalty..."
+        minvalue="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        field="hardpoints"
+        label="Hard Points"
+        placeholder="Enter HP..."
+        onchange="onHardpointsChange(value);"
+        minvalue="0"
+      ></numberfield>
+    </div>
+  </box>
+
+  <box field="attachmentsProperties" hidden="true" hidewhenidentified="false">
+    <div style="margin-top: 4px">
+      <label
+        field="attachmentsLabel"
+        label="Attachments"
+        size="sm"
+        variant="bold"
+        textalign="center"
+      ></label>
+      <counter
+        field="slotsUsed"
+        label="Hard Points Used"
+        textalign="center"
+        size="sm"
+        maxvaluefield="hardpoints"
+        textalign="center"
+      ></counter>
+      <list
+        listtype="attachment_list"
+        field="attachments"
+        variant="outline-striped"
+        allowadd="return isAttachment(value);"
+        onchange="onAttachmentsChange();"
+      ></list>
+    </div>
+  </box>
+
+  <!-- Properties for Consumable Items and Items with Use Buttons -->
+  <box field="consumableProperties" hidden="true" hidewhenidentified="false">
+    <dropdown
+      width="100%"
+      field="conditions"
+      label="Conditions"
+      description="Conditions that can be applied when used"
+      placeholder="Select Conditions if Applicable..."
+      multiselect="10"
+      optionsquery='{"type": "conditions", "query": {}}'
+    >
+    </dropdown>
+    <dropdown
+      width="100%"
+      field="effects"
+      label="Effects"
+      description="Effects that can be applied when used"
+      placeholder="Select Effects if Applicable..."
+      multiselect="10"
+      optionsquery='{"type": "effects", "query": {}}'
+    >
+    </dropdown>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 8px;
+        align-items: flex-end;
+      "
+    >
+      <stringfield
+        width="50%"
+        field="healing"
+        label="Healing"
+        description="Healing when used"
+        placeholder="Healing if Applicable..."
+      ></stringfield>
+      <stringfield
+        width="50%"
+        field="useDamage"
+        label="Damage"
+        description="Damage when used"
+        placeholder="Damage if Applicable..."
+      ></stringfield>
+      <checkbox
+        field="isExplosive"
+        label="Explosive"
+        textalign="left"
+        size="sm"
+      ></checkbox>
+    </div>
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <numberfield
+        width="100%"
+        field="checkDV"
+        label="Skill Check DV"
+        placeholder="Enter DV..."
+        minvalue="0"
+      ></numberfield>
+      <dropdown
+        width="100%"
+        field="checkSkill"
+        label="Skill"
+        placeholder="Select Skill..."
+        optionsquery='{"type": "skill", "query": {}}'
+      ></dropdown>
+    </div>
+  </box>
+
+  <box field="drugProperties" hidden="true" hidewhenidentified="false">
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <stringfield
+        width="100%"
+        field="primaryDiceRoll"
+        label="Primary Humanity Loss Dice Roll"
+        placeholder="Enter Primary Dice Roll..."
+      ></stringfield>
+      <numberfield
+        width="100%"
+        field="primaryHumanityLoss"
+        label="Primary Humanity Loss"
+        placeholder="Primary Humanity Loss..."
+        minvalue="0"
+      ></numberfield>
+    </div>
+    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+      <stringfield
+        width="100%"
+        field="secondaryDiceRoll"
+        label="Secondary Humanity Loss Dice Roll"
+        placeholder="Enter Secondary Dice Roll..."
+      ></stringfield>
+      <numberfield
+        width="100%"
+        field="secondaryHumanityLoss"
+        label="Secondary Humanity Loss"
+        placeholder="Secondary Humanity Loss..."
+        minvalue="0"
+      ></numberfield>
+    </div>
+  </box>
+
+  <!-- Pack Properties -->
+  <box field="packProperties" hidden="true" hidewhenidentified="false">
+    <div>
+      <label
+        field="itemListLabel"
+        label="Items in Pack"
+        size="sm"
+        variant="bold"
+      ></label>
+    </div>
+
+    <div>
+      <list
+        listtype="item_list"
+        field="items"
+        variant="striped"
+        allowadd=""
+      ></list>
+    </div>
+
+    <numberfield placeholder="0" field="cash" label="Cash"></numberfield>
+  </box>
+
+  <!-- Description -->
+
+  <div style="margin-top: 8px">
+    <divider label="Description"></divider>
+  </div>
+
+  <div style="margin-top: 8px">
+    <richtextfield
+      field="description"
+      label="Description"
+      placeholder="Enter Item description..."
+      hidewhenidentified="false"
+    >
+    </richtextfield>
+  </div>
+
+  <stringfield
+    field="unidentifiedDescription"
+    label="Unidentified Description"
+    placeholder="Enter description..."
+    multiline="true"
+    hidewhenidentified="true"
+  >
+  </stringfield>
+</div>

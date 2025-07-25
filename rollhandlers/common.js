@@ -554,6 +554,11 @@ function updateAttribute({
       0,
       woundThreshold - currentWounds
     );
+
+    // Characters have an “encumbrance threshold" of 5 plus
+    // their Brawn rating
+    const encumbranceThreshold = 5 + parseInt(value || "0", 10);
+    valuesToSet["data.encumbranceThreshold"] = encumbranceThreshold;
   }
 
   if (attribute === "willpower") {
