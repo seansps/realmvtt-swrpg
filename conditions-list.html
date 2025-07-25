@@ -1,0 +1,44 @@
+<div style="display: flex; flex-direction: row; gap: 4px; align-items: center">
+  <div style="width: 30px; height: 30px; min-width: 30px; min-height: 30px">
+    <portrait field="portrait"></portrait>
+  </div>
+  <numberfield
+    placeholder="Min..."
+    label="Min"
+    field="d100Min"
+    width="50px"
+    minvalue="0"
+    size="xs"
+    variant="tooltip"
+    hidecontrols="true"
+  ></numberfield>
+  <label variant="bold" size="xs" label="-"></label>
+  <numberfield
+    placeholder="Max..."
+    label="Max"
+    field="d100Max"
+    width="50px"
+    minvalue="0"
+    size="xs"
+    variant="tooltip"
+    hidecontrols="true"
+  ></numberfield>
+  <div style="display: flex; flex: 1">
+    <namefield
+      placeholder="Enter name"
+      size="xs"
+      width="100%"
+      field="namefield"
+      variant="unstyled"
+    ></namefield>
+  </div>
+  <stringfield
+    placeholder="Enter Severity..."
+    label="Severity"
+    field="severity"
+    width="100px"
+    editable="false"
+    size="xs"
+    variant="tooltip-underline"
+  ></stringfield>
+</div>

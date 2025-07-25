@@ -1,0 +1,84 @@
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 4px;
+  "
+>
+  <div style="display: flex; gap: 4px">
+    <div
+      style="width: 125px; height: 125px; min-height: 125px; min-width: 125px"
+    >
+      <portrait width="125px" height="125px" field="portrait"></portrait>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 4px;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 4px;
+      "
+    >
+      <dropdown
+        size="sm"
+        width="100%"
+        field="type"
+        placeholder="Select Type"
+        label="Condition Type"
+        options='[{"label": "Critical Injury", "value": "critical_injury"}, {"label": "Vehicle Critical Hit", "value": "critical_hit"}]'
+      >
+      </dropdown>
+      <dropdown
+        size="sm"
+        field="effects"
+        label="Effects"
+        searchable="true"
+        multiselect="20"
+        optionsquery='{"type": "effects", "query": {}}'
+        placeholder="Select Effects..."
+      >
+      </dropdown>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 4px; width: 100%">
+    <numberfield
+      placeholder="Enter D100 Min..."
+      label="D100 Min"
+      field="d100Min"
+      width="100%"
+      minvalue="0"
+    ></numberfield>
+
+    <numberfield
+      placeholder="Enter D100 Max..."
+      label="D100 Max"
+      field="d100Max"
+      width="100%"
+      minvalue="0"
+    ></numberfield>
+
+    <dropdown
+      placeholder="Severity..."
+      field="severity"
+      label="Severity"
+      width="100%"
+      options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
+      {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
+      {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
+    ></dropdown>
+  </div>
+
+  <div style="margin-top: 8px; margin-bottom: 8px">
+    <divider label="Description"></divider>
+  </div>
+
+  <richtextfield
+    placeholder="Enter description..."
+    field="description"
+    label="Description"
+  ></richtextfield>
+</div>

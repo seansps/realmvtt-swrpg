@@ -1,0 +1,141 @@
+// Roll handler for critical injuries
+const metadata = data?.roll?.metadata;
+let rollName = metadata?.rollName || "Critical Hit";
+let tooltip = metadata?.tooltip || "Critical Hit Roll";
+
+let tags = [
+  {
+    name: rollName,
+    tooltip: tooltip,
+  },
+];
+
+let message = "[center]Critical Hit Inflicted[/center]";
+
+const sendFinalMessage = () => {
+  api.sendMessage(message, data?.roll, [], tags);
+};
+
+const total = data?.roll?.total || 0;
+
+const tablesRequired = ["Critical Injury Result", "Critical Hit Result"];
+
+// Function to process a table and get the result
+const processTable = (tableName, callback) => {
+  api.getRecordByTypeAndName("tables", tableName, (table) => {
+    if (!table) {
+      api.showNotification(
+        `No table found for ${tableName}. You may need to import the module that contains this table.`,
+        "red",
+        "Table Not Found"
+      );
+      sendFinalMessage();
+      return;
+    }
+
+    // Get the result from the table
+    const result = getResultFromTable(table, total);
+    if (!result || !result.columns || !result.columns.length) {
+      api.showNotification(
+        `Error finding result for ${tableName} with total ${total}.`,
+        "red",
+        "Invalid Critical Injury"
+      );
+      sendFinalMessage();
+      return;
+    }
+
+    const injuryRecordLink =
+      result.columns[1]?.recordLink || result.columns[0]?.recordLink;
+
+    if (!injuryRecordLink) {
+      api.showNotification(
+        `Error finding injury for ${tableName} with total ${total}.`,
+        "red",
+        "Invalid Critical Injury"
+      );
+      sendFinalMessage();
+      return;
+    }
+
+    // Get the result info from the first column
+    const injuryResult = result.columns[1]?.text;
+    const injuryId = injuryRecordLink.value._id;
+    const injuryName = injuryRecordLink.tooltip;
+
+    callback({
+      tableName,
+      injuryResult,
+      injuryId,
+      injuryName,
+      result,
+    });
+  });
+};
+
+// Process tables sequentially
+let currentTableIndex = 0;
+let allMacros = [];
+
+const processNextTable = () => {
+  if (currentTableIndex >= tablesRequired.length) {
+    // All tables processed, now add all macros to the message
+    allMacros.forEach((macro) => {
+      message += `\n${macro}\n`;
+    });
+
+    // Send final message
+    sendFinalMessage();
+    return;
+  }
+
+  const tableName = tablesRequired[currentTableIndex];
+
+  processTable(tableName, (tableData) => {
+    // Add the result to the message
+    message += `[center]${tableData.tableName}: ${
+      tableData.injuryResult ? tableData.injuryResult : tableData.injuryName
+    }[/center]\n`;
+
+    // Build macro to apply the injury
+    const macro = `
+\`\`\`Apply_${tableData.injuryName.replaceAll(" ", "_")}
+let targets = api.getSelectedOrDroppedToken();
+
+// If record is not null, check if we're the GM or owner and use it
+if (record) {
+  if (isGM || record?.record?.ownerId === userId) {
+    targets = [record];
+  }
+}
+
+// If we're a player and we did not drop on a record, get our owned tokens
+if (!isGM && targets.length === 0) {
+    targets = api.getSelectedOwnedTokens().map(target => target.token);
+}
+
+// First re-query the injury record
+api.getRecord('conditions', '${tableData.injuryId}', (injuryRecord) => {
+  if (injuryRecord) {
+    const injuryRecordLink = {
+      value: injuryRecord,
+      tooltip: injuryRecord?.name || "Injury",
+    };
+    targets.forEach(target => {
+      addCondition(target, injuryRecordLink);
+    });
+  }
+});
+\`\`\``;
+
+    // Store the macro for later
+    allMacros.push(macro);
+
+    // Move to next table
+    currentTableIndex++;
+    processNextTable();
+  });
+};
+
+// Start processing tables
+processNextTable();

@@ -4,6 +4,8 @@
       onDropSpecies(type, recordLink);
     } else if (type === "careers") {
       onDropCareer(type, recordLink);
+    } else if (type === "conditions") {
+      onDropCondition(type, recordLink);
     }
   }
 
@@ -105,6 +107,21 @@
     updateAttributes(record, valuesToSet);
 
     api.setValues(valuesToSet);
+  }
+
+  function onDropCondition(type, recordLink) {
+    // Requery the record to get the latest record
+    api.getRecord(record.recordType, record._id, (actualRecord) => {
+      addConditionToRecord(actualRecord, recordLink);
+    });
+  }
+
+  function onChangeConditions() {
+    // Recalculate wounds and strain, and other attributes
+    const deletedItem = data.deletedItem;
+    if (!deletedItem) return;
+
+    onConditionChange(record, deletedItem);
   }
 
   function updateForceRating() {
@@ -518,10 +535,11 @@
   <divider label="Critical Injuries"></divider>
   <div style="height: 120px; overflow-y: auto">
     <list
-      listtype="critical_injuries_list"
+      listtype="conditions_list"
       field="criticalInjuries"
       height="100%"
       variant="striped"
+      onchange="onChangeConditions();"
     ></list>
   </div>
 

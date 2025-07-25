@@ -429,6 +429,9 @@ function getEffectsAndModifiersForToken(
   // If ability is provided, add any talents from it
   const abilityTalents = [...(ability?.data?.talents || [])];
 
+  // Get critical injuries
+  const criticalInjuries = target?.data?.criticalInjuries || [];
+
   // Filter items that are not equipped
   const equippedItems = items.filter(
     (item) => item.data?.carried === "equipped"
@@ -440,6 +443,7 @@ function getEffectsAndModifiersForToken(
     ...npcFeatures,
     ...activeAttachments,
     ...abilityTalents,
+    ...criticalInjuries,
     ...(weapon ? [weapon] : []),
     ...(ammoItem ? [ammoItem] : []),
   ].forEach((feature) => {
@@ -538,7 +542,8 @@ function updateAttribute({
     }
 
     // Update Soak Value: brawn + armor soak (always updates)
-    const armorSoak = parseInt(record?.data?.armorSoak || "0", 10);
+    // TODO when adding items, get soak from armor
+    const armorSoak = 0;
     const soakValue = parseInt(value || "0", 10) + armorSoak;
     valuesToSet["data.soakValue"] = soakValue;
 
@@ -723,25 +728,108 @@ function initializeSkills(record) {
   }
 }
 
+function getBestArmor(record) {
+  const inventory = record?.data?.inventory || [];
+  const armor = inventory.filter(
+    (item) => item.data?.carried === "equipped" && item.data?.type === "armor"
+  );
+  const rangedDefense = armor.reduce(
+    (acc, item) => acc + item.data?.rangedDefense || 0,
+    0
+  );
+  const meleeDefense = armor.reduce(
+    (acc, item) => acc + item.data?.meleeDefense || 0,
+    0
+  );
+  return {
+    rangedDefense: rangedDefense,
+    meleeDefense: meleeDefense,
+  };
+}
+
 function recalculateThresholds(record, moreValuesToSet = undefined) {
   const valuesToSet = moreValuesToSet || {};
+
+  // Get mods for soakBonus, soakPenalty, woundThresholdBonus, strainThresholdBonus
+  const soakBonuses = getEffectsAndModifiersForToken(record, ["soakBonus"]);
+  const soakPenalties = getEffectsAndModifiersForToken(record, ["soakPenalty"]);
+  const woundThresholdBonuses = getEffectsAndModifiersForToken(record, [
+    "woundThresholdBonus",
+  ]);
+  const strainThresholdBonuses = getEffectsAndModifiersForToken(record, [
+    "strainThresholdBonus",
+  ]);
 
   // Get species data
   const species = record?.data?.species?.[0];
   const speciesWoundThreshold = species?.data?.woundThreshold || 10;
   const speciesStrainThreshold = species?.data?.strainThreshold || 10;
 
-  // Recalculate wound threshold
+  // Get current attribute values
   const brawn = parseInt(record?.data?.brawn || "0", 10);
-  valuesToSet["data.woundThreshold"] = speciesWoundThreshold + brawn;
-
-  // Recalculate strain threshold
   const willpower = parseInt(record?.data?.willpower || "0", 10);
-  valuesToSet["data.strainThreshold"] = speciesStrainThreshold + willpower;
+
+  // Calculate base thresholds (species + attribute)
+  const baseWoundThreshold = speciesWoundThreshold + brawn;
+  const baseStrainThreshold = speciesStrainThreshold + willpower;
+
+  // Calculate total bonus values from current effects
+  const totalWoundBonus = woundThresholdBonuses.reduce(
+    (sum, bonus) => sum + bonus.value,
+    0
+  );
+  const totalStrainBonus = strainThresholdBonuses.reduce(
+    (sum, bonus) => sum + bonus.value,
+    0
+  );
+
+  // Get previously stored bonus values
+  const previousWoundBonus = parseInt(
+    record?.data?.woundThresholdBonus || "0",
+    10
+  );
+  const previousStrainBonus = parseInt(
+    record?.data?.strainThresholdBonus || "0",
+    10
+  );
+
+  // Calculate the difference in bonuses
+  const woundBonusDifference = totalWoundBonus - previousWoundBonus;
+  const strainBonusDifference = totalStrainBonus - previousStrainBonus;
+
+  // Set the new threshold values
+  // Only set base threshold if it's undefined (first time)
+  if (record?.data?.woundThreshold === undefined) {
+    valuesToSet["data.woundThreshold"] = baseWoundThreshold;
+  } else {
+    // Add the difference in bonuses to the current threshold
+    valuesToSet["data.woundThreshold"] =
+      parseInt(record?.data?.woundThreshold || "0", 10) + woundBonusDifference;
+  }
+
+  if (record?.data?.strainThreshold === undefined) {
+    valuesToSet["data.strainThreshold"] = baseStrainThreshold;
+  } else {
+    // Add the difference in bonuses to the current threshold
+    valuesToSet["data.strainThreshold"] =
+      parseInt(record?.data?.strainThreshold || "0", 10) +
+      strainBonusDifference;
+  }
+
+  // Store the current bonus values for future reference
+  valuesToSet["data.woundThresholdBonus"] = totalWoundBonus;
+  valuesToSet["data.strainThresholdBonus"] = totalStrainBonus;
 
   // Recalculate soak value
-  const armorSoak = parseInt(record?.data?.armorSoak || "0", 10);
+  // TODO when adding items, get soak from armor
+  const armorSoak = 0;
   valuesToSet["data.soakValue"] = brawn + armorSoak;
+  soakBonuses.forEach((bonus) => {
+    valuesToSet["data.soakValue"] += bonus.value;
+  });
+  soakPenalties.forEach((penalty) => {
+    valuesToSet["data.soakValue"] -= penalty.value;
+  });
 
   // Calculate remaining wounds and strain
   const currentWounds = parseInt(record?.data?.wounds || "0", 10);
@@ -777,7 +865,7 @@ function rollCheck(attribute) {
 
   const modifiers = getEffectsAndModifiersForToken(
     record,
-    ["abilityBonus", "abilityPenalty"],
+    ["abilityBonus"],
     attribute
   );
 
@@ -795,7 +883,8 @@ function rollSkill(
   record,
   skill,
   additionalMetadata = {},
-  ability = undefined
+  ability = undefined,
+  additionalModifiers = []
 ) {
   const attributeValue = parseInt(
     record?.data?.[skill.data?.stat || "brawn"] || "0",
@@ -864,7 +953,7 @@ function rollSkill(
   // Get modifiers for skills and the ability if provided
   const modifiers = getEffectsAndModifiersForToken(
     record,
-    ["skillBonus", "skillPenalty"],
+    ["skillBonus"],
     skill.name,
     undefined,
     undefined,
@@ -872,6 +961,11 @@ function rollSkill(
     undefined,
     ability
   );
+
+  // Add additional modifiers if provided
+  if (additionalModifiers) {
+    modifiers.push(...additionalModifiers);
+  }
 
   // Star Wars RPG narrative dice system
   api.promptRoll(
@@ -899,12 +993,24 @@ function rollInitiative(record) {
     return;
   }
 
-  rollSkill(record, skill, {
-    rollName: "Initiative",
-    tooltip: `Initiative Roll with ${record?.data?.initiativeSkill}`,
-    rollType: "initiative",
-    characteristic: initiativeSkill,
-  });
+  const modifiers = getEffectsAndModifiersForToken(
+    record,
+    ["initiativeBonus"],
+    skill.name
+  );
+
+  rollSkill(
+    record,
+    skill,
+    {
+      rollName: "Initiative",
+      tooltip: `Initiative Roll with ${record?.data?.initiativeSkill}`,
+      rollType: "initiative",
+      characteristic: initiativeSkill,
+    },
+    undefined,
+    modifiers
+  );
 }
 
 function useAbility(record, ability) {
@@ -989,6 +1095,13 @@ ${abilityDescription}
     );
   }
 
+  // Check for forcePowerBonus mods
+  const forcePowerBonuses = getEffectsAndModifiersForToken(
+    record,
+    ["forcePowerBonus"],
+    ability.name
+  );
+
   // If forcePower, roll force power
   if (type === "Force Power") {
     // Get the number of remaining force dice (total -committed)
@@ -1003,7 +1116,7 @@ ${abilityDescription}
       api.promptRoll(
         `${ability.name} Force Power Roll`,
         `${totalForceDice} force`,
-        [],
+        forcePowerBonuses,
         {
           tooltip: `Force Power Roll for ${ability.name}`,
           rollName: `Force Power`,
@@ -1012,4 +1125,195 @@ ${abilityDescription}
       );
     }
   }
+}
+
+function getResultFromTable(table, total) {
+  if (
+    !table ||
+    !table.rows ||
+    !Array.isArray(table.rows) ||
+    table.rows.length === 0
+  ) {
+    return null;
+  }
+
+  // Find the row where the total falls between minValue and maxValue (inclusive)
+  const matchingRow = table.rows.find(
+    (row) => total >= row.minValue && total <= row.maxValue
+  );
+
+  return matchingRow || null;
+}
+
+// Add a condition to a record and set all effects
+function addConditionToRecord(record, recordLink) {
+  const conditionObj = {
+    ...recordLink.value,
+  };
+
+  const recordType = record.recordType;
+  const recordId =
+    record.recordType === "characters" && record.recordId
+      ? record.recordId
+      : record._id;
+
+  // After adding the condition, add the effects to the character sequentially
+  const addEffects = (updatedRecord) => {
+    // First update attributes based on modifiers
+    const valuesToSet = {};
+    updateAttributes(
+      // Merge updates with the original record
+      updatedRecord,
+      valuesToSet
+    );
+
+    const token =
+      record.linked !== undefined
+        ? record
+        : api.getSelectedOrDroppedToken()?.[0];
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValuesOnRecord(updatedRecord, valuesToSet);
+    }
+
+    const effects = conditionObj.data?.effects || [];
+
+    // Process effects sequentially using a recursive approach
+    function processEffectsSequentially(effects, index) {
+      // Base case: all effects processed
+      if (index >= effects.length) return;
+
+      // Re-query the record to get the latest data before each effect is processed
+      api.getRecord(recordType, recordId, (recordUpdated) => {
+        // Process current effect
+        const effect = effects[index];
+        const effectObj = JSON.parse(effect);
+
+        // Add the effect and wait for completion before processing the next one
+        api.addEffectById(
+          effectObj._id,
+          recordUpdated,
+          undefined,
+          undefined,
+          () => {
+            // Process next effect (only after current addition is complete)
+            processEffectsSequentially(effects, index + 1);
+          }
+        );
+      });
+    }
+
+    // Start processing from the first effect
+    if (effects.length > 0) {
+      processEffectsSequentially(effects, 0);
+    }
+  };
+
+  api.addValuesToRecord(
+    record,
+    "data.criticalInjuries",
+    [conditionObj],
+    addEffects
+  );
+}
+
+function onConditionChange(record, deletedItem) {
+  if (!deletedItem) return;
+  // Requery the record to get the latest record
+  api.getRecord(record.recordType, record._id, (actualRecord) => {
+    const deletedEffects = deletedItem.data?.effects || [];
+    const recordId = record._id;
+
+    // Update attributes based on modifiers
+    // First update attributes based on modifiers
+    const valuesToSet = {};
+    // Update attributes as per modifiers
+    updateAttributes(actualRecord, valuesToSet);
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+
+    // Process effects sequentially using a recursive approach
+    function processEffectsSequentially(effects, index) {
+      // Base case: all effects processed
+      if (index >= effects.length) return;
+
+      // Re-query the record to get the latest data
+      api.getRecord(record.recordType, recordId, (recordUpdated) => {
+        // Process current effect
+        const effect = effects[index];
+        const effectObj = JSON.parse(effect);
+
+        // Remove the effect and wait for completion before processing the next one
+        api.removeEffectById(effectObj._id, recordUpdated, () => {
+          // Process next effect (only after current removal is complete)
+          processEffectsSequentially(effects, index + 1);
+        });
+      });
+    }
+
+    // Start processing from the first effect
+    if (deletedEffects.length > 0) {
+      processEffectsSequentially(deletedEffects, 0);
+    }
+  });
+}
+
+function addCondition(tokenOrRecord, recordLink) {
+  // First requery to get the actual record
+  const recordType = tokenOrRecord.recordType;
+  const recordId =
+    tokenOrRecord.recordType === "characters" && tokenOrRecord.recordId
+      ? tokenOrRecord.recordId
+      : tokenOrRecord._id;
+
+  // This will get the Character record or the Token record (if NPC)
+  api.getRecord(recordType, recordId, (actualRecord) => {
+    addConditionToRecord(actualRecord, recordLink);
+  });
+}
+
+function getRollCriticalInjuryMacro(record, target) {
+  // A critical injury roll is d100 + any modifiers, and the
+  // target's mods need to be applied to the result
+  const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
+    "increaseCriticalHit",
+  ]);
+  const decreaseCriticalHitMods = target
+    ? getEffectsAndModifiersForToken(target, ["decreaseCriticalHit"])
+    : [];
+
+  const modifiers = [];
+  increaseCriticalHitMods.forEach((mod) => {
+    modifiers.push({
+      ...mod,
+      value: Math.abs(mod.value),
+    });
+  });
+  decreaseCriticalHitMods.forEach((mod) => {
+    modifiers.push({
+      ...mod,
+      value: -Math.abs(mod.value),
+    });
+  });
+
+  const modsAsString = JSON.stringify(modifiers);
+
+  return `\`\`\`Roll_Critical_Hit
+api.promptRoll("Critical Hit", "1d100", JSON.parse('${modsAsString}') , {
+  rollName: "Critical Hit",
+  tooltip: "Critical Hit Roll",
+  isNarrative: false,
+}, "criticalInjury");
+\`\`\``;
+}
+
+function rollAttack() {
+  // TODO
+  // Get target's defense and apply as setback
+  // Get target's defense modifieres and apply to roll
+  // For crit macros check targets crit reducedCriticalHit mods
+  // For crit macros check our increaseCriticalHit mods
+  // For damage macros check our damageBonus and damagePenalty mods
 }
