@@ -39,12 +39,19 @@
       },
     };
 
+    // Update the encumbrance
+    setTotalEncumbrance(record, valuesToSet);
+
     // Update the attributes as per modifiers on items
     updateAttributes(record, valuesToSet);
 
     if (Object.keys(valuesToSet).length > 0) {
       api.setValues(valuesToSet);
     }
+  }
+
+  function onItemCountChange() {
+    setTotalEncumbrance(record);
   }
 
   function useInvItem() {
@@ -63,6 +70,7 @@
       variant="tooltip"
       label="Count"
       field="count"
+      onchange="onItemCountChange();"
       placeholder="0"
     ></numberfield>
   </div>

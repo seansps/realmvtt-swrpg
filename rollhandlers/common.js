@@ -533,6 +533,7 @@ function updateAttribute({
   attribute,
   value,
   moreValuesToSet = undefined,
+  skipThresholds = false,
 }) {
   const valuesToSet = moreValuesToSet || {};
 
@@ -550,7 +551,6 @@ function updateAttribute({
     }
 
     // Update Soak Value: brawn + armor soak (always updates)
-    // TODO when adding items, get soak from armor
     const armorSoak = 0;
     const soakValue = parseInt(value || "0", 10) + armorSoak;
     valuesToSet["data.soakValue"] = soakValue;
@@ -608,6 +608,11 @@ function updateAttribute({
     valuesToSet["data.strainRemaining"] = strainRemaining;
   }
 
+  // Recalculate thresholds
+  if (!skipThresholds) {
+    recalculateThresholds(record, valuesToSet);
+  }
+
   // If moreValuesToSet was passed, merge the values instead of setting them
   if (moreValuesToSet) {
     Object.keys(valuesToSet).forEach((key) => {
@@ -616,6 +621,32 @@ function updateAttribute({
   } else {
     // Set the values directly
     api.setValues(valuesToSet);
+  }
+}
+
+function setTotalEncumbrance(record, valuesToSet) {
+  const inventory = record?.data?.inventory || [];
+  const encumbrance = inventory.reduce((acc, item) => {
+    // Skip dropped items
+    if (item.data?.carried === "dropped") {
+      return acc;
+    }
+
+    return (
+      acc +
+      (item.data?.encumbrance || 0) *
+        (item.data?.count === undefined || item.data?.count === null
+          ? 1
+          : item.data?.count)
+    );
+  }, 0);
+
+  if (valuesToSet) {
+    valuesToSet["data.encumbrance"] = encumbrance;
+  } else {
+    api.setValues({
+      "data.encumbrance": encumbrance,
+    });
   }
 }
 
@@ -640,6 +671,8 @@ function updateAttributes(record, moreValuesToSet = undefined) {
       attribute,
       value: currentValue,
       moreValuesToSet: valuesToSet,
+      // Skip because we do it at the end
+      skipThresholds: true,
     });
   });
 
@@ -652,6 +685,8 @@ function updateAttributes(record, moreValuesToSet = undefined) {
     attribute: "wounds",
     value: currentWounds,
     moreValuesToSet: valuesToSet,
+    // Skip because we do it at the end
+    skipThresholds: true,
   });
 
   updateAttribute({
@@ -659,6 +694,8 @@ function updateAttributes(record, moreValuesToSet = undefined) {
     attribute: "strain",
     value: currentStrain,
     moreValuesToSet: valuesToSet,
+    // Skip because we do it at the end
+    skipThresholds: true,
   });
 
   // Recalculate thresholds to account for modifiers that directly affect derived stats

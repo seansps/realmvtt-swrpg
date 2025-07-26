@@ -21,11 +21,6 @@
     const hasUseBtn = item?.data?.hasUseBtn || false;
 
     let unitCount = 1;
-    // If ammo, get the unit count
-    if (item.data?.type === "ammo") {
-      unitCount = item.data?.rounds || 1;
-    }
-
     // Add the item and set the attunement hidden field to visible if requires attunement
     const itemToAdd = {
       ...item,
@@ -77,8 +72,7 @@
               fields: {
                 ...item?.fields,
                 useBtn: {
-                  hidden:
-                    !isConsumable && !hasUseBtn && !isAmmoWithValues && !isDrug,
+                  hidden: !isConsumable && !hasUseBtn,
                 },
               },
             };
@@ -88,9 +82,18 @@
           }
         })
         .filter((i) => i);
-      api.addValues(`data.inventory`, itemsToAdd, (record) => {
+      api.addValues(`data.inventory`, itemsToAdd, (updatedRecord) => {
         if (Object.keys(valuesToSet).length > 0) {
-          api.setValues(valuesToSet);
+          api.setValues(valuesToSet, () => {
+            // Requery the record to get the latest data
+            api.getRecord(record.recordType, record._id, (record2) => {
+              setTotalEncumbrance(record2);
+            });
+          });
+        } else {
+          api.getRecord(record.recordType, record._id, (record2) => {
+            setTotalEncumbrance(record2);
+          });
         }
       });
     } else {
@@ -100,10 +103,18 @@
         const count = parseFloat(existingItem.data?.count || "0");
         let unitCount = 1;
         // Update the value
-        api.setValue(`data.inventory.${index}.data.count`, count + unitCount);
+        api.setValue(
+          `data.inventory.${index}.data.count`,
+          count + unitCount,
+          (record) => {
+            setTotalEncumbrance(record);
+          }
+        );
       } else {
         // Add the item to the list
-        api.addValue(`data.inventory`, itemToAdd);
+        api.addValue(`data.inventory`, itemToAdd, (record) => {
+          setTotalEncumbrance(record);
+        });
       }
     }
   }
@@ -116,7 +127,12 @@
 
   function onItemDeleted() {
     // Update attributes as per modifiers
-    updateAttributes(record);
+    const valuesToSet = {};
+    setTotalEncumbrance(record, valuesToSet);
+    updateAttributes(record, valuesToSet);
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
   }
 
   function getLocations() {
@@ -151,7 +167,7 @@
     size="xs"
     disablediflocked="false"
     defaultvalue=""
-    options='[{"label": "All", "value": ""}, {"label": "Agent App", "value": "agent app"}, {"label": "Ammo", "value": "ammo"}, {"label": "Armor", "value": "armor"}, {"label": "Black ICE", "value": "black ice"}, {"label": "Cyberdeck", "value": "cyberdeck"}, {"label": "Cyberware", "value": "cyberware"}, {"label": "Demon", "value": "demon"}, {"label": "Drone", "value": "drone"}, {"label": "Drug", "value": "drug"}, {"label": "Fashion", "value": "fashion"}, {"label": "Gear", "value": "gear"}, {"label": "Item Pack", "value": "pack"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Program or Hardware", "value": "program or hardware"}, {"label": "Ranged Weapon", "value": "ranged weapon"}, {"label": "Vehicle", "value": "vehicle"}, {"label": "Vehicle Upgrade", "value": "vehicle upgrade"}, {"label": "Weapon Attachment", "value": "weapon attachment"}]'
+    options='[{"label": "All", "value": ""}, {"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Ranged Weapon", "value": "ranged weapon"}, {"label": "Armor", "value": "armor"}, {"label": "Weapon Attachment", "value": "weapon attachment"}, {"label": "Armor Attachment", "value": "armor attachment"}]'
   ></dropdown>
   <dropdown
     field="filterByLocation"
@@ -227,7 +243,7 @@
   </list>
 </div>
 
-<!-- A total
+<!-- TODO - A total
 encumbrance value over the threshold means the hero
 is “encumbered,” and suffers one ■ to all Agility and
 Brawn rolls for every point of encumbrance over his limit.
@@ -238,7 +254,7 @@ or other conditions, should any be in play. -->
   <numberfield
     size="xs"
     placeholder="0"
-    field="totalEncumbrance"
+    field="encumbrance"
     label="Total Encumbrance"
   ></numberfield>
   <numberfield
