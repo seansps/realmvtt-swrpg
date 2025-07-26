@@ -967,20 +967,38 @@ function initializeSkills(record) {
 
 function getBestArmor(record) {
   const inventory = record?.data?.inventory || [];
-  const armor = inventory.filter(
+  const equippedArmor = inventory.filter(
     (item) => item.data?.carried === "equipped" && item.data?.type === "armor"
   );
-  const rangedDefense = armor.reduce(
-    (acc, item) => acc + item.data?.rangedDefense || 0,
-    0
-  );
-  const meleeDefense = armor.reduce(
-    (acc, item) => acc + item.data?.meleeDefense || 0,
-    0
-  );
+
+  if (equippedArmor.length === 0) {
+    return {
+      defense: 0,
+      soakBonus: 0,
+      armor: null,
+    };
+  }
+
+  // Find the armor with the highest defense value
+  let bestArmor = equippedArmor[0];
+  let bestScore =
+    (bestArmor.data?.defense || 0) * 2 + (bestArmor.data?.soakBonus || 0);
+
+  for (const armor of equippedArmor) {
+    const defense = armor.data?.defense || 0;
+    const soakBonus = armor.data?.soakBonus || 0;
+    const score = defense * 2 + soakBonus; // Defense is worth 2x soak
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestArmor = armor;
+    }
+  }
+
   return {
-    rangedDefense: rangedDefense,
-    meleeDefense: meleeDefense,
+    defense: bestArmor.data?.defense || 0,
+    soakBonus: bestArmor.data?.soakBonus || 0,
+    armor: bestArmor,
   };
 }
 
@@ -990,6 +1008,31 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   // Get mods for soakBonus, soakPenalty, woundThresholdBonus, strainThresholdBonus
   const soakBonuses = getEffectsAndModifiersForToken(record, ["soakBonus"]);
   const soakPenalties = getEffectsAndModifiersForToken(record, ["soakPenalty"]);
+  // Bonuses for defense, ranged defense, and melee defense
+  const defenseBonuses = getEffectsAndModifiersForToken(record, [
+    "defenseBonus",
+  ]);
+  const defensePenalties = getEffectsAndModifiersForToken(record, [
+    "defensePenalty",
+    "all",
+  ]);
+  const rangedDefenseBonuses = getEffectsAndModifiersForToken(record, [
+    "defenseBonus",
+    "ranged",
+  ]);
+  const rangedDefensePenalties = getEffectsAndModifiersForToken(record, [
+    "defensePenalty",
+    "ranged",
+  ]);
+  const meleeDefenseBonuses = getEffectsAndModifiersForToken(record, [
+    "defenseBonus",
+    "melee",
+  ]);
+  const meleeDefensePenalties = getEffectsAndModifiersForToken(record, [
+    "defensePenalty",
+    "melee",
+  ]);
+
   const woundThresholdBonuses = getEffectsAndModifiersForToken(record, [
     "woundThresholdBonus",
   ]);
@@ -1003,7 +1046,10 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   const speciesStrainThreshold = species?.data?.strainThreshold || 10;
 
   // Get current attribute values
-  const brawn = parseInt(record?.data?.brawn || "0", 10);
+  let brawn = parseInt(record?.data?.brawn || "0", 10);
+  if (moreValuesToSet["data.brawn"]) {
+    brawn = moreValuesToSet["data.brawn"];
+  }
   const willpower = parseInt(record?.data?.willpower || "0", 10);
 
   // Calculate base thresholds (species + attribute)
@@ -1058,14 +1104,37 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   valuesToSet["data.strainThresholdBonus"] = totalStrainBonus;
 
   // Recalculate soak value
-  // TODO when adding items, get soak from armor
-  const armorSoak = 0;
-  valuesToSet["data.soakValue"] = brawn + armorSoak;
+  const bestArmor = getBestArmor(record);
+  valuesToSet["data.soakValue"] = brawn + bestArmor.soakBonus;
   soakBonuses.forEach((bonus) => {
     valuesToSet["data.soakValue"] += bonus.value;
   });
   soakPenalties.forEach((penalty) => {
     valuesToSet["data.soakValue"] -= penalty.value;
+  });
+
+  // Set defense values to the best armor's defense
+  valuesToSet["data.defenseRanged"] = bestArmor.defense;
+  valuesToSet["data.defenseMelee"] = bestArmor.defense;
+  defenseBonuses.forEach((bonus) => {
+    valuesToSet["data.defenseRanged"] += bonus.value;
+    valuesToSet["data.defenseMelee"] += bonus.value;
+  });
+  defensePenalties.forEach((penalty) => {
+    valuesToSet["data.defenseRanged"] -= penalty.value;
+    valuesToSet["data.defenseMelee"] -= penalty.value;
+  });
+  rangedDefenseBonuses.forEach((bonus) => {
+    valuesToSet["data.defenseRanged"] += bonus.value;
+  });
+  rangedDefensePenalties.forEach((penalty) => {
+    valuesToSet["data.defenseRanged"] -= penalty.value;
+  });
+  meleeDefenseBonuses.forEach((bonus) => {
+    valuesToSet["data.defenseMelee"] += bonus.value;
+  });
+  meleeDefensePenalties.forEach((penalty) => {
+    valuesToSet["data.defenseMelee"] -= penalty.value;
   });
 
   // Calculate remaining wounds and strain

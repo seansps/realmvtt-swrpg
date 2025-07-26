@@ -1,4 +1,231 @@
-<!-- TODO -->
+<script>
+  function onLoad() {
+    // On initial load of inventory, make sure filterList is not null
+    if (
+      record?.data?.filterList === undefined ||
+      record?.data?.filterList === null ||
+      record?.data?.filterByLocation === undefined ||
+      record?.data?.filterByLocation === null
+    ) {
+      api.setValues({
+        "data.filterList": "",
+        "data.filterByLocation": "",
+      });
+    }
+  }
+
+  function onDropItem(recordLink) {
+    const item = recordLink?.value;
+
+    const isConsumable = item?.data?.consumable || false;
+    const hasUseBtn = item?.data?.hasUseBtn || false;
+
+    let unitCount = 1;
+    // If ammo, get the unit count
+    if (item.data?.type === "ammo") {
+      unitCount = item.data?.rounds || 1;
+    }
+
+    // Add the item and set the attunement hidden field to visible if requires attunement
+    const itemToAdd = {
+      ...item,
+      icon: "IconBox",
+      data: {
+        ...item?.data,
+        // Track old ID for count tracking
+        fromId: item._id,
+        // Default count to 1
+        count: unitCount,
+      },
+      fields: {
+        ...item?.fields,
+        useBtn: {
+          hidden: !isConsumable && !hasUseBtn,
+        },
+      },
+    };
+
+    // Determine if we are adding the item or adding count to an existing item
+    const items = record?.data?.inventory || [];
+    const index = items.findIndex((i) => i.data?.fromId === item._id);
+
+    // If the item is an item pack, we're adding a list of items
+    if (item.data?.type === "pack") {
+      // Get the total weight of all items in the pack
+      const itemsInPack = item.data?.items || [];
+      const valuesToSet = {};
+      // Add any currency in pack to character
+      valuesToSet["data.cash"] =
+        (record?.data?.cash || 0) + (item.data?.cash || 0);
+      const itemsToAdd = itemsInPack
+        .map((item) => {
+          // If this is existing item, get the current count
+          let thisIndex = items.findIndex((i) => i.data?.fromId === item._id);
+          let existingItem = thisIndex !== -1 ? items[thisIndex] : undefined;
+          let itemCount = parseFloat(item?.data?.count || "0");
+          const isConsumable = item.data?.consumable || false;
+          let curCount = parseFloat(existingItem?.data?.count || "0");
+          if (!existingItem) {
+            return {
+              ...item,
+              icon: "IconBox",
+              data: {
+                ...item.data,
+                fromId: item._id,
+                count: itemCount,
+              },
+              fields: {
+                ...item?.fields,
+                useBtn: {
+                  hidden:
+                    !isConsumable && !hasUseBtn && !isAmmoWithValues && !isDrug,
+                },
+              },
+            };
+          } else {
+            valuesToSet[`data.inventory.${thisIndex}.data.count`] =
+              curCount + itemCount;
+          }
+        })
+        .filter((i) => i);
+      api.addValues(`data.inventory`, itemsToAdd, (record) => {
+        if (Object.keys(valuesToSet).length > 0) {
+          api.setValues(valuesToSet);
+        }
+      });
+    } else {
+      let existingItem = index !== -1 ? items[index] : undefined;
+      if (existingItem) {
+        // Add count to existing item
+        const count = parseFloat(existingItem.data?.count || "0");
+        let unitCount = 1;
+        // Update the value
+        api.setValue(`data.inventory.${index}.data.count`, count + unitCount);
+      } else {
+        // Add the item to the list
+        api.addValue(`data.inventory`, itemToAdd);
+      }
+    }
+  }
+
+  function onDrop(type, recordLink) {
+    if (type === "items") {
+      onDropItem(recordLink);
+    }
+  }
+
+  function onItemDeleted() {
+    // Update attributes as per modifiers
+    updateAttributes(record);
+  }
+
+  function getLocations() {
+    const inventory = record?.data?.inventory || [];
+    const locations = inventory.map((item) => item.data?.location || "");
+    // Filter out duplicates by creating a Set and converting back to array
+    // Also filter out empty strings
+    const uniqueLocations = [...new Set(locations)].filter(
+      (location) => location !== ""
+    );
+
+    // Always include the "All" option at the beginning
+    return [
+      { value: "", label: "All" },
+      ...uniqueLocations.map((location) => ({
+        value: location,
+        label: location,
+      })),
+    ];
+  }
+</script>
+
+<div>
+  <label variant="bold" textalign="center" label="Inventory"></label>
+</div>
+
+<div style="display: flex; flex-direction: row; gap: 4px">
+  <dropdown
+    field="filterList"
+    label="Filter by Type"
+    onload="onLoad()"
+    size="xs"
+    disablediflocked="false"
+    defaultvalue=""
+    options='[{"label": "All", "value": ""}, {"label": "Agent App", "value": "agent app"}, {"label": "Ammo", "value": "ammo"}, {"label": "Armor", "value": "armor"}, {"label": "Black ICE", "value": "black ice"}, {"label": "Cyberdeck", "value": "cyberdeck"}, {"label": "Cyberware", "value": "cyberware"}, {"label": "Demon", "value": "demon"}, {"label": "Drone", "value": "drone"}, {"label": "Drug", "value": "drug"}, {"label": "Fashion", "value": "fashion"}, {"label": "Gear", "value": "gear"}, {"label": "Item Pack", "value": "pack"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Program or Hardware", "value": "program or hardware"}, {"label": "Ranged Weapon", "value": "ranged weapon"}, {"label": "Vehicle", "value": "vehicle"}, {"label": "Vehicle Upgrade", "value": "vehicle upgrade"}, {"label": "Weapon Attachment", "value": "weapon attachment"}]'
+  ></dropdown>
+  <dropdown
+    field="filterByLocation"
+    label="Filter by Location"
+    size="xs"
+    defaultvalue=""
+    placeholder="Select Location..."
+    optionsFunction="return getLocations();"
+    disablediflocked="false"
+  ></dropdown>
+  <div
+    style="
+      margin-left: auto;
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      align-items: flex-end;
+    "
+  >
+    <numberfield
+      width="100px"
+      size="xs"
+      placeholder="0"
+      field="cash"
+      label="Credits"
+    ></numberfield>
+    <label variant="bold" size="xs" textalign="left" label="eb"></label>
+  </div>
+</div>
+
+<div style="display: flex; flex-direction: row; margin-top: 8px">
+  <div style="margin-left: 34px">
+    <label variant="bold" size="xs" textalign="left" label="Count"></label>
+  </div>
+  <div style="margin-left: 30px; flex-grow: 1">
+    <label variant="bold" size="xs" textalign="left" label="Item"></label>
+  </div>
+  <div
+    style="
+      margin-left: 4px;
+      max-width: 100px;
+      min-width: 68px;
+      flex: 1;
+      display: flex;
+    "
+  >
+    <label variant="bold" size="xs" textalign="left" label="Location"></label>
+  </div>
+  <div
+    style="
+      margin-left: 4px;
+      max-width: 95px;
+      min-width: 65px;
+      flex: 1;
+      display: flex;
+    "
+  >
+    <label variant="bold" size="xs" textalign="left" label="Equipped"></label>
+  </div>
+  <box field="spacerRight" hideonlocked="true">
+    <div style="width: 16px"></div>
+  </box>
+</div>
+
+<div style="display: flex; flex-direction: column; flex-grow: 1">
+  <list
+    listtype="inventory_list"
+    radius="none"
+    variant="striped"
+    field="inventory"
+    onchange="onItemDeleted();"
+  >
+  </list>
+</div>
 
 <!-- A total
 encumbrance value over the threshold means the hero
@@ -7,11 +234,20 @@ Brawn rolls for every point of encumbrance over his limit.
 This is cumulative with any ■ dice suffered for strain
 or other conditions, should any be in play. -->
 
-<!-- encumbranceThreshold under list, automate above -->
-
-<div style="display: flex; flex-direction: column; width: 100%; gap: 4px">
+<div style="display: flex; flex-direction: row; width: 100%; gap: 4px">
   <numberfield
-    width="150px"
+    size="xs"
+    placeholder="0"
+    field="totalEncumbrance"
+    label="Total Encumbrance"
+  ></numberfield>
+  <numberfield
+    size="xs"
+    placeholder="0"
+    field="encumbranceThreshold"
+    label="Encumbrance Threshold"
+  ></numberfield>
+  <numberfield
     size="xs"
     placeholder="0"
     field="healingUsed"
