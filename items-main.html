@@ -24,7 +24,6 @@
       [`${pathToFields}.armorProperties.hidden`]: true,
       [`${pathToFields}.weaponAttachedLabel.hidden`]: true,
       [`${pathToFields}.weaponAttached.hidden`]: true,
-      [`${pathToFields}.drugProperties.hidden`]: true,
       [`${pathToFields}.consumableProperties.hidden`]:
         item?.data?.consumable || item?.data?.hasUseBtn ? false : true,
       [`${pathToFields}.animationProps.hidden`]: true,
@@ -41,11 +40,6 @@
       valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
       valuesToSet[`${pathToFields}.armorProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
-    } else if (typeStr === "drug") {
-      valuesToSet[`${pathToFields}.drugProperties.hidden`] = false;
-      valuesToSet[`${pathToFields}.consumable.hidden`] = true;
-      valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
-      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
     } else if (typeStr === "general") {
       valuesToSet[`${pathToFields}.consumable.hidden`] = false;
       valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
@@ -379,6 +373,15 @@
         placeholder="Enter price..."
         hidewhenidentified="false"
       ></stringfield>
+      <dropdown
+        width="100%"
+        field="restricted"
+        label="Restricted"
+        defaultvalue="no"
+        placeholder="No"
+        options='[{"label": "No", "value": "no"}, {"label": "Yes", "value": "yes"}]'
+      >
+      </dropdown>
       <numberfield
         width="100%"
         field="encumbrance"
@@ -806,16 +809,6 @@
   <box field="consumableProperties" hidden="true" hidewhenidentified="false">
     <dropdown
       width="100%"
-      field="conditions"
-      label="Conditions"
-      description="Conditions that can be applied when used"
-      placeholder="Select Conditions if Applicable..."
-      multiselect="10"
-      optionsquery='{"type": "conditions", "query": {}}'
-    >
-    </dropdown>
-    <dropdown
-      width="100%"
       field="effects"
       label="Effects"
       description="Effects that can be applied when used"
@@ -838,65 +831,30 @@
         field="healing"
         label="Healing"
         description="Healing when used"
-        placeholder="Healing if Applicable..."
+        placeholder="0"
       ></stringfield>
+      <checkbox
+        field="countsAsHealing"
+        label="Counts as Daily Stimpack Use"
+        description="If checked, this item will count towards the character's daily stimpack use"
+      ></checkbox>
       <stringfield
         width="50%"
         field="useDamage"
         label="Damage"
         description="Damage when used"
-        placeholder="Damage if Applicable..."
+        placeholder="0"
       ></stringfield>
     </div>
-    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
-      <numberfield
-        width="100%"
-        field="checkDV"
-        label="Skill Check DV"
-        placeholder="Enter DV..."
-        minvalue="0"
-      ></numberfield>
-      <dropdown
-        width="100%"
-        field="checkSkill"
-        label="Skill"
-        placeholder="Select Skill..."
-        optionsquery='{"type": "skill", "query": {}}'
-      ></dropdown>
-    </div>
-  </box>
-
-  <box field="drugProperties" hidden="true" hidewhenidentified="false">
-    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
-      <stringfield
-        width="100%"
-        field="primaryDiceRoll"
-        label="Primary Humanity Loss Dice Roll"
-        placeholder="Enter Primary Dice Roll..."
-      ></stringfield>
-      <numberfield
-        width="100%"
-        field="primaryHumanityLoss"
-        label="Primary Humanity Loss"
-        placeholder="Primary Humanity Loss..."
-        minvalue="0"
-      ></numberfield>
-    </div>
-    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
-      <stringfield
-        width="100%"
-        field="secondaryDiceRoll"
-        label="Secondary Humanity Loss Dice Roll"
-        placeholder="Enter Secondary Dice Roll..."
-      ></stringfield>
-      <numberfield
-        width="100%"
-        field="secondaryHumanityLoss"
-        label="Secondary Humanity Loss"
-        placeholder="Secondary Humanity Loss..."
-        minvalue="0"
-      ></numberfield>
-    </div>
+    <dropdown
+      width="100%"
+      field="skillCheck"
+      label="Skill Check"
+      searchable="true"
+      description="Skill to Roll when used, if applicable"
+      placeholder="Select Skill Check..."
+      options='[{"label": "None", "value": "None"}, {"label": "Astrogation", "value": "Astrogation"}, {"label": "Athletics", "value": "Athletics"}, {"label": "Brawl", "value": "Brawl"}, {"label": "Charm", "value": "Charm"}, {"label": "Coercion", "value": "Coercion"}, {"label": "Computers", "value": "Computers"}, {"label": "Cool", "value": "Cool"}, {"label": "Coordination", "value": "Coordination"}, {"label": "Core Worlds", "value": "Core Worlds"}, {"label": "Deception", "value": "Deception"}, {"label": "Discipline", "value": "Discipline"}, {"label": "Education", "value": "Education"}, {"label": "Gunnery", "value": "Gunnery"}, {"label": "Leadership", "value": "Leadership"}, {"label": "Lightsaber", "value": "Lightsaber"}, {"label": "Lore", "value": "Lore"}, {"label": "Mechanics", "value": "Mechanics"}, {"label": "Medicine", "value": "Medicine"}, {"label": "Melee", "value": "Melee"}, {"label": "Negotiation", "value": "Negotiation"}, {"label": "Outer Rim", "value": "Outer Rim"}, {"label": "Perception", "value": "Perception"}, {"label": "Piloting (Planetary)", "value": "Piloting (Planetary)"}, {"label": "Piloting (Space)", "value": "Piloting (Space)"}, {"label": "Ranged (Heavy)", "value": "Ranged (Heavy)"}, {"label": "Ranged (Light)", "value": "Ranged (Light)"}, {"label": "Resilience", "value": "Resilience"}, {"label": "Skulduggery", "value": "Skulduggery"}, {"label": "Stealth", "value": "Stealth"}, {"label": "Streetwise", "value": "Streetwise"}, {"label": "Survival", "value": "Survival"}, {"label": "Underworld", "value": "Underworld"}, {"label": "Vigilance", "value": "Vigilance"}, {"label": "Xenology", "value": "Xenology"}]'
+    ></dropdown>
   </box>
 
   <!-- Pack Properties -->

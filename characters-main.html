@@ -144,9 +144,18 @@
     const currentWounds = parseInt(record?.data?.wounds || "0", 10);
     const newWounds = Math.max(0, currentWounds - 1);
 
+    const valuesToSet = {
+      "data.healingUsed": 0,
+    };
+
     // Use updateAttribute to properly recalculate remaining values
-    updateAttribute({ record, attribute: "wounds", value: newWounds });
-    updateAttribute({ record, attribute: "strain", value: 0 });
+    updateAttribute(
+      { record, attribute: "wounds", value: newWounds },
+      valuesToSet
+    );
+    updateAttribute({ record, attribute: "strain", value: 0 }, valuesToSet);
+
+    api.setValues(valuesToSet);
 
     api.sendMessage(
       `Resting for day. Recovered 1 wound (${currentWounds} → ${newWounds}) and all strain.`

@@ -11,6 +11,14 @@ function generateUuid() {
   });
 }
 
+function getEffectAppliedBy(record, effect) {
+  const effectValue = record?.effectValues?.[effect?._id];
+  if (effectValue && effectValue?.tokenId !== "null") {
+    return effectValue?.tokenId;
+  }
+  return null;
+}
+
 const getNearestParentDataPath = (dataPath) => {
   const parts = dataPath.split(".data");
   return parts.length > 1 ? parts.slice(0, -1).join(".data") : "";
