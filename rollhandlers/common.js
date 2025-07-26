@@ -664,6 +664,230 @@ function updateAttributes(record, moreValuesToSet = undefined) {
   }
 }
 
+function getTagsForQualities(qualities) {
+  const tags = [];
+
+  if (qualities.includes("accurate")) {
+    tags.push({
+      name: "Accurate (Passive)",
+      tooltip: "Add 1 Boost die to combat checks with this weapon",
+    });
+  }
+
+  if (qualities.includes("auto-fire")) {
+    tags.push({
+      name: "Auto-Fire (Active)",
+      tooltip:
+        "Increases difficulty by 1 when fired in Auto-Fire. On hit, spend 2 Advantage to trigger Auto-fire for additional hit. Can trigger multiple times. Additional hits can target same or different targets within range. Initial target must be highest difficulty/defense. Each hit can activate Critical Injury.",
+    });
+  }
+
+  if (qualities.includes("breach")) {
+    tags.push({
+      name: "Breach (Passive)",
+      tooltip:
+        "Ignores 1 point of armor per rank of Breach (meaning they also ignore 10 points of soak for every rating of Breach)",
+    });
+  }
+
+  if (qualities.includes("burn")) {
+    tags.push({
+      name: "Burn (Active)",
+      tooltip:
+        "If the attack is successful, can spend 2 Advantage to set target on fire. The target continues to suffer the weapon's base damage for a number of rounds equal to the weapon's Burn rating. Damage is applied at the start of each of the target's actions. A victim can attempt a Coordination check to stop the burn, or jump in water.",
+    });
+  }
+
+  if (qualities.includes("blast")) {
+    tags.push({
+      name: "Blast (Active)",
+      tooltip:
+        "If the attack is successful, can spend 2 Advantage to activate Blast. Each character (friend or foe) Engaged with the original target suffers wounds equal to the weapon's Blast rating (plus an additional wound per Success as usual). The user may also trigger Blast if the attack misses, by spending 3 Advantage. In this case, the original target and every target engaged with the original target suffers damage equal to the Blast rating of the weapon.",
+    });
+  }
+
+  if (qualities.includes("concussive")) {
+    tags.push({
+      name: "Concussive (Active)",
+      tooltip:
+        "May spend 2 Advantage to stagger the target for a number of rounds equal to the weapon's Concussive rating. A staggered target cannot perform actions.",
+    });
+  }
+
+  if (qualities.includes("cortosis")) {
+    tags.push({
+      name: "Cortosis (Passive)",
+      tooltip:
+        "Weapons with the Cortosis quality are immune to the Sunder quality. Armor with the Cortosis quality makes the wearer's soak immune to the Pierce and Breach qualities.",
+    });
+  }
+
+  if (qualities.includes("cumbersome")) {
+    tags.push({
+      name: "Cumbersome (Passive)",
+      tooltip:
+        "To wield a Cumbersome weapon properly, the character needs a Brawn characteristic equal to or greater than the weapon's Cumbersome rating. For each point of Brawn the character is deficient, he must increase the difficulty of all checks made while using the weapon by one.",
+    });
+  }
+
+  if (qualities.includes("defensive")) {
+    tags.push({
+      name: "Defensive (Passive)",
+      tooltip:
+        "A character wielding a weapon with the Defensive quality increases his melee defense by the weapon's Defensive rating.",
+    });
+  }
+
+  if (qualities.includes("deflection")) {
+    tags.push({
+      name: "Deflection (Passive)",
+      tooltip:
+        "An item with the Deflection quality increases the wearer's ranged defense equal to its Deflection rating.",
+    });
+  }
+
+  if (qualities.includes("disorient")) {
+    tags.push({
+      name: "Disorient (Active)",
+      tooltip:
+        "May spend 2 Advantage to disorient target for a number of rounds equal to the weapon's Disorient rating. A disoriented target adds 1 Setback die to all skill checks he performs.",
+    });
+  }
+
+  if (qualities.includes("ensnare")) {
+    tags.push({
+      name: "Ensnare (Active)",
+      tooltip:
+        "May spend 2 Advantage to immobilize target for a number of rounds equal to the weapon's Ensnare rating. An immobilized target cannot perform maneuvers. An Ensnared target may attempt a Hard Athletics check as his action on his turn to break free from the effect.",
+    });
+  }
+
+  if (qualities.includes("guided")) {
+    tags.push({
+      name: "Guided (Active)",
+      tooltip:
+        "On a miss, may spend 3 Advantage (unless otherwise specified in the weapon's description) to make an attack check at the end of the round. The difficulty of the check is calculated by comparing the weapon's silhouette of 0 to the silhouette of the target, and the check's Ability dice equal to the weapon's Guided rating. If the test is successful, the weapon strikes the target and damage is dealt normally.",
+    });
+  }
+
+  if (qualities.includes("knockdown")) {
+    tags.push({
+      name: "Knockdown (Active)",
+      tooltip:
+        "May spend 2 Advantage (plus 1 per silhouette beyond 1) to knock target prone.",
+    });
+  }
+
+  if (qualities.includes("inaccurate")) {
+    tags.push({
+      name: "Inaccurate (Passive)",
+      tooltip: "Add 1 Setback die to combat checks with this weapon.",
+    });
+  }
+
+  if (qualities.includes("inferior")) {
+    tags.push({
+      name: "Inferior (Passive)",
+      tooltip:
+        "An Inferior weapon generates automatic Threat on all checks related to its use, and has its base damage decreased by one. Inferior armor has its encumbrance increased by one and its defense decreased by one. If it does not have defense, decrease its soak value by one to a minimum of zero.",
+    });
+  }
+
+  if (qualities.includes("ion")) {
+    tags.push({
+      name: "Ion (Passive)",
+      tooltip:
+        "Deals system strain damage instead of physical damage. Droids are affected by ion weapons, taking damage to their strain threshold.",
+    });
+  }
+
+  if (qualities.includes("limited-ammo")) {
+    tags.push({
+      name: "Limited Ammo (Passive)",
+      tooltip:
+        "May be used to make a number of attacks equal to its Limited Ammo rating before it must be reloaded with a maneuver.",
+    });
+  }
+
+  if (qualities.includes("linked")) {
+    tags.push({
+      name: "Linked (Active)",
+      tooltip:
+        "May spend 2 Advantage to gain an additional hit, and may do so a number of times equal to the weapon's linked rating.",
+    });
+  }
+
+  if (qualities.includes("pierce")) {
+    tags.push({
+      name: "Pierce (Passive)",
+      tooltip: "Ignores 1 point of soak for each rank of Pierce.",
+    });
+  }
+
+  if (qualities.includes("prepare")) {
+    tags.push({
+      name: "Prepare (Passive)",
+      tooltip:
+        "Requires maneuvers to prepare before use, equal to the weapon's Prepare rating.",
+    });
+  }
+
+  if (qualities.includes("slow-firing")) {
+    tags.push({
+      name: "Slow-Firing (Passive)",
+      tooltip:
+        "Must wait a number of rounds equal to the weapon's Slow-Firing rating before firing again.",
+    });
+  }
+
+  if (qualities.includes("stun")) {
+    tags.push({
+      name: "Stun (Active)",
+      tooltip: "May spend 2 Advantage to deal strain damage instead of wounds.",
+    });
+  }
+
+  if (qualities.includes("stun-damage")) {
+    tags.push({
+      name: "Stun Damage (Passive)",
+      tooltip: "Deals strain damage instead of wounds",
+    });
+  }
+
+  if (qualities.includes("sunder")) {
+    tags.push({
+      name: "Sunder (Active)",
+      tooltip:
+        "May spend 1 Advantage to damage target's weapon or armor. Can be applied multiple times to destroy a weapon with damage going from Minor, Moderate, Major, and Destroyed.",
+    });
+  }
+
+  if (qualities.includes("superior")) {
+    tags.push({
+      name: "Superior (Passive)",
+      tooltip:
+        "Superior weapons generate automatic Advantage on all checks related to use, and have their base damage increased by 1. Superior armor has its encumbrance reduced by one and its soak value increased by one.",
+    });
+  }
+
+  if (qualities.includes("tractor")) {
+    tags.push({
+      name: "Tractor (Passive)",
+      tooltip:
+        "Once the weapon hits its target, the target may not move unless its pilot makes a successful Piloting check with a difficulty based on the tractor beam's rating.",
+    });
+  }
+
+  if (qualities.includes("vicious")) {
+    tags.push({
+      name: "Vicious (Passive)",
+      tooltip: "Add 10 * Vicious rating to critical injury results.",
+    });
+  }
+
+  return tags;
+}
+
 function getAllStarWarsSkills() {
   const skills = [
     { name: "Astrogation", stat: "intellect", group: "General" },
