@@ -49,7 +49,6 @@
       valuesToSet[`${pathToFields}.weaponProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
       valuesToSet[`${pathToFields}.weaponType.hidden`] = false;
-      valuesToSet[`${pathToFields}.weaponAttachmentsProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
       valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
@@ -58,7 +57,6 @@
       valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
       valuesToSet[`${pathToFields}.weaponProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
-      valuesToSet[`${pathToFields}.weaponAttachmentsProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
       valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
@@ -86,8 +84,8 @@
 
   function isAttachment(value) {
     const isWeapon =
-      value.data?.type === "ranged weapon" ||
-      value.data?.type === "melee weapon";
+      record?.data?.type === "ranged weapon" ||
+      record?.data?.type === "melee weapon";
     const isArmor = record?.data?.type === "armor";
 
     if (isWeapon) {
@@ -127,16 +125,11 @@
     // Rebuild the attachment data path incase this is a nested item
     let attachmentDataPath = dataPath.replace(/data.attachmentType[.]?/, "");
     const valuesToSet = {
-      [`${attachmentDataPath}fields.dvProperties.hidden`]: true,
-      [`${attachmentDataPath}fields.afDvProperties.hidden`]: true,
       [`${attachmentDataPath}fields.weaponAttached.hidden`]: true,
       [`${attachmentDataPath}fields.weaponAttachedLabel.hidden`]: true,
     };
 
-    if (value === "altRange") {
-      valuesToSet[`${attachmentDataPath}fields.dvProperties.hidden`] = false;
-      valuesToSet[`${attachmentDataPath}fields.afDvProperties.hidden`] = false;
-    } else if (value === "weapon") {
+    if (value === "weapon") {
       valuesToSet[`${attachmentDataPath}fields.weaponAttached.hidden`] = false;
       valuesToSet[
         `${attachmentDataPath}fields.weaponAttachedLabel.hidden`
@@ -204,15 +197,10 @@
     ];
   }
 
-  function onAttachmentsChange() {
+  function onAttachmentsChange(value) {
     const nearestParentDataPath = getNearestParentDataPath(dataPath);
     const item = api.getValue(nearestParentDataPath) || record;
 
-    // If this is an nested item, just return. (Like a weapon attachment)
-    let pathToFields = "fields";
-    if (nearestParentDataPath !== "") {
-      pathToFields = `${nearestParentDataPath}.fields`;
-    }
     let pathToData = "data";
     if (nearestParentDataPath !== "") {
       pathToData = `${nearestParentDataPath}.data`;
@@ -225,15 +213,23 @@
     const valuesToSet = {};
     attachments.forEach((attachment, index) => {
       if (attachment.data?.type !== "weapon attachment" && !isArmor) {
-        valuesToSet[`${pathToData}.type`] = "weapon attachment";
+        valuesToSet[`${pathToData}.attachments.${index}.data.type`] =
+          "weapon attachment";
         valuesToSet[
-          `${pathToFields}.weaponAttachmentProperties.hidden`
+          `${pathToData}.attachments.${index}.fields.weaponAttachmentProperties.hidden`
         ] = false;
-        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[
+          `${pathToData}.attachments.${index}.fields.hasUseBtn.hidden`
+        ] = false;
       } else if (attachment.data?.type !== "armor attachment" && isArmor) {
-        valuesToSet[`${pathToData}.type`] = "armor attachment";
-        valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
-        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[`${pathToData}.attachments.${index}.data.type`] =
+          "armor attachment";
+        valuesToSet[
+          `${pathToData}.attachments.${index}.fields.armorAttachmentProperties.hidden`
+        ] = false;
+        valuesToSet[
+          `${pathToData}.attachments.${index}.fields.hasUseBtn.hidden`
+        ] = false;
       }
     });
 
@@ -460,11 +456,41 @@
   </box>
 
   <box
-    field="armorAttachmentsProperties"
+    field="armorAttachmentProperties"
     hidden="true"
     hidewhenidentified="false"
   >
-    TODO
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+        align-items: flex-end;
+      "
+    >
+      <numberfield
+        width="100%"
+        field="slots"
+        label="Hard Points Required"
+        placeholder="0"
+        minvalue="0"
+      ></numberfield>
+      <stringfield
+        width="100%"
+        field="modificationOptions"
+        label="Modification Options"
+        placeholder="Enter Modification Options..."
+        multiline="true"
+      ></stringfield>
+      <stringfield
+        width="100%"
+        field="installedModifications"
+        label="Installed Modifications"
+        placeholder="None"
+        multiline="true"
+      ></stringfield>
+    </div>
   </box>
 
   <!-- Weapon/Armor Attachment Properties -->
@@ -483,23 +509,37 @@
       "
     >
       <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+        <numberfield
+          width="100%"
+          field="slots"
+          label="Hard Points Required"
+          placeholder="0"
+          minvalue="0"
+        ></numberfield>
         <dropdown
           width="100%"
           field="attachmentType"
           label="Attachment Type"
-          placeholder="Select Type..."
-          options='[{"label": "Standard", "value": "standard"}, {"label": "Altered Range", "value": "altRange"}, {"label": "Weapon", "value": "weapon"}]'
+          placeholder="Standard"
+          defaultvalue="standard"
           onchange="onAttachmentTypeChange(value);"
+          options='[{"label": "Standard", "value": "standard"}, {"label": "Weapon", "value": "weapon"}]'
         ></dropdown>
-
-        <numberfield
-          width="100%"
-          field="slots"
-          label="Slots Required"
-          placeholder="Enter Slots..."
-          minvalue="0"
-        ></numberfield>
       </div>
+      <stringfield
+        width="100%"
+        field="modificationOptions"
+        label="Modification Options"
+        placeholder="Enter Modification Options..."
+        multiline="true"
+      ></stringfield>
+      <stringfield
+        width="100%"
+        field="installedModifications"
+        label="Installed Modifications"
+        placeholder="None"
+        multiline="true"
+      ></stringfield>
     </div>
 
     <div
@@ -520,7 +560,7 @@
         textalign="center"
       ></label>
       <list
-        listtype="attachment_weapon_select_list"
+        listtype="attachment_weapon_list"
         field="weaponAttached"
         variant="outline"
         hidden="true"
@@ -779,7 +819,9 @@
   </box>
 
   <box field="attachmentsProperties" hidden="true" hidewhenidentified="false">
-    <div style="margin-top: 4px">
+    <div
+      style="margin-top: 4px; display: flex; flex-direction: column; gap: 4px"
+    >
       <label
         field="attachmentsLabel"
         label="Attachments"
@@ -800,7 +842,7 @@
         field="attachments"
         variant="outline-striped"
         allowadd="return isAttachment(value);"
-        onchange="onAttachmentsChange();"
+        onchange="onAttachmentsChange(value);"
       ></list>
     </div>
   </box>
