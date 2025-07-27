@@ -1212,6 +1212,19 @@ function rollCheck(attribute) {
     attribute
   );
 
+  const totalEncumbrance = record?.data?.encumbrance || 0;
+  const encumbranceThreshold = record?.data?.encumbranceThreshold || 0;
+  const encumbrancePenalty = totalEncumbrance - encumbranceThreshold;
+  const isBrawnOrAgility = attribute === "brawn" || attribute === "agility";
+  if (encumbrancePenalty > 0 && isBrawnOrAgility) {
+    modifiers.push({
+      name: "Encumbrance Penalty",
+      value: `${encumbrancePenalty} setback`,
+      type: "string",
+      active: true,
+    });
+  }
+
   // Star Wars RPG narrative dice system
   api.promptRoll(
     `${capitalize(attribute)} Check`,
@@ -1308,6 +1321,26 @@ function rollSkill(
   // Add additional modifiers if provided
   if (additionalModifiers) {
     modifiers.push(...additionalModifiers);
+  }
+
+  // Get encumbrance penalty
+  // A total encumbrance value over the threshold means the hero
+  // is “encumbered,” and suffers one setback to all Agility and
+  // Brawn rolls for every point of encumbrance over his limit.
+  // This is cumulative with any setback dice suffered for strain
+  // or other conditions, should any be in play.
+  const totalEncumbrance = record?.data?.encumbrance || 0;
+  const encumbranceThreshold = record?.data?.encumbranceThreshold || 0;
+  const encumbrancePenalty = totalEncumbrance - encumbranceThreshold;
+  const isBrawnOrAgility =
+    skill.data?.stat === "brawn" || skill.data?.stat === "agility";
+  if (encumbrancePenalty > 0 && isBrawnOrAgility) {
+    modifiers.push({
+      name: "Encumbrance Penalty",
+      value: `${encumbrancePenalty} setback`,
+      type: "string",
+      active: true,
+    });
   }
 
   // Star Wars RPG narrative dice system
