@@ -256,10 +256,10 @@
     }
   }
 
-  function onItemQualitiesChange(value) {
+  function onItemQualitiesChange(moreValuesToSet) {
     const nearestParentDataPath = getNearestParentDataPath(dataPath);
     const item = api.getValue(nearestParentDataPath) || record;
-    const qualities = value || [];
+    const qualities = item?.data?.special || [];
 
     // If this is an nested item, just return. (Like a weapon attachment)
     let pathToFields = "fields";
@@ -268,19 +268,6 @@
     }
 
     const valuesToSet = {};
-
-    // Handle button visibility
-    if (qualities.includes("auto-fire")) {
-      valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = false;
-    } else {
-      valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = true;
-    }
-
-    if (qualities.includes("stun")) {
-      valuesToSet[`${pathToFields}.stunBtn.hidden`] = false;
-    } else {
-      valuesToSet[`${pathToFields}.stunBtn.hidden`] = true;
-    }
 
     // Handle number field visibility for weapon qualities
     const qualityFields = [
@@ -316,39 +303,126 @@
           ? "stun-damage"
           : field;
 
-      if (qualities.includes(qualityValue)) {
+      if (
+        qualities.includes(qualityValue) &&
+        item?.fields?.[field]?.hidden !== false
+      ) {
         valuesToSet[`${pathToFields}.${field}.hidden`] = false;
-      } else {
+      } else if (
+        !qualities.includes(qualityValue) &&
+        item?.fields?.[field]?.hidden !== true
+      ) {
         valuesToSet[`${pathToFields}.${field}.hidden`] = true;
       }
     });
 
-    api.setValues(valuesToSet);
+    if (Object.keys(valuesToSet).length > 0) {
+      if (moreValuesToSet) {
+        Object.keys(valuesToSet).forEach((key) => {
+          moreValuesToSet[key] = valuesToSet[key];
+        });
+      } else {
+        api.setValues(valuesToSet);
+      }
+    }
   }
 
-  function showHideAttachments() {
+  function showHideFields() {
     // The attack list will hide this field there, if there are none.
     // But we need to show it here for editing, always
-    const dataPathToWeaponOrArmor = dataPath.replace(
-      /[.]?data.attachments/,
-      ""
-    );
-    const weaponOrArmor = api.getValue(dataPathToWeaponOrArmor);
+    const valuesToSet = {};
+    const dataPathToItem = dataPath.replace(/[.]?data.attachments/, "");
+    const item = api.getValue(dataPathToItem);
 
     const isWeaponOrArmor =
-      weaponOrArmor?.data?.type === "ranged weapon" ||
-      weaponOrArmor?.data?.type === "melee weapon" ||
-      weaponOrArmor?.data?.type === "armor";
+      item?.data?.type === "ranged weapon" ||
+      item?.data?.type === "melee weapon" ||
+      item?.data?.type === "armor";
 
-    const showingAttachments =
-      weaponOrArmor?.fields?.attachments?.hidden !== true;
+    const showingAttachments = item?.fields?.attachments?.hidden !== true;
+    const hardpoints = item?.data?.hardpoints || 0;
 
-    const dot = dataPathToWeaponOrArmor !== "" ? "." : "";
+    const dot = dataPathToItem !== "" ? "." : "";
 
-    if (isWeaponOrArmor && !showingAttachments) {
-      api.setValues({
-        [`${dataPathToWeaponOrArmor}${dot}fields.attachments.hidden`]: false,
-      });
+    if (isWeaponOrArmor && !showingAttachments && hardpoints > 0) {
+      valuesToSet[`${dataPathToItem}${dot}fields.attachments.hidden`] = false;
+    }
+
+    // Determine if we need to show other fields
+    const type = item?.data?.type;
+    const pathToFields = `${dataPathToItem}${dot}fields`;
+
+    if (type === "melee weapon" || type === "ranged weapon") {
+      if (item?.fields?.weaponProperties?.hidden === undefined) {
+        valuesToSet[
+          `${dataPathToItem}${dot}fields.weaponProperties.hidden`
+        ] = false;
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[`${pathToFields}.weaponProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
+        valuesToSet[`${pathToFields}.weaponType.hidden`] = false;
+        valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+        valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
+      }
+    } else if (type === "armor") {
+      if (item?.fields?.armorProperties?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+        valuesToSet[`${pathToFields}.armorProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
+      }
+    } else if (type === "general") {
+      if (item?.fields?.generalProperties?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
+        valuesToSet[`${pathToFields}.generalProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
+      }
+    } else if (type === "weapon attachment") {
+      if (item?.fields?.weaponAttachmentProperties?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[
+          `${pathToFields}.weaponAttachmentProperties.hidden`
+        ] = false;
+        valuesToSet[`${pathToFields}.slots.hidden`] = false;
+      }
+      if (
+        item?.data?.attachmentType === "weapon" &&
+        item?.fields?.weaponAttached?.hidden === undefined
+      ) {
+        valuesToSet[`${pathToFields}.weaponAttached.hidden`] = false;
+        valuesToSet[`${pathToFields}.weaponAttachedLabel.hidden`] = false;
+      }
+    } else if (type === "armor attachment") {
+      if (item?.fields?.armorAttachmentProperties?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
+        valuesToSet[`${pathToFields}.slots.hidden`] = false;
+      }
+    } else if (type === "pack") {
+      if (item?.fields?.packProperties?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
+        valuesToSet[`${pathToFields}.packProperties.hidden`] = false;
+      }
+    } else {
+      if (item?.fields?.consumable?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = false;
+        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      }
+    }
+
+    // Check qualities too
+    onItemQualitiesChange(valuesToSet);
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
     }
   }
 </script>
@@ -649,7 +723,7 @@
         placeholder="Select Item Qualities..."
         multiselect="28"
         searchable="true"
-        onchange="onItemQualitiesChange(value);"
+        onchange="onItemQualitiesChange();"
         options='[{"label": "Accurate (Passive)", "value": "accurate"}, 
         {"label": "Auto-Fire (Active)", "value": "auto-fire"}, 
         {"label": "Breach (Passive)", "value": "breach"}, 
@@ -880,7 +954,7 @@
         variant="outline-striped"
         allowadd="return isAttachment(value);"
         onchange="onAttachmentsChange(value);"
-        onload="showHideAttachments();"
+        onload="showHideFields();"
       ></list>
     </div>
   </box>

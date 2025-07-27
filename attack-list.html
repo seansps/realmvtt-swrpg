@@ -45,7 +45,7 @@
   function onRollAttack() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(record, weapon);
+    rollAttack(record, weapon, dataPathToWeapon);
   }
 </script>
 

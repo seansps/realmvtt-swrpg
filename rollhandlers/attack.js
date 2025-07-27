@@ -1,3 +1,6 @@
+const roll = data.roll;
+const metadata = roll?.metadata || {};
+
 // TODO
 
 // Todo lookup weapon by ID
@@ -19,3 +22,10 @@
 
 // Todo macros for damage to strain (reduced by soak and not depending on
 // source, such as Brawling, or item qualities)
+
+const tags = [
+  {
+    name: metadata?.rollName || "Attack",
+    tooltip: metadata?.tooltip || "",
+  },
+];

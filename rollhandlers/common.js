@@ -1856,7 +1856,7 @@ api.promptRoll("Critical Hit", "1d100", JSON.parse('${modsAsString}') , {
 \`\`\``;
 }
 
-function rollAttack(record, weapon) {
+function rollAttack(record, weapon, dataPathToWeapon) {
   // TODO
   // Get target's defense and apply as setback
   // Get target's defense modifieres and apply to roll
@@ -2007,6 +2007,7 @@ function rollAttack(record, weapon) {
         ourTokenId: ourTokenId,
         targetId: targetId,
         animation: animation,
+        dataPathToWeapon: dataPathToWeapon,
         // Send brawn for melee / unarmed attacks
         brawn: record.data?.brawn || 0,
       },

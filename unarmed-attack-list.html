@@ -1,51 +1,8 @@
 <script>
-  function onLoad() {
-    // If needed, hide or unhide the ammo field
-    const dataPathToWeapon = getNearestParentDataPath(dataPath);
-    const weapon = api.getValue(dataPathToWeapon);
-
-    let pathToFields = "fields";
-    if (dataPathToWeapon !== "") {
-      pathToFields = `${dataPathToWeapon}.fields`;
-    }
-
-    const valuesToSet = {};
-
-    const ammoFieldShown = weapon.fields?.ammoField?.hidden === false;
-
-    const itemQualities = weapon.data?.special || [];
-    const needsAmmo = itemQualities.includes("limited-ammo");
-
-    // We only set the ammo field if the item has the limited-ammo quality
-    // and the ammo field is hidden.
-    if (needsAmmo && !ammoFieldShown) {
-      valuesToSet[`${pathToFields}.ammoField.hidden`] = false;
-    } else if (!needsAmmo && ammoFieldShown) {
-      valuesToSet[`${pathToFields}.ammoField.hidden`] = true;
-    }
-
-    // Determine if we need to show the attachments list
-    const showingAttachments = weapon?.fields?.attachments?.hidden !== true;
-    const attachments = weapon?.data?.attachments || [];
-    // If we're showing attachments list and we no have attachments, then hide it
-    const showAttachments = attachments.length > 0;
-
-    if (showingAttachments && !showAttachments) {
-      valuesToSet[`${pathToFields}.attachments.hidden`] = true;
-    } else if (!showingAttachments && showAttachments) {
-      valuesToSet[`${pathToFields}.attachments.hidden`] = false;
-    }
-
-    // Only update values if needed
-    if (Object.keys(valuesToSet).length > 0) {
-      api.setValues(valuesToSet);
-    }
-  }
-
   function onRollAttack() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(record, weapon);
+    rollAttack(record, weapon, dataPathToWeapon);
   }
 </script>
 
@@ -61,34 +18,9 @@
       <namefield
         field="namefield"
         variant="standard"
-        placeholder="Item Name..."
+        placeholder="Unarmed Attack..."
       ></namefield>
     </div>
-    <box field="ammoField" hidden="true">
-      <div
-        style="
-          display: flex;
-          flex-direction: row;
-          gap: 4px;
-          align-items: center;
-        "
-      >
-        <label size="xs" variant="bold" label="Ammo: "></label>
-        <div style="width: 60px">
-          <numberfield
-            onload="onLoad();"
-            width="100%"
-            field="ammo"
-            placeholder="0"
-            minvalue="0"
-            variant="tooltip"
-            label="Ammo Remaining"
-            size="xs"
-          >
-          </numberfield>
-        </div>
-      </div>
-    </box>
     <div style="width: 70px; min-width: 70px">
       <stringfield
         width="100%"
