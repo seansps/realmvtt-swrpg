@@ -902,7 +902,7 @@ function getTagsForQualities(qualities) {
   if (qualities.includes("stun")) {
     tags.push({
       name: "Stun (Active)",
-      tooltip: "May spend 2 Advantage to deal strain damage instead of wounds.",
+      tooltip: "May spend 2 Advantage to deal direct strain damage instead.",
     });
   }
 
@@ -910,6 +910,30 @@ function getTagsForQualities(qualities) {
     tags.push({
       name: "Stun Damage (Passive)",
       tooltip: "Deals strain damage instead of wounds",
+    });
+  }
+
+  if (qualities.includes("stun-setting")) {
+    tags.push({
+      name: "Stun Setting",
+      tooltip:
+        "If firing on the stun setting, the max range is Short, and damage is done to strain.",
+    });
+  }
+
+  if (qualities.includes("stun-damage-droid")) {
+    tags.push({
+      name: "Stun Damage (Passive, Droid only)",
+      tooltip:
+        "Deals strain damage instead of wounds and only applies to droids.",
+    });
+  }
+
+  if (qualities.includes("unarmed")) {
+    tags.push({
+      name: "Unarmed",
+      tooltip:
+        "Unarmed attacks use the Brawl skill and Brawn for base damage. Damage can be done to strain instead of wounds.",
     });
   }
 
@@ -991,6 +1015,44 @@ function getAllStarWarsSkills() {
 function initializeSkills(record) {
   const existingSkills = record?.data?.skills || [];
 
+  const addUnarmedIfNeeded = () => {
+    // Add Unarmed attack if not present
+    const unarmedAttack = record?.data?.unarmedAttack;
+    if (unarmedAttack === undefined) {
+      // When making an unarmed combat check using
+      // Brawl, the character’s attack has a base damage of
+      // his Brawn rating, a range of engaged, a Critical Rating
+      // of 5, and the Disorient 1 and Knockdown qualities.
+      // Finally,
+      const attack = {
+        _id: generateUuid(),
+        portrait: "/images/bc390eaa-d17a-4022-a1ca-fa388c12e498_29.webp",
+        name: "Unarmed Combat",
+        unidentifiedName: "Unarmed Combat",
+        recordType: "items",
+        identified: true,
+        icon: "IconBox",
+        data: {
+          damage: 0,
+          crit: 5,
+          carried: "equipped",
+          type: "melee weapon",
+          range: "Engaged",
+          skill: "Brawl",
+          weaponSkill: "Brawl",
+          range: "Engaged",
+          special: ["unarmed", "disorient", "knockdown"],
+          disorient: 1,
+          description:
+            "Unarmed attacks use the Brawl skill and Brawn for base damage. Damage can be done to strain instead of wounds.",
+        },
+      };
+      api.setValues({
+        "data.unarmedAttack": [attack],
+      });
+    }
+  };
+
   // Only initialize if no skills exist
   if (existingSkills.length === 0) {
     const allSkills = getAllStarWarsSkills();
@@ -1010,9 +1072,14 @@ function initializeSkills(record) {
     }));
 
     // Set all skills at once
-    api.setValues({
-      "data.skills": skillObjects,
-    });
+    api.setValues(
+      {
+        "data.skills": skillObjects,
+      },
+      addUnarmedIfNeeded
+    );
+  } else {
+    addUnarmedIfNeeded();
   }
 }
 
@@ -1803,7 +1870,6 @@ function rollAttack(record, weapon) {
     skill = isMelee ? "Brawl" : "Ranged (Light)";
   }
   const weaponId = weapon._id;
-  const attackModifiers = [];
   // Get attack modifiers
   const attackBonusModifiers = getEffectsAndModifiersForToken(
     record,
@@ -1813,9 +1879,6 @@ function rollAttack(record, weapon) {
     undefined,
     weapon
   );
-  attackBonusModifiers.forEach((mod) => {
-    attackModifiers.push(mod);
-  });
 
   // Find the skill in the character's skills
   const skillObj = record.data?.skills?.find((s) => s.name === skill);
@@ -1836,12 +1899,32 @@ function rollAttack(record, weapon) {
   }
   const narrativeDistance = record.data?.rangeBand || "Short";
   targets.forEach((target) => {
+    // Check for difficultyIncrease modifiers
+    let difficultyIncrease = 0;
     const token = target?.token;
 
     // Default difficulty to Easy (Engaged | Short)
     let difficulty = "Easy";
     // Ranged difficulty is based on the range band
-    if (narrativeDistance === "Medium") {
+    if (narrativeDistance === "Engaged") {
+      difficulty = "Easy";
+      // Add modifiers if engaged w/ specific skills
+      if (skillObj.name === "Ranged (Light)") {
+        difficultyIncrease += 1;
+      } else if (skillObj.name === "Ranged (Heavy)") {
+        difficultyIncrease += 2;
+      } else if (skillObj.name === "Gunnery") {
+        // Technically impossible - show error
+        api.showNotification(
+          "Gunnery is impossible to use when Engaged with a target.",
+          "red",
+          "Impossible Roll"
+        );
+        return;
+      }
+    } else if (narrativeDistance === "Short") {
+      difficulty = "Easy";
+    } else if (narrativeDistance === "Medium") {
       difficulty = "Average";
     } else if (narrativeDistance === "Long") {
       difficulty = "Hard";
@@ -1849,14 +1932,13 @@ function rollAttack(record, weapon) {
       difficulty = "Daunting";
     }
 
-    // Check for difficultyIncrease modifiers
-    let difficultyIncrease = 0;
-
     // Check target's difficultyOfAttacksTargetingYou modifiers
     const difficultyOfAttacksTargetingYouModifiers =
-      getEffectsAndModifiersForToken(token, [
-        "difficultyOfAttacksTargetingYou",
-      ]);
+      getEffectsAndModifiersForToken(
+        token,
+        ["difficultyOfAttacksTargetingYou"],
+        isMelee ? "melee" : "ranged"
+      );
     difficultyOfAttacksTargetingYouModifiers.forEach((mod) => {
       const modValue = parseInt(mod.value, 10);
       if (modValue > 0 && !isNaN(modValue)) {
@@ -1866,9 +1948,11 @@ function rollAttack(record, weapon) {
 
     // Check for upgradeDifficultyOfAttacksTargetingYou modifiers
     const upgradeDifficultyOfAttacksTargetingYouModifiers =
-      getEffectsAndModifiersForToken(token, [
-        "upgradeDifficultyOfAttacksTargetingYou",
-      ]);
+      getEffectsAndModifiersForToken(
+        token,
+        ["upgradeDifficultyOfAttacksTargetingYou"],
+        isMelee ? "melee" : "ranged"
+      );
     let upgradeDifficulty = 0;
     upgradeDifficultyOfAttacksTargetingYouModifiers.forEach((mod) => {
       const modValue = parseInt(mod.value, 10);
@@ -1878,17 +1962,32 @@ function rollAttack(record, weapon) {
     });
 
     let modifiers = [];
+    attackBonusModifiers.forEach((mod) => {
+      // Add attack bonus modifiers to modifiers
+      modifiers.push(mod);
+    });
+
     // Get target's defense and apply as setback
     const targetDefense = isMelee
       ? token?.data?.defenseMelee || 0
       : token?.data?.defenseRanged || 0;
     if (targetDefense > 0) {
       modifiers.push({
-        name: "Setback",
+        name: "Target Defense",
         value: `${targetDefense} setback`,
         active: true,
       });
     }
+
+    // Get modifiers for attacksTargetingYou on token
+    const attacksTargetingYouModifiers = getEffectsAndModifiersForToken(
+      token,
+      ["attacksTargetingYou"],
+      isMelee ? "melee" : "ranged"
+    );
+    attacksTargetingYouModifiers.forEach((mod) => {
+      modifiers.push(mod);
+    });
 
     const ourTokenId = ourToken?._id;
     const targetId = token?._id;
@@ -1908,6 +2007,8 @@ function rollAttack(record, weapon) {
         ourTokenId: ourTokenId,
         targetId: targetId,
         animation: animation,
+        // Send brawn for melee / unarmed attacks
+        brawn: record.data?.brawn || 0,
       },
       undefined,
       modifiers
