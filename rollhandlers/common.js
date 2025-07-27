@@ -1362,7 +1362,7 @@ function rollInitiative(record) {
 
   if (!skill) {
     api.showNotification(
-      `No skill found for ${initiativeSkill}. Please add the Skills in their sheet.`,
+      `No skill found for ${initiativeSkill}. Add the Skill to their sheet and try again.`,
       "red",
       "Skill Not Found"
     );
@@ -1454,7 +1454,7 @@ ${abilityDescription}
 
     if (!skill) {
       api.showNotification(
-        `No skill found for ${skillRoll}. Please add the Skills in their sheet.`,
+        `No skill found for ${skillRoll}. Add the Skill to their sheet and try again.`,
         "red",
         "Skill Not Found"
       );
@@ -1789,12 +1789,27 @@ if (isGM) {
 }
 
 function getSkillCheckMacro(skillCheck) {
-  // TODO
+  return `\`\`\`Roll_${skillCheck.trim().replace(/ /g, "_")}_Check
+let targets = api.getSelectedOrDroppedToken();
+targets.forEach(target => {
+  // Try to find the skill in the character's skills
+  const skill = target.data?.skills?.find(skill => skill.name === "${skillCheck}");
+  if (skill) {
+    rollSkill(target, skill);
+  } else {
+    api.showNotification(
+      'No skill found for ${skillCheck}. Add the Skill to their sheet and try again.',
+      "red",
+      "Skill Not Found"
+    );
+  }
+});
+\`\`\``;
 }
 
 function getEffectMacros(effects) {
   // If we're using a potion with an effect or healing, add the buttons
-  if (effects && effects.length > 0) {
+  if (effects) {
     // Create macros for all effects that this action can apply
     let effectButtons = "";
     effects.forEach((effectJson) => {
@@ -1813,7 +1828,7 @@ function getEffectMacros(effects) {
   \`\`\``;
     });
 
-    effectButtons += `\n${effectButtons}`;
+    return effectButtons;
   } else {
     return "";
   }
