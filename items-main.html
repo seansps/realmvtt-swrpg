@@ -83,10 +83,16 @@
   }
 
   function isAttachment(value) {
+    let itemDataPath = dataPath.replace("data.attachments", "");
+    if (itemDataPath.endsWith(".")) {
+      itemDataPath = itemDataPath.slice(0, -1);
+    }
+    const item = api.getValue(itemDataPath);
+
     const isWeapon =
-      record?.data?.type === "ranged weapon" ||
-      record?.data?.type === "melee weapon";
-    const isArmor = record?.data?.type === "armor";
+      item?.data?.type === "ranged weapon" ||
+      item?.data?.type === "melee weapon";
+    const isArmor = item?.data?.type === "armor";
 
     if (isWeapon) {
       return value.data?.type === "weapon attachment";
@@ -198,16 +204,19 @@
   }
 
   function onAttachmentsChange(value) {
-    const nearestParentDataPath = getNearestParentDataPath(dataPath);
-    const item = api.getValue(nearestParentDataPath) || record;
+    let itemDataPath = dataPath.replace("data.attachments", "");
+    if (itemDataPath.endsWith(".")) {
+      itemDataPath = itemDataPath.slice(0, -1);
+    }
+    const item = api.getValue(itemDataPath);
 
     let pathToData = "data";
-    if (nearestParentDataPath !== "") {
-      pathToData = `${nearestParentDataPath}.data`;
+    if (itemDataPath !== "") {
+      pathToData = `${itemDataPath}.data`;
     }
 
     const attachments = value || [];
-    const isArmor = record?.data?.type === "armor";
+    const isArmor = item?.data?.type === "armor";
 
     // Make sure all attachments are of type "weapon attachment" or "armor attachment"
     const valuesToSet = {};
@@ -239,7 +248,7 @@
       slotsUsed += attachment.data?.slots || 0;
     });
 
-    const hardpoints = record.data?.hardpoints || 0;
+    const hardpoints = item?.data?.hardpoints || 0;
     valuesToSet[`${pathToData}.slotsUsed`] = Math.min(slotsUsed, hardpoints);
 
     if (Object.keys(valuesToSet).length > 0) {
@@ -315,6 +324,32 @@
     });
 
     api.setValues(valuesToSet);
+  }
+
+  function showHideAttachments() {
+    // The attack list will hide this field there, if there are none.
+    // But we need to show it here for editing, always
+    const dataPathToWeaponOrArmor = dataPath.replace(
+      /[.]?data.attachments/,
+      ""
+    );
+    const weaponOrArmor = api.getValue(dataPathToWeaponOrArmor);
+
+    const isWeaponOrArmor =
+      weaponOrArmor?.data?.type === "ranged weapon" ||
+      weaponOrArmor?.data?.type === "melee weapon" ||
+      weaponOrArmor?.data?.type === "armor";
+
+    const showingAttachments =
+      weaponOrArmor?.fields?.attachments?.hidden !== true;
+
+    const dot = dataPathToWeaponOrArmor !== "" ? "." : "";
+
+    if (isWeaponOrArmor && !showingAttachments) {
+      api.setValues({
+        [`${dataPathToWeaponOrArmor}${dot}fields.attachments.hidden`]: false,
+      });
+    }
   }
 </script>
 
@@ -843,6 +878,7 @@
         variant="outline-striped"
         allowadd="return isAttachment(value);"
         onchange="onAttachmentsChange(value);"
+        onload="showHideAttachments();"
       ></list>
     </div>
   </box>

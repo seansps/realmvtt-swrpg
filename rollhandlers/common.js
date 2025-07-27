@@ -278,8 +278,6 @@ function getEffectsAndModifiersForToken(
   appliedById = undefined,
   // If Weapon is provided, we also look on it and attachments on it
   weapon = undefined,
-  // If Ammo is provided, we also look for modifiers on it
-  ammoItem = undefined,
   ability = undefined
 ) {
   if (!target) {
@@ -453,7 +451,6 @@ function getEffectsAndModifiersForToken(
     ...abilityTalents,
     ...criticalInjuries,
     ...(weapon ? [weapon] : []),
-    ...(ammoItem ? [ammoItem] : []),
   ].forEach((feature) => {
     const modifiers = feature.data?.modifiers || [];
     modifiers.forEach((modifier) => {
@@ -1390,7 +1387,6 @@ function rollSkill(
     undefined,
     undefined,
     undefined,
-    undefined,
     ability
   );
 
@@ -1761,13 +1757,93 @@ api.promptRoll("Critical Hit", "1d100", JSON.parse('${modsAsString}') , {
 \`\`\``;
 }
 
-function rollAttack() {
+function rollAttack(record, weapon) {
   // TODO
   // Get target's defense and apply as setback
   // Get target's defense modifieres and apply to roll
   // For crit macros check targets crit reducedCriticalHit mods
   // For crit macros check our increaseCriticalHit mods
   // For damage macros check our damageBonus and damagePenalty mods
+
+  const isMelee = weapon.data?.type === "melee weapon";
+  let skill = weapon.data?.weaponSkill || "";
+  if (skill === "") {
+    skill = isMelee ? "Brawl" : "Ranged (Light)";
+  }
+  const weaponId = weapon._id;
+
+  // Find the skill in the character's skills
+  const skillObj = record.data?.skills?.find((s) => s.name === skill);
+  if (!skillObj) {
+    api.showNotification(
+      `No skill found for ${skill}. Add the Skill to their sheet and try again.`,
+      "red",
+      "Skill Not Found"
+    );
+    return;
+  }
+
+  // For each target... (if there is one)
+  const targets = api.getTargets();
+  const ourToken = api.getToken();
+  if (targets.length < 1) {
+    targets.push({ token: { noToken: true }, distance: 0 });
+  }
+  targets.forEach((target) => {
+    const token = target?.token;
+    const targetDistance = token?.noToken
+      ? 0
+      : api.getDistance(ourToken, target?.token);
+
+    let difficulty = 1;
+    // Determine difficulty
+
+    let modifiers = [];
+    // Get target's defense and apply as setback
+
+    // Get or determine animation TODO
+
+    rollSkill(
+      record,
+      skill,
+      {
+        rollName: "Attack",
+        tooltip: `Attack Roll with ${skillRoll}`,
+        rollType: "attack",
+        characteristic: skillRoll.data?.stat || "Brawn",
+        difficulty: difficulty,
+      },
+      undefined,
+      modifiers
+    );
+  });
+}
+
+function getDamageForMacroForAttack(record, weapon, successes = 0) {
+  // Get the weapon's damage value
+  let damage = weapon.data?.damage || 0;
+  // Get the weapon's type
+  const isMelee = weapon.data?.type === "melee weapon";
+
+  // Get any bonuses or penalties to the damage
+  const damageModifiers = getEffectsAndModifiersForToken(
+    record,
+    ["damageBonus", "damagePenalty"],
+    isMelee ? "melee" : "ranged",
+    weapon._id,
+    undefined,
+    weapon
+  );
+  damageModifiers.forEach((mod) => {
+    if (mod.active === true) {
+      damage += mod.value;
+    }
+  });
+
+  // Damage increases by 1 per success
+  damage += successes;
+
+  return getDamageMacro(damage);
 }
 
 function getHealingMacro(healing, deduct = false) {
