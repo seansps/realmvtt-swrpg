@@ -1,5 +1,6 @@
 const roll = data.roll;
 const metadata = roll?.metadata || {};
+const dataPathToWeapon = metadata?.dataPathToWeapon;
 
 // TODO
 
@@ -29,3 +30,16 @@ const tags = [
     tooltip: metadata?.tooltip || "",
   },
 ];
+
+if (dataPathToWeapon) {
+  // Get the weapon used for this attack
+  const weapon = api.getValue(dataPathToWeapon);
+  const tagsForQualities = getTagsForQualities(weapon.data?.special || []);
+  tags.push(...tagsForQualities);
+
+  api.sendMessage("", roll, [], tags);
+}
+{
+  // Could not find weapon, just show basic result
+  api.sendMessage("", roll, [], tags);
+}

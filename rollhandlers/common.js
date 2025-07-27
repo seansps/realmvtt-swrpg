@@ -494,7 +494,7 @@ function getEffectsAndModifiersForToken(
           modifierType: ruleType,
           field: modifier.data?.field || "",
           valueType: modifier.data?.valueType,
-          itemId: itemOnly ? feature?._id : undefined,
+          itemId: itemOnly ? feature?.weaponId || feature?._id : undefined,
           isPenalty: isPenalty,
           isEffect: false,
         });
@@ -1047,9 +1047,7 @@ function initializeSkills(record) {
             "Unarmed attacks use the Brawl skill and Brawn for base damage. Damage can be done to strain instead of wounds.",
         },
       };
-      api.setValues({
-        "data.unarmedAttack": [attack],
-      });
+      api.addValue("data.unarmedAttack", attack);
     }
   };
 

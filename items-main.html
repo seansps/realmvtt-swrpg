@@ -256,7 +256,7 @@
     }
   }
 
-  function onItemQualitiesChange(moreValuesToSet) {
+  function onItemQualitiesChange(moreValuesToSet = undefined) {
     const nearestParentDataPath = getNearestParentDataPath(dataPath);
     const item = api.getValue(nearestParentDataPath) || record;
     const qualities = item?.data?.special || [];
@@ -317,7 +317,8 @@
     });
 
     if (Object.keys(valuesToSet).length > 0) {
-      if (moreValuesToSet) {
+      if (moreValuesToSet !== undefined) {
+        // Merge values into the provided object instead of calling api.setValues
         Object.keys(valuesToSet).forEach((key) => {
           moreValuesToSet[key] = valuesToSet[key];
         });
@@ -349,7 +350,7 @@
     }
 
     // Determine if we need to show other fields
-    const type = item?.data?.type;
+    const type = item?.data?.type || "general";
     const pathToFields = `${dataPathToItem}${dot}fields`;
 
     if (type === "melee weapon" || type === "ranged weapon") {
@@ -375,12 +376,9 @@
         valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
       }
     } else if (type === "general") {
-      if (item?.fields?.generalProperties?.hidden === undefined) {
-        valuesToSet[`${pathToFields}.consumable.hidden`] = true;
+      if (item?.fields?.hasUseBtn?.hidden === undefined) {
+        valuesToSet[`${pathToFields}.consumable.hidden`] = false;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
-        valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
-        valuesToSet[`${pathToFields}.generalProperties.hidden`] = false;
-        valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
       }
     } else if (type === "weapon attachment") {
       if (item?.fields?.weaponAttachmentProperties?.hidden === undefined) {
@@ -411,14 +409,16 @@
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
         valuesToSet[`${pathToFields}.packProperties.hidden`] = false;
       }
-    } else {
-      if (item?.fields?.consumable?.hidden === undefined) {
-        valuesToSet[`${pathToFields}.consumable.hidden`] = false;
-        valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
-      }
     }
 
-    // Check qualities too
+    if (
+      (item?.data?.consumable === true || item?.data?.hasUseBtn === true) &&
+      item?.fields?.consumableProperties?.hidden !== false
+    ) {
+      valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
+    }
+
+    // Check qualities too - pass the valuesToSet object to merge into it
     onItemQualitiesChange(valuesToSet);
 
     if (Object.keys(valuesToSet).length > 0) {
@@ -452,7 +452,7 @@
         s
         field="type"
         label="Type"
-        defaultvalue="gear"
+        defaultvalue="general"
         options='[{"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Ranged Weapon", "value": "ranged weapon"},  {"label": "Armor", "value": "armor"}, {"label": "Weapon Attachment", "value": "weapon attachment"}, {"label": "Armor Attachment", "value": "armor attachment"}, {"label": "Item Pack", "value": "pack"}]'
       >
       </dropdown>
@@ -747,13 +747,14 @@
         {"label": "Prepare (Passive)", "value": "prepare"},
         {"label": "Slow-Firing (Passive)", "value": "slow-firing"}, 
         {"label": "Stun (Active)", "value": "stun"}, 
-        {"label": "Stun Setting (Passive)", "value": "stun-setting"},
         {"label": "Stun Damage (Passive)", "value": "stun-damage"},
         {"label": "Stun Damage (Passive, Droid only)", "value": "stun-damage-droid"},
+        {"label": "Stun Setting (Passive)", "value": "stun-setting"},
         {"label": "Sunder (Active)", "value": "sunder"}, 
         {"label": "Superior (Passive)", "value": "superior"}, 
         {"label": "Tractor (Passive)", "value": "tractor"}, 
-        {"label": "Vicious (Passive)", "value": "vicious"}]'
+        {"label": "Vicious (Passive)", "value": "vicious"}, 
+        {"label": "Unarmed", "value": "unarmed"}]'
       ></dropdown>
     </div>
     <!-- Some special properties have values that need to be set -->
