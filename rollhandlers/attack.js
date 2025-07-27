@@ -24,6 +24,8 @@ const dataPathToWeapon = metadata?.dataPathToWeapon;
 // Todo macros for damage to strain (reduced by soak and not depending on
 // source, such as Brawling, or item qualities)
 
+// TODO critical injury macro if advantage/triumph
+
 const tags = [
   {
     name: metadata?.rollName || "Attack",
@@ -56,8 +58,19 @@ if (results.successes > 0) {
 
 if (weapon) {
   // Get the weapon used for this attack
+  // TODO pass weapoon to getTagsForQualities and show values for related ones
   const tagsForQualities = getTagsForQualities(weapon.data?.special || []);
   tags.push(...tagsForQualities);
+
+  // Add tags for crit and range
+  tags.push({
+    name: `Crit ${weapon.data?.crit || 0}`,
+    tooltip: `Critical Rating: ${weapon.data?.crit}`,
+  });
+  tags.push({
+    name: `${weapon.data?.range}`,
+    tooltip: `Range: ${weapon.data?.range}`,
+  });
 
   let damage = parseInt(weapon.data?.damage || 0, 10) + results.successes;
   // If this is unarmed or melee add brawn from metadata
