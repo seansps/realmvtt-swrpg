@@ -1660,3 +1660,150 @@ function rollAttack() {
   // For crit macros check our increaseCriticalHit mods
   // For damage macros check our damageBonus and damagePenalty mods
 }
+
+function getHealingMacro(healing, deduct = false) {
+  // Apply healing to targets -- if deduct is true,
+  // then deduct from the healing the amount of stims used today
+  return `\`\`\`Apply_Healing
+let targets = api.getSelectedOrDroppedToken();
+targets.forEach(target => {
+  const usedStims = target.data?.healingUsed || 0;
+  let healingToApply = ${healing};
+  const valuesToSet = {};
+  if (${deduct}) {
+    healingToApply -= usedStims;
+    valuesToSet["data.healingUsed"] = usedStims + 1;
+  }
+  if (healingToApply > 0) {
+    // Get healingBonus and penalties for target
+    const healingBonus = getEffectsAndModifiersForToken(target, ["healingBonus"]);
+    const healingPenalty = getEffectsAndModifiersForToken(target, ["healingPenalty"]);
+    const healingBonusValue = healingBonus.reduce((sum, mod) => sum + mod.value, 0);
+    const healingPenaltyValue = healingPenalty.reduce((sum, mod) => sum + mod.value, 0);
+    const healingValue = healingToApply + Math.abs(healingBonusValue) - Math.abs(healingPenaltyValue);
+    valuesToSet["data.wounds"] = Math.max(0, target.data?.wounds - healingValue);
+    valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+    api.setValuesOnRecord(target, valuesToSet);
+    api.floatText(target, '+' + healingValue, "#1bc91b");
+  }
+});
+\`\`\``;
+}
+
+function getDamageMacro(damage) {
+  // TODO
+}
+
+function getSkillCheckMacro(skillCheck) {
+  // TODO
+}
+
+function getEffectMacros(effects) {
+  // If we're using a potion with an effect or healing, add the buttons
+  if (effects && effects.length > 0) {
+    // Create macros for all effects that this action can apply
+    let effectButtons = "";
+    effects.forEach((effectJson) => {
+      const effect = JSON.parse(effectJson);
+      const effectName = effect?.name || "";
+      const effectID = effect?._id || "";
+      const effectTitle = `Apply_${effectName.replace(/ /g, "_")}`;
+      if (effectButtons !== "") {
+        effectButtons += "\n";
+      }
+      effectButtons += `\`\`\`${effectTitle}
+  let targets = api.getSelectedOrDroppedToken();
+  targets.forEach(target => {
+    api.addEffectById('${effectID}', target);
+  });
+  \`\`\``;
+    });
+
+    effectButtons += `\n${effectButtons}`;
+  } else {
+    return "";
+  }
+}
+
+function useItem(record, itemDataPath) {
+  // Deduct count by 1, delete item if count is 0,
+  // and output the description to Chat
+  // Include macros to relevant fields
+  const itemName = api.getValueOnRecord(record, `${itemDataPath}.name`);
+  const itemCount = api.getValueOnRecord(record, `${itemDataPath}.data.count`);
+  const indexValue = parseInt(itemDataPath.split(".").pop());
+  const isConsumable =
+    api.getValueOnRecord(record, `${itemDataPath}.data.consumable`) || false;
+
+  // Output the description to Chat
+  let description =
+    api.getValueOnRecord(record, `${itemDataPath}.data.description`) || "";
+  let effects =
+    api.getValueOnRecord(record, `${itemDataPath}.data.effects`) || [];
+  const itemType = api.getValueOnRecord(record, `${itemDataPath}.data.type`);
+
+  const skillCheck = api.getValueOnRecord(
+    record,
+    `${itemDataPath}.data.skillCheck`
+  );
+
+  const healing = api.getValueOnRecord(record, `${itemDataPath}.data.healing`);
+  let damage = api.getValueOnRecord(record, `${itemDataPath}.data.useDamage`);
+  const portrait = api.getValueOnRecord(record, `${itemDataPath}.portrait`);
+
+  const itemIcon = portrait
+    ? `![${itemName}](${assetUrl}${portrait}?width=40&height=40) `
+    : "";
+  const itemDescription = api.richTextToMarkdown(description || "");
+  let markdownDescription = `
+#### ${itemIcon}${itemName}
+
+---
+${itemDescription}
+`;
+
+  // If there is healing, get the healing macro
+  const deductStimUses =
+    api.getValueOnRecord(record, `${itemDataPath}.data.countsAsHealing`) ===
+    true;
+  const healingValue = parseInt(checkForReplacements(healing, {}, record), 10);
+  const healingMacro =
+    healingValue > 0 ? getHealingMacro(healingValue, deductStimUses) : "";
+
+  // If there is damage, get the damage macro
+  const damageMacro = damage ? getDamageMacro(damage) : "";
+
+  // If there is skill check, get the skill check macro
+  const skillCheckMacro = skillCheck ? getSkillCheckMacro(skillCheck) : "";
+
+  // Get effect macros
+  const effectMacros = getEffectMacros(effects);
+
+  let message = markdownDescription;
+  if (healingMacro) {
+    message += `\n${healingMacro}`;
+  }
+  if (damageMacro) {
+    message += `\n${damageMacro}`;
+  }
+  if (skillCheckMacro) {
+    message += `\n${skillCheckMacro}`;
+  }
+  if (effectMacros) {
+    message += `\n${effectMacros}`;
+  }
+
+  api.sendMessage(message, undefined, []);
+
+  // If consumable, delete item if count is 0
+  if (isConsumable) {
+    const count = parseFloat(itemCount || "0");
+    if (count - 1 > 0) {
+      api.setValuesOnRecord(record, {
+        [`${itemDataPath}.data.count`]: count - 1,
+      });
+    } else if (!isNaN(indexValue)) {
+      api.removeValueFromRecord(record, `data.inventory`, indexValue);
+    }
+  }
+}
