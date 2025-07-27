@@ -1657,7 +1657,7 @@ function getRollCriticalInjuryMacro(record, target) {
     "increaseCriticalHit",
   ]);
   const decreaseCriticalHitMods = target
-    ? getEffectsAndModifiersForToken(target, ["decreaseCriticalHit"])
+    ? getEffectsAndModifiersForToken(target, ["reducedCriticalHit"])
     : [];
 
   const modifiers = [];
@@ -1703,10 +1703,16 @@ targets.forEach(target => {
   const usedStims = target.data?.healingUsed || 0;
   let healingToApply = ${healing};
   const valuesToSet = {};
+  const oldValues = {};
+  let message = '';
+  let deductMessage = '.';
   if (${deduct}) {
     healingToApply -= usedStims;
+    oldValues["data.healingUsed"] = usedStims;
     valuesToSet["data.healingUsed"] = usedStims + 1;
+    deductMessage = \` (Deducted \${usedStims} stims used today.)\`;
   }
+  message += \`Healed \${healingToApply} wounds\${deductMessage}.\\n\`;
   if (healingToApply > 0) {
     // Get healingBonus and penalties for target
     const healingBonus = getEffectsAndModifiersForToken(target, ["healingBonus"]);
@@ -1714,17 +1720,72 @@ targets.forEach(target => {
     const healingBonusValue = healingBonus.reduce((sum, mod) => sum + mod.value, 0);
     const healingPenaltyValue = healingPenalty.reduce((sum, mod) => sum + mod.value, 0);
     const healingValue = healingToApply + Math.abs(healingBonusValue) - Math.abs(healingPenaltyValue);
+    oldValues["data.wounds"] = target.data?.wounds;
+    oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
     valuesToSet["data.wounds"] = Math.max(0, target.data?.wounds - healingValue);
     valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
     api.setValuesOnRecord(target, valuesToSet);
     api.floatText(target, '+' + healingValue, "#1bc91b");
   }
+  // UNDO macro using api.setValuesOnRecord to avoid race conditions
+  const undoMacro = Object.keys(oldValues).length > 0 ? 
+\`\\\`\\\`\\\`Undo
+const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+if (isGM) { 
+  api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
+    api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
+  }); 
+} else { 
+  api.showNotification('Only the GM can undo healing.', 'yellow', 'Notice'); 
+} 
+\\\`\\\`\\\`\` : '';
+
+  api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
+
 });
 \`\`\``;
 }
 
 function getDamageMacro(damage) {
-  // TODO
+  return `\`\`\`Apply_Damage
+let targets = api.getSelectedOrDroppedToken();
+targets.forEach(target => {
+  const valuesToSet = {};
+  // Damage is reduced by target's soak value
+  const soakValue = target.data?.soakValue || 0;
+  const damageToApply = ${damage};
+  const damageValue = damageToApply - soakValue;
+  const oldValues = {};
+  const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
+  const message = \`Took \${damageValue} damage\${soakMessage}\\n\`;
+  if (damageValue > 0) {
+    oldValues["data.wounds"] = target.data?.wounds;
+    oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
+    valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
+    valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+    api.setValuesOnRecord(target, valuesToSet);
+    api.floatText(target, '+' + damageValue, "#FF0000");
+  }
+  else {
+    api.floatText(target, 'Absorbed by Soak', "#0000FF");
+  }
+
+  // UNDO macro using api.setValuesOnRecord to avoid race conditions
+  const undoMacro = Object.keys(oldValues).length > 0 ? 
+\`\\\`\\\`\\\`Undo
+const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+if (isGM) { 
+  api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
+    api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
+  }); 
+} else { 
+  api.showNotification('Only the GM can undo damage.', 'yellow', 'Notice'); 
+} 
+\\\`\\\`\\\`\` : '';
+
+  api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
+});
+\`\`\``;
 }
 
 function getSkillCheckMacro(skillCheck) {
@@ -1799,12 +1860,17 @@ ${itemDescription}
   const deductStimUses =
     api.getValueOnRecord(record, `${itemDataPath}.data.countsAsHealing`) ===
     true;
-  const healingValue = parseInt(checkForReplacements(healing, {}, record), 10);
+  const healingValue = healing
+    ? parseInt(checkForReplacements(healing, {}, record), 10)
+    : 0;
   const healingMacro =
     healingValue > 0 ? getHealingMacro(healingValue, deductStimUses) : "";
 
   // If there is damage, get the damage macro
-  const damageMacro = damage ? getDamageMacro(damage) : "";
+  const damageValue = damage
+    ? parseInt(checkForReplacements(damage, {}, record), 10)
+    : 0;
+  const damageMacro = damageValue > 0 ? getDamageMacro(damageValue) : "";
 
   // If there is skill check, get the skill check macro
   const skillCheckMacro = skillCheck ? getSkillCheckMacro(skillCheck) : "";
