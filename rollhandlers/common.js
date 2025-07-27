@@ -632,9 +632,26 @@ function setTotalEncumbrance(record, valuesToSet) {
       return acc;
     }
 
+    let itemEncumbrance = item.data?.encumbrance || 0;
+
+    // Check for armor qualities that modify encumbrance
+    if (item.data?.type === "armor" && item.data?.special) {
+      const qualities = Array.isArray(item.data.special)
+        ? item.data.special
+        : [item.data.special];
+
+      qualities.forEach((quality) => {
+        if (quality === "inferior") {
+          itemEncumbrance += 1;
+        } else if (quality === "superior") {
+          itemEncumbrance -= 1;
+        }
+      });
+    }
+
     return (
       acc +
-      (item.data?.encumbrance || 0) *
+      itemEncumbrance *
         (item.data?.count === undefined || item.data?.count === null
           ? 1
           : item.data?.count)
@@ -1002,6 +1019,37 @@ function initializeSkills(record) {
   }
 }
 
+// Gets the defense value of an armor item
+// considering the qualities of the armor
+function getArmorDefense(armor) {
+  let defense = armor?.data?.defense || 0;
+  let soakBonus = armor?.data?.soakBonus || 0;
+
+  // Check qualities which modify these values
+  const qualities = armor?.data?.special || [];
+  if (qualities.includes("superior")) {
+    // Superior armor increases soak by 1
+    soakBonus += 1;
+  }
+  if (qualities.includes("inferior")) {
+    // Inferior armor decreases defense by 1. If it has none,
+    // decrease soak by 1.
+    defense -= 1;
+    if (defense < 0) {
+      defense = 0;
+      soakBonus -= 1;
+      if (soakBonus < 0) {
+        soakBonus = 0;
+      }
+    }
+  }
+
+  return {
+    defense: defense,
+    soakBonus: soakBonus,
+  };
+}
+
 function getBestArmor(record) {
   const inventory = record?.data?.inventory || [];
   const equippedArmor = inventory.filter(
@@ -1022,9 +1070,10 @@ function getBestArmor(record) {
     (bestArmor.data?.defense || 0) * 2 + (bestArmor.data?.soakBonus || 0);
 
   for (const armor of equippedArmor) {
-    const defense = armor.data?.defense || 0;
-    const soakBonus = armor.data?.soakBonus || 0;
-    const score = defense * 2 + soakBonus; // Defense is worth 2x soak
+    const { defense, soakBonus } = getArmorDefense(armor);
+
+    // Defense is worth 2x soak in our determination of which is best
+    const score = defense * 2 + soakBonus;
 
     if (score > bestScore) {
       bestScore = score;
@@ -1032,9 +1081,31 @@ function getBestArmor(record) {
     }
   }
 
+  // Get any items with the defense related qualities equipped
+  let meleeDefenseBonus = 0;
+  let rangedDefenseBonus = 0;
+  const itemsEquipped = record?.data?.inventory?.filter(
+    (item) =>
+      item.data?.carried === "equipped" &&
+      (item.data?.type === "melee weapon" ||
+        item.data?.type === "ranged weapon" ||
+        item.data?.type === "armor")
+  );
+  itemsEquipped.forEach((item) => {
+    const qualities = item.data?.special || [];
+    if (qualities.includes("defensive")) {
+      meleeDefenseBonus += item.data?.defensive || 0;
+    }
+    if (qualities.includes("deflection")) {
+      rangedDefenseBonus += item.data?.deflection || 0;
+    }
+  });
+
   return {
-    defense: bestArmor.data?.defense || 0,
-    soakBonus: bestArmor.data?.soakBonus || 0,
+    defense: getArmorDefense(bestArmor).defense,
+    soakBonus: getArmorDefense(bestArmor).soakBonus,
+    meleeDefenseBonus: meleeDefenseBonus,
+    rangedDefenseBonus: rangedDefenseBonus,
     armor: bestArmor,
   };
 }
@@ -1142,6 +1213,9 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
 
   // Recalculate soak value
   const bestArmor = getBestArmor(record);
+  const meleeDefenseBonus = bestArmor.meleeDefenseBonus;
+  const rangedDefenseBonus = bestArmor.rangedDefenseBonus;
+
   valuesToSet["data.soakValue"] = brawn + bestArmor.soakBonus;
   soakBonuses.forEach((bonus) => {
     valuesToSet["data.soakValue"] += bonus.value;
@@ -1170,9 +1244,11 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   meleeDefenseBonuses.forEach((bonus) => {
     valuesToSet["data.defenseMelee"] += bonus.value;
   });
+  valuesToSet["data.defenseRanged"] += rangedDefenseBonus;
   meleeDefensePenalties.forEach((penalty) => {
     valuesToSet["data.defenseMelee"] -= penalty.value;
   });
+  valuesToSet["data.defenseMelee"] += meleeDefenseBonus;
 
   // Calculate remaining wounds and strain
   const currentWounds = parseInt(record?.data?.wounds || "0", 10);
