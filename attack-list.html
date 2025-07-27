@@ -45,7 +45,7 @@
   function onRollAttack() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(weapon);
+    rollAttack(record, weapon);
   }
 </script>
 
@@ -89,6 +89,17 @@
         </div>
       </div>
     </box>
+    <div style="width: 70px; min-width: 70px">
+      <stringfield
+        width="100%"
+        textalign="center"
+        field="range"
+        label="Range"
+        size="xs"
+        placeholder="Range..."
+        variant="tooltip-underline"
+      ></stringfield>
+    </div>
     <!-- Roll Attack -->
     <div>
       <!-- Roll Damage -->

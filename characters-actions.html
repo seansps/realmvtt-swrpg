@@ -7,15 +7,19 @@
 <div style="display: flex; flex-direction: column; gap: 4px">
   <label size="md" variant="bold" label="Attacks" textalign="center"></label>
 
-  <div
-    style="
-      width: 100%;
-      display: flex;
-      justify-content: flex-end;
-      gap: 4px;
-      align-items: center;
-    "
-  >
+  <div style="width: 100%; display: flex; gap: 4px; align-items: center">
+    <dropdown
+      field="rangeBand"
+      placeholder="Select Range Band..."
+      disablediflocked="false"
+      size="xs"
+      label="Range to Target"
+      width="fit-content"
+      options='[{"label": "Engaged", "value": "Engaged"}, {"label": "Short", "value": "Short"},
+        {"label": "Medium", "value": "Medium"}, {"label": "Long", "value": "Long"},
+        {"label": "Extreme", "value": "Extreme"}]'
+    ></dropdown>
+    <div style="margin-left: auto"></div>
     <label size="xs" variant="bold" label="Initiative Skill:"></label>
     <dropdown
       field="initiativeSkill"

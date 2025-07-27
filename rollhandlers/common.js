@@ -1353,7 +1353,7 @@ function rollSkill(
   }
 
   // If difficulty, add it to the dice string
-  if (additionalMetadata.difficulty) {
+  if (additionalMetadata.difficulty || additionalMetadata.increaseDifficulty) {
     let difficultyDice = 1;
     if (additionalMetadata.difficulty === "Easy") {
       difficultyDice = 1;
@@ -1366,7 +1366,28 @@ function rollSkill(
     } else if (additionalMetadata.difficulty === "Formidable") {
       difficultyDice = 5;
     }
-    diceString += ` ${difficultyDice}difficulty`;
+
+    // Increase difficulty dice by increaseDifficulty
+    const increaseDifficulty = additionalMetadata.increaseDifficulty || 0;
+    if (increaseDifficulty > 0) {
+      difficultyDice += increaseDifficulty;
+    }
+
+    // Handle upgrade difficulty - convert difficulty dice to challenge dice
+    const upgradeDifficulty = additionalMetadata.upgradeDifficulty || 0;
+    if (upgradeDifficulty > 0) {
+      const challengeDice = Math.min(difficultyDice, upgradeDifficulty);
+      const remainingDifficultyDice = difficultyDice - challengeDice;
+
+      if (challengeDice > 0) {
+        diceString += ` ${challengeDice}challenge`;
+      }
+      if (remainingDifficultyDice > 0) {
+        diceString += ` ${remainingDifficultyDice}difficulty`;
+      }
+    } else {
+      diceString += ` ${difficultyDice}difficulty`;
+    }
   }
 
   const metadata = {
@@ -1573,6 +1594,17 @@ ${abilityDescription}
       );
     }
   }
+
+  // Check for animation
+  const animation = ability.data?.animation;
+  if (animation) {
+    const ourToken = api.getToken();
+    const targets = api.getTargets();
+    const targetId = targets[0]?.token?._id;
+    if (ourToken) {
+      api.playAnimation(animation, ourToken._id, targetId);
+    }
+  }
 }
 
 function getResultFromTable(table, total) {
@@ -1771,6 +1803,19 @@ function rollAttack(record, weapon) {
     skill = isMelee ? "Brawl" : "Ranged (Light)";
   }
   const weaponId = weapon._id;
+  const attackModifiers = [];
+  // Get attack modifiers
+  const attackBonusModifiers = getEffectsAndModifiersForToken(
+    record,
+    ["attackBonus"],
+    isMelee ? "melee" : "ranged",
+    weaponId,
+    undefined,
+    weapon
+  );
+  attackBonusModifiers.forEach((mod) => {
+    attackModifiers.push(mod);
+  });
 
   // Find the skill in the character's skills
   const skillObj = record.data?.skills?.find((s) => s.name === skill);
@@ -1787,31 +1832,82 @@ function rollAttack(record, weapon) {
   const targets = api.getTargets();
   const ourToken = api.getToken();
   if (targets.length < 1) {
-    targets.push({ token: { noToken: true }, distance: 0 });
+    targets.push({ token: { noToken: true, data: {} }, distance: 0 });
   }
+  const narrativeDistance = record.data?.rangeBand || "Short";
   targets.forEach((target) => {
     const token = target?.token;
-    const targetDistance = token?.noToken
-      ? 0
-      : api.getDistance(ourToken, target?.token);
 
-    let difficulty = 1;
-    // Determine difficulty
+    // Default difficulty to Easy (Engaged | Short)
+    let difficulty = "Easy";
+    // Ranged difficulty is based on the range band
+    if (narrativeDistance === "Medium") {
+      difficulty = "Average";
+    } else if (narrativeDistance === "Long") {
+      difficulty = "Hard";
+    } else if (narrativeDistance === "Extreme") {
+      difficulty = "Daunting";
+    }
+
+    // Check for difficultyIncrease modifiers
+    let difficultyIncrease = 0;
+
+    // Check target's difficultyOfAttacksTargetingYou modifiers
+    const difficultyOfAttacksTargetingYouModifiers =
+      getEffectsAndModifiersForToken(token, [
+        "difficultyOfAttacksTargetingYou",
+      ]);
+    difficultyOfAttacksTargetingYouModifiers.forEach((mod) => {
+      const modValue = parseInt(mod.value, 10);
+      if (modValue > 0 && !isNaN(modValue)) {
+        difficultyIncrease += modValue;
+      }
+    });
+
+    // Check for upgradeDifficultyOfAttacksTargetingYou modifiers
+    const upgradeDifficultyOfAttacksTargetingYouModifiers =
+      getEffectsAndModifiersForToken(token, [
+        "upgradeDifficultyOfAttacksTargetingYou",
+      ]);
+    let upgradeDifficulty = 0;
+    upgradeDifficultyOfAttacksTargetingYouModifiers.forEach((mod) => {
+      const modValue = parseInt(mod.value, 10);
+      if (modValue > 0 && !isNaN(modValue)) {
+        upgradeDifficulty += modValue;
+      }
+    });
 
     let modifiers = [];
     // Get target's defense and apply as setback
+    const targetDefense = isMelee
+      ? token?.data?.defenseMelee || 0
+      : token?.data?.defenseRanged || 0;
+    if (targetDefense > 0) {
+      modifiers.push({
+        name: "Setback",
+        value: `${targetDefense} setback`,
+        active: true,
+      });
+    }
 
-    // Get or determine animation TODO
+    const ourTokenId = ourToken?._id;
+    const targetId = token?._id;
+    const animation = weapon.data?.animation;
 
     rollSkill(
       record,
-      skill,
+      skillObj,
       {
         rollName: "Attack",
-        tooltip: `Attack Roll with ${skillRoll}`,
+        tooltip: `Attack Roll with ${skillObj.name} for ${weapon?.name}`,
         rollType: "attack",
-        characteristic: skillRoll.data?.stat || "Brawn",
+        characteristic: skillObj.data?.stat || "Brawn",
         difficulty: difficulty,
+        increaseDifficulty: difficultyIncrease,
+        upgradeDifficulty: upgradeDifficulty,
+        ourTokenId: ourTokenId,
+        targetId: targetId,
+        animation: animation,
       },
       undefined,
       modifiers

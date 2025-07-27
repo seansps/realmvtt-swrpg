@@ -846,7 +846,7 @@
 
   <!-- Morality Value and Notes -->
   <divider label="Morality"></divider>
-  <!-- Morality: Value, Conflict, Triggered?, Engaged? -->
+  <!-- Morality: Value, Conflict -->
   <div
     style="
       display: flex;
@@ -874,39 +874,6 @@
       minvalue="0"
     ></numberfield>
 
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-      "
-    >
-      <label variant="bold" size="xs" label="Triggered?"></label>
-      <iconbutton
-        field="triggered"
-        size="md"
-        variant="light"
-        options='[{"icon": "IconSquare", "label": "Not Triggered", "value": "false"},{"icon": "IconSquareCheckFilled", "label": "Triggered", "value": "true"}]'
-      ></iconbutton>
-    </div>
-
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-      "
-    >
-      <label variant="bold" size="xs" label="Engaged?"></label>
-      <iconbutton
-        field="engaged"
-        size="md"
-        variant="light"
-        options='[{"icon": "IconSquare", "label": "Not Engaged", "value": "false"},{"icon": "IconSquareCheckFilled", "label": "Engaged", "value": "true"}]'
-      ></iconbutton>
-    </div>
     <button
       field="moralityRollBtn"
       size="xs"
