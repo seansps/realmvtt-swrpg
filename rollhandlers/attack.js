@@ -31,15 +31,48 @@ const tags = [
   },
 ];
 
+// Parse the dice results
+const types = roll.narrativeResults || [];
+const results = parseGenesysResults(types);
+
+let weapon = "";
+let weaponName = "";
 if (dataPathToWeapon) {
+  weapon = api.getValue(dataPathToWeapon);
+  weaponName = weapon?.name || "";
+}
+
+if (results.successes > 0) {
+  message = `**[center][color=green]Hit: ${
+    results.successes
+  } Additional Damage${
+    weaponName ? ` with ${weaponName}` : ""
+  }[/color][/center]**`;
+} else {
+  message = `**[center][color=red]Miss${
+    weaponName ? ` with ${weaponName}` : ""
+  }![/color][/center]**`;
+}
+
+if (weapon) {
   // Get the weapon used for this attack
-  const weapon = api.getValue(dataPathToWeapon);
   const tagsForQualities = getTagsForQualities(weapon.data?.special || []);
   tags.push(...tagsForQualities);
 
-  api.sendMessage("", roll, [], tags);
-}
-{
+  let damage = parseInt(weapon.data?.damage || 0, 10) + results.successes;
+  // If this is unarmed or melee add brawn from metadata
+  if (weapon.data?.type === "melee weapon") {
+    damage += record?.data?.brawn || 0;
+  }
+
+  message += `\n\n**[center]Total Damage: ${damage}[/center]**`;
+
+  const damageMacro = getDamageForMacroForAttack(record, weapon, damage);
+
+  message += `\n\n${damageMacro}`;
+
+  api.sendMessage(message, roll, [], tags);
+} else {
   // Could not find weapon, just show basic result
-  api.sendMessage("", roll, [], tags);
+  api.sendMessage(message, roll, [], tags);
 }

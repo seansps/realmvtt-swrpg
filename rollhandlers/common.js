@@ -2015,9 +2015,7 @@ function rollAttack(record, weapon, dataPathToWeapon) {
   });
 }
 
-function getDamageForMacroForAttack(record, weapon, successes = 0) {
-  // Get the weapon's damage value
-  let damage = weapon.data?.damage || 0;
+function getDamageForMacroForAttack(record, weapon, damage = 0) {
   // Get the weapon's type
   const isMelee = weapon.data?.type === "melee weapon";
 
@@ -2035,9 +2033,6 @@ function getDamageForMacroForAttack(record, weapon, successes = 0) {
       damage += mod.value;
     }
   });
-
-  // Damage increases by 1 per success
-  damage += successes;
 
   return getDamageMacro(damage);
 }
@@ -2102,7 +2097,7 @@ targets.forEach(target => {
   // Damage is reduced by target's soak value
   const soakValue = target.data?.soakValue || 0;
   const damageToApply = ${damage};
-  const damageValue = damageToApply - soakValue;
+  const damageValue = Math.max(0, damageToApply - soakValue);
   const oldValues = {};
   const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
   const message = \`Took \${damageValue} damage\${soakMessage}\\n\`;
