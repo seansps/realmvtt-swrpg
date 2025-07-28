@@ -932,7 +932,8 @@ function getTagsForQualities(weapon) {
   if (qualities.includes("stun")) {
     tags.push({
       name: "Stun (Active)",
-      tooltip: "May spend 2 Advantage to deal direct strain damage instead.",
+      tooltip:
+        "May spend 2 Advantage to deal direct strain damage equal to the weapon's Stun rating.",
     });
   }
 
@@ -1593,11 +1594,11 @@ function useAbility(record, ability) {
   // For abilitiies that don't have a primary skill, we use the ability name as the header
   // and output the description with the icon
   let abilityText = `
-#### ${itemIcon}${abilityName}
+  #### ${itemIcon}${abilityName}
 
----
-${abilityDescription}
-`;
+  ---
+  ${abilityDescription}
+  `;
 
   let type =
     ability.recordType === "signature_abilities"
@@ -1928,27 +1929,20 @@ function getRollCriticalInjuryMacro(modifiers, critType) {
   const modsAsString = JSON.stringify(modifiers);
 
   return `\`\`\`Roll_Critical_${critType === "hit" ? "Hit" : "Injury"}
-const rollName = "Critical ${critType === "hit" ? "Hit" : "Injury"}";
-const additionalModifiers = JSON.parse('${modsAsString}');
-// Here we get the selected token and prompt a roll for it, after we 
-// get mods on this token for reduction of a critical hit, or increase due to previous critical hits
-const selectedTokens = api.getSelectedOrDroppedToken();
-selectedTokens.forEach(token => {
-  rollCriticalInjury(token, '${
-    critType ? critType : "notset"
-  }', additionalModifiers);
-});
-\`\`\``;
+  const rollName = "Critical ${critType === "hit" ? "Hit" : "Injury"}";
+  const additionalModifiers = JSON.parse('${modsAsString}');
+  // Here we get the selected token and prompt a roll for it, after we 
+  // get mods on this token for reduction of a critical hit, or increase due to previous critical hits
+  const selectedTokens = api.getSelectedOrDroppedToken();
+  selectedTokens.forEach(token => {
+    rollCriticalInjury(token, '${
+      critType ? critType : "notset"
+    }', additionalModifiers);
+  });
+  \`\`\``;
 }
 
-function rollAttack(record, weapon, dataPathToWeapon) {
-  // TODO
-  // Get target's defense and apply as setback
-  // Get target's defense modifieres and apply to roll
-  // For crit macros check targets crit reducedCriticalHit mods
-  // For crit macros check our increaseCriticalHit mods
-  // For damage macros check our damageBonus and damagePenalty mods
-
+function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
   const isMelee = weapon.data?.type === "melee weapon";
   let skill = weapon.data?.weaponSkill || "";
   if (skill === "") {
@@ -2031,6 +2025,11 @@ function rollAttack(record, weapon, dataPathToWeapon) {
       }
     });
 
+    // If this was an auto-fire attack, we need to add a difficulty increase
+    if (attackType === "auto-fire") {
+      difficultyIncrease += 1;
+    }
+
     // Check for upgradeDifficultyOfAttacksTargetingYou modifiers
     const upgradeDifficultyOfAttacksTargetingYouModifiers =
       getEffectsAndModifiersForToken(
@@ -2078,15 +2077,28 @@ function rollAttack(record, weapon, dataPathToWeapon) {
     const targetId = token?._id;
     const animation = weapon.data?.animation;
 
-    // TODO add bonuses for special like accurate, etc.
-    // TODO also superior for adv mods etc.
+    // Get bonuses for other special abilities
+    const accurate = weapon.data?.accurate || 0;
+    if (accurate > 0) {
+      // Accurate adds a boost for each value
+      modifiers.push({
+        name: "Accurate",
+        value: `${accurate} boost`,
+        active: true,
+      });
+    }
+
+    let rollName = attackType === "auto-fire" ? "Auto-Fire Attack" : "Attack";
+    if (attackType === "stun-setting") {
+      rollName = "Stun Attack";
+    }
 
     rollSkill(
       record,
       skillObj,
       {
-        rollName: "Attack",
-        tooltip: `Attack Roll with ${skillObj.name} for ${weapon?.name}`,
+        rollName: rollName,
+        tooltip: `${rollName} Roll with ${skillObj.name} for ${weapon?.name}`,
         rollType: "attack",
         characteristic: skillObj.data?.stat || "Brawn",
         difficulty: difficulty,
@@ -2097,6 +2109,7 @@ function rollAttack(record, weapon, dataPathToWeapon) {
         targetId: targetId,
         animation: animation,
         dataPathToWeapon: dataPathToWeapon,
+        attackType: attackType,
         // Send brawn for melee / unarmed attacks
         brawn: record.data?.brawn || 0,
       },
@@ -2114,7 +2127,12 @@ function rollAttack(record, weapon, dataPathToWeapon) {
   }
 }
 
-function getDamageForMacroForAttack(record, weapon, damage = 0) {
+function getDamageForMacroForAttack(
+  record,
+  weapon,
+  damage = 0,
+  damageType = "wounds"
+) {
   // Get the weapon's type
   const isMelee = weapon.data?.type === "melee weapon";
 
@@ -2135,120 +2153,131 @@ function getDamageForMacroForAttack(record, weapon, damage = 0) {
 
   // TODO automate pierce unless cortosis
 
-  return getDamageMacro(damage);
+  return getDamageMacro(damage, damageType);
 }
 
 function getHealingMacro(healing, deduct = false) {
   // Apply healing to targets -- if deduct is true,
   // then deduct from the healing the amount of stims used today
   return `\`\`\`Apply_Healing
-let targets = api.getSelectedOrDroppedToken();
-targets.forEach(target => {
-  const usedStims = target.data?.healingUsed || 0;
-  let healingToApply = ${healing};
-  const valuesToSet = {};
-  const oldValues = {};
-  let message = '';
-  let deductMessage = '.';
-  if (${deduct}) {
-    healingToApply -= usedStims;
-    oldValues["data.healingUsed"] = usedStims;
-    valuesToSet["data.healingUsed"] = usedStims + 1;
-    deductMessage = \` (Deducted \${usedStims} stims used today.)\`;
-  }
-  message += \`Healed \${healingToApply} wounds\${deductMessage}.\\n\`;
-  if (healingToApply > 0) {
-    // Get healingBonus and penalties for target
-    const healingBonus = getEffectsAndModifiersForToken(target, ["healingBonus"]);
-    const healingPenalty = getEffectsAndModifiersForToken(target, ["healingPenalty"]);
-    const healingBonusValue = healingBonus.reduce((sum, mod) => sum + mod.value, 0);
-    const healingPenaltyValue = healingPenalty.reduce((sum, mod) => sum + mod.value, 0);
-    const healingValue = healingToApply + Math.abs(healingBonusValue) - Math.abs(healingPenaltyValue);
-    oldValues["data.wounds"] = target.data?.wounds;
-    oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
-    valuesToSet["data.wounds"] = Math.max(0, target.data?.wounds - healingValue);
-    valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
-    api.setValuesOnRecord(target, valuesToSet);
-    api.floatText(target, '+' + healingValue, "#1bc91b");
-  }
-  // UNDO macro using api.setValuesOnRecord to avoid race conditions
-  const undoMacro = Object.keys(oldValues).length > 0 ? 
-\`\\\`\\\`\\\`Undo
-const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
-if (isGM) { 
-  api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
-    api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
-  }); 
-} else { 
-  api.showNotification('Only the GM can undo healing.', 'yellow', 'Notice'); 
-} 
-\\\`\\\`\\\`\` : '';
+  let targets = api.getSelectedOrDroppedToken();
+  targets.forEach(target => {
+    const usedStims = target.data?.healingUsed || 0;
+    let healingToApply = ${healing};
+    const valuesToSet = {};
+    const oldValues = {};
+    let message = '';
+    let deductMessage = '.';
+    if (${deduct}) {
+      healingToApply -= usedStims;
+      oldValues["data.healingUsed"] = usedStims;
+      valuesToSet["data.healingUsed"] = usedStims + 1;
+      deductMessage = \` (Deducted \${usedStims} stims used today.)\`;
+    }
+    message += \`Healed \${healingToApply} wounds\${deductMessage}.\\n\`;
+    if (healingToApply > 0) {
+      // Get healingBonus and penalties for target
+      const healingBonus = getEffectsAndModifiersForToken(target, ["healingBonus"]);
+      const healingPenalty = getEffectsAndModifiersForToken(target, ["healingPenalty"]);
+      const healingBonusValue = healingBonus.reduce((sum, mod) => sum + mod.value, 0);
+      const healingPenaltyValue = healingPenalty.reduce((sum, mod) => sum + mod.value, 0);
+      const healingValue = healingToApply + Math.abs(healingBonusValue) - Math.abs(healingPenaltyValue);
+      oldValues["data.wounds"] = target.data?.wounds;
+      oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
+      valuesToSet["data.wounds"] = Math.max(0, target.data?.wounds - healingValue);
+      valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+      api.setValuesOnRecord(target, valuesToSet);
+      api.floatText(target, '+' + healingValue, "#1bc91b");
+    }
+    // UNDO macro using api.setValuesOnRecord to avoid race conditions
+    const undoMacro = Object.keys(oldValues).length > 0 ? 
+  \`\\\`\\\`\\\`Undo
+  const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+  if (isGM) { 
+    api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
+      api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
+    }); 
+  } else { 
+    api.showNotification('Only the GM can undo healing.', 'yellow', 'Notice'); 
+  } 
+  \\\`\\\`\\\`\` : '';
 
-  api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
+    api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
 
-});
-\`\`\``;
+  });
+  \`\`\``;
 }
 
-function getDamageMacro(damage) {
-  return `\`\`\`Apply_Damage
-let targets = api.getSelectedOrDroppedToken();
-targets.forEach(target => {
-  const valuesToSet = {};
-  // Damage is reduced by target's soak value
-  const soakValue = target.data?.soakValue || 0;
-  const damageToApply = ${damage};
-  const damageValue = Math.max(0, damageToApply - soakValue);
-  const oldValues = {};
-  const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
-  const message = \`Took \${damageValue} damage\${soakMessage}\\n\`;
-  if (damageValue > 0) {
-    oldValues["data.wounds"] = target.data?.wounds;
-    oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
-    valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
-    valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
-    api.setValuesOnRecord(target, valuesToSet);
-    api.floatText(target, '+' + damageValue, "#FF0000");
-  }
-  else {
-    api.floatText(target, 'Absorbed by Soak', "#0000FF");
-  }
+function getDamageMacro(damage, damageType = "wounds") {
+  const macroName = damageType === "wounds" ? "Apply_Wounds" : "Apply_Strain";
+  return `\`\`\`${macroName}
+  let targets = api.getSelectedOrDroppedToken();
+  targets.forEach(target => {
+    const damageType = "${damageType}";
+    const valuesToSet = {};
+    // Damage is reduced by target's soak value
+    const soakValue = target.data?.soakValue || 0;
+    const damageToApply = ${damage};
+    const damageValue = Math.max(0, damageToApply - soakValue);
+    const oldValues = {};
+    const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
+    const message = \`Took \${damageValue} damage\${soakMessage}\\n\`;
+    
+    if (damageValue > 0 && damageType === "wounds") {
+      oldValues["data.wounds"] = target.data?.wounds;
+      oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
+      valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
+      valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+      api.setValuesOnRecord(target, valuesToSet);
+      api.floatText(target, '+' + damageValue + ' Wounds', "#FF0000");
+    }
+    else if (damageValue > 0 && damageType === "stun") {
+      oldValues["data.strain"] = target.data?.strain;
+      oldValues["data.strainRemaining"] = target.data?.strainRemaining;
+      valuesToSet["data.strain"] = target.data?.strain + damageValue;
+      valuesToSet["data.strainRemaining"] = Math.max(0, target.data?.strainThreshold - valuesToSet["data.strain"]);
+      api.setValuesOnRecord(target, valuesToSet);
+      api.floatText(target, '+' + damageValue + ' Strain', "#0000FF");
+    }
+    else {
+      api.floatText(target, 'Absorbed by Soak', "#0000FF");
+    }
 
-  // UNDO macro using api.setValuesOnRecord to avoid race conditions
-  const undoMacro = Object.keys(oldValues).length > 0 ? 
-\`\\\`\\\`\\\`Undo
-const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
-if (isGM) { 
-  api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
-    api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
-  }); 
-} else { 
-  api.showNotification('Only the GM can undo damage.', 'yellow', 'Notice'); 
-} 
-\\\`\\\`\\\`\` : '';
+    // UNDO macro using api.setValuesOnRecord to avoid race conditions
+    const undoMacro = Object.keys(oldValues).length > 0 ? 
+  \`\\\`\\\`\\\`Undo
+  const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+  if (isGM) { 
+    api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
+      api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
+    }); 
+  } else { 
+    api.showNotification('Only the GM can undo damage.', 'yellow', 'Notice'); 
+  } 
+  \\\`\\\`\\\`\` : '';
 
-  api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
-});
-\`\`\``;
+    api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
+  });
+  \`\`\``;
 }
 
 function getSkillCheckMacro(skillCheck) {
   return `\`\`\`Roll_${skillCheck.trim().replace(/ /g, "_")}_Check
-let targets = api.getSelectedOrDroppedToken();
-targets.forEach(target => {
-  // Try to find the skill in the character's skills
-  const skill = target.data?.skills?.find(skill => skill.name === "${skillCheck}");
-  if (skill) {
-    rollSkill(target, skill);
-  } else {
-    api.showNotification(
-      'No skill found for ${skillCheck}. Add the Skill to their sheet and try again.',
-      "red",
-      "Skill Not Found"
-    );
-  }
-});
-\`\`\``;
+  let targets = api.getSelectedOrDroppedToken();
+  targets.forEach(target => {
+    // Try to find the skill in the character's skills
+    const skill = target.data?.skills?.find(skill => skill.name === "${skillCheck}");
+    if (skill) {
+      rollSkill(target, skill);
+    } else {
+      api.showNotification(
+        'No skill found for ${skillCheck}. Add the Skill to their sheet and try again.',
+        "red",
+        "Skill Not Found"
+      );
+    }
+  });
+  \`\`\``;
 }
 
 function getEffectMacros(effects) {
@@ -2265,11 +2294,11 @@ function getEffectMacros(effects) {
         effectButtons += "\n";
       }
       effectButtons += `\`\`\`${effectTitle}
-  let targets = api.getSelectedOrDroppedToken();
-  targets.forEach(target => {
-    api.addEffectById('${effectID}', target);
-  });
-  \`\`\``;
+    let targets = api.getSelectedOrDroppedToken();
+    targets.forEach(target => {
+      api.addEffectById('${effectID}', target);
+    });
+    \`\`\``;
     });
 
     return effectButtons;
@@ -2309,11 +2338,11 @@ function useItem(record, itemDataPath) {
     : "";
   const itemDescription = api.richTextToMarkdown(description || "");
   let markdownDescription = `
-#### ${itemIcon}${itemName}
+  #### ${itemIcon}${itemName}
 
----
-${itemDescription}
-`;
+  ---
+  ${itemDescription}
+  `;
 
   // If there is healing, get the healing macro
   const deductStimUses =

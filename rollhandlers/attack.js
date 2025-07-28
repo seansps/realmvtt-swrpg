@@ -9,13 +9,6 @@ const targetId = metadata?.targetId;
 
 // TODO (dont forget to add modifiers in rollAttack based on weapon special)
 
-// TODO critical injury macro if advantage/triumph -- Show crit macro if trimpth or # adv >= crit rating
-// TODO also show crit macro in damage output if wound threshold is reached
-
-// If success > 0
-// Add success to damage of weapon, and if unarmed or melee, add brawn from metadata
-// getDamageForMacroForAttack(record, weapon, successes)
-
 // TODO need stunBtn on attacks if stun is present
 // which will tell this to show stun damage (for passive stun)
 // (OR: remove the stunBtn entirely and just show both macros -- which
@@ -74,9 +67,14 @@ if (weapon) {
     name: `Crit ${weapon.data?.crit || 0}`,
     tooltip: `Critical Rating: ${weapon.data?.crit}`,
   });
+  let range = weapon.data?.range;
+  // If we're using stun-setting, the range is always Short
+  if (metadata?.attackType === "stun-setting") {
+    range = "Short";
+  }
   tags.push({
-    name: `${weapon.data?.range}`,
-    tooltip: `Range: ${weapon.data?.range}`,
+    name: `${range}`,
+    tooltip: `Range: ${range}`,
   });
 
   let damage = parseInt(weapon.data?.damage || 0, 10) + results.successes;
@@ -87,7 +85,40 @@ if (weapon) {
 
   message += `\n\n**[center]Total Damage: ${damage}[/center]**`;
 
-  const damageMacro = getDamageForMacroForAttack(record, weapon, damage);
+  // Check for auto-fire trigger if this was an auto-fire attack
+  if (
+    metadata?.attackType === "auto-fire" &&
+    results.advantages >= 2 &&
+    results.successes > 0
+  ) {
+    const autoFireTimes = Math.floor(results.advantages / 2);
+    message += `\n\n**[center][color=blue]Auto-fire Can Be Triggered${
+      autoFireTimes > 1 ? ` (${autoFireTimes} Times)` : ""
+    }![/color][/center]**`;
+  } else if (metadata?.attackType === "stun-setting" && results.successes > 0) {
+    message += `\n\n**[center][color=blue]Weapon Set to Stun[/color][/center]**`;
+  }
+
+  // If this was a stun-setting attack, or if the weapon has the stun quality,
+  // then it will only show stun damage
+  let damageType = "wounds";
+  if (
+    metadata?.attackType === "stun-setting" ||
+    (weapon.data?.special && weapon.data?.special.includes("stun-damage")) ||
+    (weapon.data?.special && weapon.data?.special.includes("stun-damage-droid"))
+  ) {
+    damageType = "stun";
+  }
+
+  const damageMacro = getDamageForMacroForAttack(
+    record,
+    weapon,
+    damage,
+    damageType
+  );
+
+  // If this has the active stun quality, and they have advantage >=2, show stun macro
+  // TODO
 
   // If there is 1 triumph or advantage >= crit rating, show the crit macro
   let critMacro = "";

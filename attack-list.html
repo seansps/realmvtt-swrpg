@@ -24,6 +24,23 @@
       valuesToSet[`${pathToFields}.ammoField.hidden`] = true;
     }
 
+    // If we have stun-setting or auto-fire qualities, we need to show the stun and auto-fire buttons
+    const stunSetting = itemQualities.includes("stun-setting");
+    const stunButtonShown = weapon.fields?.stunBtn?.hidden === false;
+    const autoFire = itemQualities.includes("auto-fire");
+    const autoFireButtonShown = weapon.fields?.autoFireBtn?.hidden === false;
+    if (stunSetting && !stunButtonShown) {
+      valuesToSet[`${pathToFields}.stunBtn.hidden`] = false;
+    } else if (!stunSetting && stunButtonShown) {
+      valuesToSet[`${pathToFields}.stunBtn.hidden`] = true;
+    }
+
+    if (autoFire && !autoFireButtonShown) {
+      valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = false;
+    } else if (!autoFire && autoFireButtonShown) {
+      valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = true;
+    }
+
     // Determine if we need to show the attachments list
     const showingAttachments = weapon?.fields?.attachments?.hidden !== true;
     const attachments = weapon?.data?.attachments || [];
@@ -47,9 +64,19 @@
     const weapon = api.getValue(dataPathToWeapon);
     rollAttack(record, weapon, dataPathToWeapon);
   }
-</script>
 
-<!-- TODO add Autofire and Stun buttons -->
+  function onRollStun() {
+    const dataPathToWeapon = getNearestParentDataPath(dataPath);
+    const weapon = api.getValue(dataPathToWeapon);
+    rollAttack(record, weapon, dataPathToWeapon, "stun-setting");
+  }
+
+  function onRollAutoFire() {
+    const dataPathToWeapon = getNearestParentDataPath(dataPath);
+    const weapon = api.getValue(dataPathToWeapon);
+    rollAttack(record, weapon, dataPathToWeapon, "auto-fire");
+  }
+</script>
 
 <div style="display: flex; flex-direction: column">
   <!-- Main row for icon, name, buttons -->
@@ -103,7 +130,7 @@
       ></stringfield>
     </div>
     <!-- Roll Attack -->
-    <div>
+    <div style="display: flex; flex-direction: row; gap: 4px">
       <!-- Roll Damage -->
       <button
         size="xs"
@@ -113,6 +140,26 @@
         color="primary"
         variant="light"
         onclick="onRollAttack();"
+      ></button>
+      <button
+        size="xs"
+        radius="xs"
+        field="stunBtn"
+        label="Roll Stun"
+        color="secondary"
+        variant="light"
+        onclick="onRollStun();"
+        hidden="true"
+      ></button>
+      <button
+        size="xs"
+        radius="xs"
+        field="autoFireBtn"
+        label="Roll Auto-Fire"
+        hidden="true"
+        color="tertiary"
+        variant="light"
+        onclick="onRollAutoFire();"
       ></button>
     </div>
   </div>
