@@ -102,19 +102,16 @@ if (weapon) {
     const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
       "increaseCriticalHit",
     ]);
+    increaseCriticalHitMods.forEach((mod) => {
+      mod.value = Math.abs(mod.value);
+    });
+
     // Attempt to get the target
     let target = null;
     const targets = api.getTargets();
     if (targets.length > 0) {
       target = targets.find((t) => t.token?._id === targetId);
     }
-
-    increaseCriticalHitMods.forEach((mod) => {
-      criticalInjuryModifiers.push({
-        ...mod,
-        value: Math.abs(mod.value),
-      });
-    });
 
     let critType = "notset";
     if (target?.token?.data?.type === "vehicle") {

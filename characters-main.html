@@ -325,6 +325,10 @@
       "conflict"
     );
   }
+
+  function onRollCriticalInjury() {
+    rollCriticalInjury(record, "injury", []);
+  }
 </script>
 
 <div style="display: flex; margin-top: 4px; flex-direction: column; gap: 8px">
@@ -706,6 +710,25 @@
 
   <!-- Critical Injuries List -->
   <divider label="Critical Injuries"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: flex-end;
+      justify-content: right;
+    "
+  >
+    <button
+      field="rollCriticalInjuryBtn"
+      size="xs"
+      variant="outline"
+      color="primary"
+      label="Roll for Critical Injury"
+      onclick="onRollCriticalInjury();"
+    ></button>
+  </div>
   <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
     <list
       listtype="conditions_list"

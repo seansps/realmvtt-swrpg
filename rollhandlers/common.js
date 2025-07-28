@@ -1872,6 +1872,57 @@ function addCondition(tokenOrRecord, recordLink) {
   });
 }
 
+function rollCriticalInjury(record, critType, additionalModifiers = []) {
+  const rollName = `Critical ${critType === "hit" ? "Hit" : "Injury"}`;
+
+  const criticalHitReduction = getEffectsAndModifiersForToken(record, [
+    "reducedCriticalHit",
+  ]);
+  criticalHitReduction.forEach((mod) => {
+    mod.value = -Math.abs(mod.value);
+  });
+  const criticalHitIncrease = [];
+
+  const attacksTargetingYou = getEffectsAndModifiersForToken(record, [
+    "increaseCriticalHitTargetingYou",
+  ]);
+  if (attacksTargetingYou.length > 0) {
+    attacksTargetingYou.forEach((mod) => {
+      mod.value = Math.abs(mod.value);
+    });
+  }
+
+  // Get the number of critical hits this character or vehicle has suffered from
+  const criticalHits = record.data?.criticalInjuries || [];
+  if (criticalHits.length > 0) {
+    criticalHitIncrease.push({
+      name: "Increase from Previous Critical Hits",
+      value: criticalHits.length * 10,
+      active: true,
+    });
+  }
+  const modifiers = [
+    ...additionalModifiers,
+    ...criticalHitReduction,
+    ...criticalHitIncrease,
+    ...attacksTargetingYou,
+  ];
+
+  api.promptRollForToken(
+    record,
+    rollName,
+    "1d100",
+    modifiers,
+    {
+      rollName: rollName,
+      tooltip: `Critical ${critType === "hit" ? "Hit" : "Injury"} Roll`,
+      isNarrative: false,
+      critType: `${critType ? critType : "notset"}`,
+    },
+    "criticalInjury"
+  );
+}
+
 function getRollCriticalInjuryMacro(modifiers, critType) {
   // A critical injury roll is d100 + any modifiers
   const modsAsString = JSON.stringify(modifiers);
@@ -1883,28 +1934,9 @@ const additionalModifiers = JSON.parse('${modsAsString}');
 // get mods on this token for reduction of a critical hit, or increase due to previous critical hits
 const selectedTokens = api.getSelectedOrDroppedToken();
 selectedTokens.forEach(token => {
-  const criticalHitReduction = getEffectsAndModifiersForToken(token, ["reducedCriticalHit"]);
-  criticalHitReduction.forEach(mod => {
-    mod.value = -Math.abs(mod.value);
-  });
-  const criticalHitIncrease = [];
-  // Get the number of critical hits this character or vehicle has suffered from
-  const criticalHits = token.data?.criticalInjuries || [];
-  if (criticalHits.length > 0) {
-    criticalHitIncrease.push({
-      name: "Increase from Previous Critical Hits",
-      value: criticalHits.length * 10,
-      active: true,
-    });
-  }
-  const modifiers = [...additionalModifiers, ...criticalHitReduction, ...criticalHitIncrease];
-
-  api.promptRollForToken(token, rollName, "1d100", modifiers, {
-    rollName: rollName,
-    tooltip: 'Critical \${critType === "hit" ? "Hit" : "Injury"} Roll\`',
-    isNarrative: false,
-    critType: '${critType ? critType : "notset"}',
-}, "criticalInjury");
+  rollCriticalInjury(token, '${
+    critType ? critType : "notset"
+  }', additionalModifiers);
 });
 \`\`\``;
 }
