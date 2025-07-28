@@ -58,7 +58,6 @@ if (results.successes > 0) {
 
 if (weapon) {
   // Get the weapon used for this attack
-  // TODO pass weapoon to getTagsForQualities and show values for related ones
   const tagsForQualities = getTagsForQualities(weapon);
   tags.push(...tagsForQualities);
 
@@ -118,16 +117,27 @@ if (weapon) {
   );
 
   // If this has the active stun quality, and they have advantage >=2, show stun macro
-  // TODO
+  const strainRating = weapon.data?.strainRating || 0;
+  let stunMacro = "";
+  if (strainRating > 0 && results.advantages >= 2) {
+    message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
+    stunMacro = getDamageForMacroForAttack(
+      record,
+      weapon,
+      strainRating,
+      "stun"
+    );
+  }
 
   // If there is 1 triumph or advantage >= crit rating, show the crit macro
   let critMacro = "";
   const critRating = weapon.data?.crit || 0;
   if (
-    results.triumphs > 0 ||
-    (critRating > 0 &&
-      results.advantages > 0 &&
-      results.advantages >= critRating)
+    results.successes > 0 &&
+    (results.triumphs > 0 ||
+      (critRating > 0 &&
+        results.advantages > 0 &&
+        results.advantages >= critRating))
   ) {
     // Get any increaseCriticalHitMods for person doing the attack, send it to the macro
     const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
@@ -157,7 +167,7 @@ if (weapon) {
     critMacro = getRollCriticalInjuryMacro(increaseCriticalHitMods, critType);
     message += `\n\n**[center]Critical ${
       critType === "hit" ? "Hit" : "Injury"
-    } Triggered[/center]**`;
+    } Triggered if Damage Exceeds Soak[/center]**`;
   }
 
   message += `\n\n${damageMacro}`;
