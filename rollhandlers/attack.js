@@ -2,12 +2,15 @@ const roll = data.roll;
 const metadata = roll?.metadata || {};
 const dataPathToWeapon = metadata?.dataPathToWeapon;
 
-// TODO
+const animation = metadata?.animation;
+const recordId = metadata?.recordId;
+const tokenId = metadata?.tokenId;
+const targetId = metadata?.targetId;
 
-// Todo lookup weapon by ID
-// TOdo generate tags for special props
+// TODO (dont forget to add modifiers in rollAttack based on weapon special)
 
-// Show crit macro if trimpth or # adv >= crit rating
+// TODO critical injury macro if advantage/triumph -- Show crit macro if trimpth or # adv >= crit rating
+// TODO also show crit macro in damage output if wound threshold is reached
 
 // If success > 0
 // Add success to damage of weapon, and if unarmed or melee, add brawn from metadata
@@ -24,7 +27,11 @@ const dataPathToWeapon = metadata?.dataPathToWeapon;
 // Todo macros for damage to strain (reduced by soak and not depending on
 // source, such as Brawling, or item qualities)
 
-// TODO critical injury macro if advantage/triumph
+// TODO macro for Blast too, if it has it
+
+// TODO macros for Effects for things like ensnare, disorient, etc.
+
+// TODO macro for Guided, if it has it
 
 const tags = [
   {
@@ -59,7 +66,7 @@ if (results.successes > 0) {
 if (weapon) {
   // Get the weapon used for this attack
   // TODO pass weapoon to getTagsForQualities and show values for related ones
-  const tagsForQualities = getTagsForQualities(weapon.data?.special || []);
+  const tagsForQualities = getTagsForQualities(weapon);
   tags.push(...tagsForQualities);
 
   // Add tags for crit and range
@@ -82,10 +89,60 @@ if (weapon) {
 
   const damageMacro = getDamageForMacroForAttack(record, weapon, damage);
 
+  // If there is 1 triumph or advantage >= crit rating, show the crit macro
+  let critMacro = "";
+  const critRating = weapon.data?.crit || 0;
+  if (
+    results.triumphs > 0 ||
+    (critRating > 0 &&
+      results.advantages > 0 &&
+      results.advantages >= critRating)
+  ) {
+    // Get any increaseCriticalHitMods for person doing the attack, send it to the macro
+    const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
+      "increaseCriticalHit",
+    ]);
+    // Attempt to get the target
+    let target = null;
+    const targets = api.getTargets();
+    if (targets.length > 0) {
+      target = targets.find((t) => t.token?._id === targetId);
+    }
+
+    increaseCriticalHitMods.forEach((mod) => {
+      criticalInjuryModifiers.push({
+        ...mod,
+        value: Math.abs(mod.value),
+      });
+    });
+
+    let critType = "notset";
+    if (target?.token?.data?.type === "vehicle") {
+      critType = "hit";
+    } else if (
+      target?.token?.recordType === "characters" ||
+      target?.token?.recordType === "npcs"
+    ) {
+      critType = "injury";
+    }
+
+    critMacro = getRollCriticalInjuryMacro(increaseCriticalHitMods, critType);
+    message += `\n\n**[center]Critical ${
+      critType === "hit" ? "Hit" : "Injury"
+    } Triggered[/center]**`;
+  }
+
   message += `\n\n${damageMacro}`;
+  if (critMacro) {
+    message += `\n\n${critMacro}`;
+  }
 
   api.sendMessage(message, roll, [], tags);
 } else {
   // Could not find weapon, just show basic result
   api.sendMessage(message, roll, [], tags);
+}
+
+if (animation && tokenId) {
+  api.playAnimation(animation, tokenId, targetId);
 }

@@ -3,6 +3,8 @@ const metadata = data?.roll?.metadata;
 let rollName = metadata?.rollName || "Critical Hit";
 let tooltip = metadata?.tooltip || "Critical Hit Roll";
 
+const critType = metadata?.critType;
+
 let tags = [
   {
     name: rollName,
@@ -10,7 +12,7 @@ let tags = [
   },
 ];
 
-let message = "[center]Critical Hit Inflicted[/center]";
+let message = "**[center]Critical Hit Inflicted[/center]**";
 
 const sendFinalMessage = () => {
   api.sendMessage(message, data?.roll, [], tags);
@@ -18,7 +20,13 @@ const sendFinalMessage = () => {
 
 const total = data?.roll?.total || 0;
 
-const tablesRequired = ["Critical Injury Result", "Critical Hit Result"];
+// Show both tables if critType is not set
+let tablesRequired = ["Critical Injury Result", "Critical Hit Result"];
+if (critType === "injury") {
+  tablesRequired = ["Critical Injury Result"];
+} else if (critType === "hit") {
+  tablesRequired = ["Critical Hit Result"];
+}
 
 // Function to process a table and get the result
 const processTable = (tableName, callback) => {
@@ -81,7 +89,7 @@ const processNextTable = () => {
   if (currentTableIndex >= tablesRequired.length) {
     // All tables processed, now add all macros to the message
     allMacros.forEach((macro) => {
-      message += `\n${macro}\n`;
+      message += `\n\n${macro}`;
     });
 
     // Send final message
@@ -93,9 +101,9 @@ const processNextTable = () => {
 
   processTable(tableName, (tableData) => {
     // Add the result to the message
-    message += `[center]${tableData.tableName}: ${
+    message += `\n\n**[center]${tableData.tableName}[/center]**\n\n[center]${
       tableData.injuryResult ? tableData.injuryResult : tableData.injuryName
-    }[/center]\n`;
+    }[/center]`;
 
     // Build macro to apply the injury
     const macro = `

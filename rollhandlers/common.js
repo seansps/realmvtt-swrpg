@@ -412,6 +412,19 @@ function getEffectsAndModifiersForToken(
 
   // Get all talents
   const talents = target?.data?.talents || [];
+  // If a talent is ranked, duplicate it for each rank
+  const rankedTalents = [];
+  talents.forEach((talent) => {
+    if (talent.data?.rank) {
+      for (let i = 1; i < talent.data.rank; i++) {
+        rankedTalents.push({
+          ...talent,
+          _id: `${talent._id}-${i + 1}`,
+          name: `${talent.name} (x${i + 1})`,
+        });
+      }
+    }
+  });
 
   // NPCs get features
   const npcFeatures = target?.data?.features || [];
@@ -434,6 +447,18 @@ function getEffectsAndModifiersForToken(
 
   // If ability is provided, add any talents from it
   const abilityTalents = [...(ability?.data?.talents || [])];
+  // If a talent is ranked, duplicate it for each rank
+  abilityTalents.forEach((talent) => {
+    if (talent.data?.rank) {
+      for (let i = 1; i < talent.data.rank; i++) {
+        rankedTalents.push({
+          ...talent,
+          _id: `${talent._id}-${i + 1}`,
+          name: `${talent.name} (x${i + 1})`,
+        });
+      }
+    }
+  });
 
   // Get critical injuries
   const criticalInjuries = target?.data?.criticalInjuries || [];
@@ -445,6 +470,7 @@ function getEffectsAndModifiersForToken(
   [
     ...speciesFeatures,
     ...talents,
+    ...rankedTalents,
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,
@@ -560,7 +586,7 @@ function updateAttribute({
       woundThreshold - currentWounds
     );
 
-    // Characters have an “encumbrance threshold" of 5 plus
+    // Characters have an "encumbrance threshold" of 5 plus
     // their Brawn rating
     const encumbranceThreshold = 5 + parseInt(value || "0", 10);
     valuesToSet["data.encumbranceThreshold"] = encumbranceThreshold;
@@ -723,13 +749,16 @@ function updateAttributes(record, moreValuesToSet = undefined) {
   }
 }
 
-function getTagsForQualities(qualities) {
+function getTagsForQualities(weapon) {
   const tags = [];
+
+  const qualities = weapon?.data?.special || [];
 
   if (qualities.includes("accurate")) {
     tags.push({
-      name: "Accurate (Passive)",
-      tooltip: "Add 1 Boost die to combat checks with this weapon",
+      name: `Accurate (Passive) [${weapon.data?.accurate || 0}]`,
+      tooltip:
+        "Add Boost die for each level of this trait to combat checks with this weapon",
     });
   }
 
@@ -743,7 +772,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("breach")) {
     tags.push({
-      name: "Breach (Passive)",
+      name: `Breach (Passive) [${weapon.data?.breach || 0}]`,
       tooltip:
         "Ignores 1 point of armor per rank of Breach (meaning they also ignore 10 points of soak for every rating of Breach)",
     });
@@ -751,7 +780,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("burn")) {
     tags.push({
-      name: "Burn (Active)",
+      name: `Burn (Active) [${weapon.data?.burn || 0}]`,
       tooltip:
         "If the attack is successful, can spend 2 Advantage to set target on fire. The target continues to suffer the weapon's base damage for a number of rounds equal to the weapon's Burn rating. Damage is applied at the start of each of the target's actions. A victim can attempt a Coordination check to stop the burn, or jump in water.",
     });
@@ -759,7 +788,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("blast")) {
     tags.push({
-      name: "Blast (Active)",
+      name: `Blast (Active) [${weapon.data?.blast || 0}]`,
       tooltip:
         "If the attack is successful, can spend 2 Advantage to activate Blast. Each character (friend or foe) Engaged with the original target suffers wounds equal to the weapon's Blast rating (plus an additional wound per Success as usual). The user may also trigger Blast if the attack misses, by spending 3 Advantage. In this case, the original target and every target engaged with the original target suffers damage equal to the Blast rating of the weapon.",
     });
@@ -767,7 +796,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("concussive")) {
     tags.push({
-      name: "Concussive (Active)",
+      name: `Concussive (Active) [${weapon.data?.concussive || 0}]`,
       tooltip:
         "May spend 2 Advantage to stagger the target for a number of rounds equal to the weapon's Concussive rating. A staggered target cannot perform actions.",
     });
@@ -783,7 +812,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("cumbersome")) {
     tags.push({
-      name: "Cumbersome (Passive)",
+      name: `Cumbersome (Passive) [${weapon.data?.cumbersome || 0}]`,
       tooltip:
         "To wield a Cumbersome weapon properly, the character needs a Brawn characteristic equal to or greater than the weapon's Cumbersome rating. For each point of Brawn the character is deficient, he must increase the difficulty of all checks made while using the weapon by one.",
     });
@@ -791,7 +820,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("defensive")) {
     tags.push({
-      name: "Defensive (Passive)",
+      name: `Defensive (Passive) [${weapon.data?.defensive || 0}]`,
       tooltip:
         "A character wielding a weapon with the Defensive quality increases his melee defense by the weapon's Defensive rating.",
     });
@@ -799,7 +828,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("deflection")) {
     tags.push({
-      name: "Deflection (Passive)",
+      name: `Deflection (Passive) [${weapon.data?.deflection || 0}]`,
       tooltip:
         "An item with the Deflection quality increases the wearer's ranged defense equal to its Deflection rating.",
     });
@@ -807,7 +836,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("disorient")) {
     tags.push({
-      name: "Disorient (Active)",
+      name: `Disorient (Active) [${weapon.data?.disorient || 0}]`,
       tooltip:
         "May spend 2 Advantage to disorient target for a number of rounds equal to the weapon's Disorient rating. A disoriented target adds 1 Setback die to all skill checks he performs.",
     });
@@ -815,7 +844,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("ensnare")) {
     tags.push({
-      name: "Ensnare (Active)",
+      name: `Ensnare (Active) [${weapon.data?.ensnare || 0}]`,
       tooltip:
         "May spend 2 Advantage to immobilize target for a number of rounds equal to the weapon's Ensnare rating. An immobilized target cannot perform maneuvers. An Ensnared target may attempt a Hard Athletics check as his action on his turn to break free from the effect.",
     });
@@ -823,7 +852,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("guided")) {
     tags.push({
-      name: "Guided (Active)",
+      name: `Guided (Active) [${weapon.data?.guided || 0}]`,
       tooltip:
         "On a miss, may spend 3 Advantage (unless otherwise specified in the weapon's description) to make an attack check at the end of the round. The difficulty of the check is calculated by comparing the weapon's silhouette of 0 to the silhouette of the target, and the check's Ability dice equal to the weapon's Guided rating. If the test is successful, the weapon strikes the target and damage is dealt normally.",
     });
@@ -839,8 +868,9 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("inaccurate")) {
     tags.push({
-      name: "Inaccurate (Passive)",
-      tooltip: "Add 1 Setback die to combat checks with this weapon.",
+      name: `Inaccurate (Passive) [${weapon.data?.inaccurate || 0}]`,
+      tooltip:
+        "Add Setback die equal to the weapon's Inaccurate rating to combat checks with this weapon.",
     });
   }
 
@@ -862,7 +892,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("limited-ammo")) {
     tags.push({
-      name: "Limited Ammo (Passive)",
+      name: `Limited Ammo (Passive) [${weapon.data?.limitedAmmo || 0}]`,
       tooltip:
         "May be used to make a number of attacks equal to its Limited Ammo rating before it must be reloaded with a maneuver.",
     });
@@ -870,7 +900,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("linked")) {
     tags.push({
-      name: "Linked (Active)",
+      name: `Linked (Active) [${weapon.data?.linked || 0}]`,
       tooltip:
         "May spend 2 Advantage to gain an additional hit, and may do so a number of times equal to the weapon's linked rating.",
     });
@@ -878,14 +908,14 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("pierce")) {
     tags.push({
-      name: "Pierce (Passive)",
+      name: `Pierce (Passive) [${weapon.data?.pierce || 0}]`,
       tooltip: "Ignores 1 point of soak for each rank of Pierce.",
     });
   }
 
   if (qualities.includes("prepare")) {
     tags.push({
-      name: "Prepare (Passive)",
+      name: `Prepare (Passive) [${weapon.data?.prepare || 0}]`,
       tooltip:
         "Requires maneuvers to prepare before use, equal to the weapon's Prepare rating.",
     });
@@ -893,7 +923,7 @@ function getTagsForQualities(qualities) {
 
   if (qualities.includes("slow-firing")) {
     tags.push({
-      name: "Slow-Firing (Passive)",
+      name: `Slow-Firing (Passive) [${weapon.data?.slowFiring || 0}]`,
       tooltip:
         "Must wait a number of rounds equal to the weapon's Slow-Firing rating before firing again.",
     });
@@ -1020,7 +1050,7 @@ function initializeSkills(record) {
     const unarmedAttack = record?.data?.unarmedAttack;
     if (unarmedAttack === undefined) {
       // When making an unarmed combat check using
-      // Brawl, the character’s attack has a base damage of
+      // Brawl, the character's attack has a base damage of
       // his Brawn rating, a range of engaged, a Critical Rating
       // of 5, and the Disorient 1 and Knockdown qualities.
       // Finally,
@@ -1483,7 +1513,7 @@ function rollSkill(
 
   // Get encumbrance penalty
   // A total encumbrance value over the threshold means the hero
-  // is “encumbered,” and suffers one setback to all Agility and
+  // is "encumbered," and suffers one setback to all Agility and
   // Brawn rolls for every point of encumbrance over his limit.
   // This is cumulative with any setback dice suffered for strain
   // or other conditions, should any be in play.
@@ -1682,8 +1712,31 @@ function getResultFromTable(table, total) {
     return null;
   }
 
+  // Sort rows by minValue to ensure we get the correct min and max values
+  const sortedRows = [...table.rows].sort((a, b) => a.minValue - b.minValue);
+
+  // Validate that rows have the expected structure
+  const firstRow = sortedRows[0];
+  const lastRow = sortedRows[sortedRows.length - 1];
+
+  if (
+    !firstRow ||
+    !lastRow ||
+    typeof firstRow.minValue === "undefined" ||
+    typeof lastRow.maxValue === "undefined"
+  ) {
+    return null;
+  }
+
+  // Get the actual min and max values from the table
+  const tableMin = firstRow.minValue;
+  const tableMax = lastRow.maxValue || lastRow.minValue;
+
+  // Clamp the total to the table's valid range
+  total = Math.max(tableMin, Math.min(total, tableMax));
+
   // Find the row where the total falls between minValue and maxValue (inclusive)
-  const matchingRow = table.rows.find(
+  const matchingRow = sortedRows.find(
     (row) => total >= row.minValue && total <= row.maxValue
   );
 
@@ -1819,38 +1872,40 @@ function addCondition(tokenOrRecord, recordLink) {
   });
 }
 
-function getRollCriticalInjuryMacro(record, target) {
-  // A critical injury roll is d100 + any modifiers, and the
-  // target's mods need to be applied to the result
-  const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
-    "increaseCriticalHit",
-  ]);
-  const decreaseCriticalHitMods = target
-    ? getEffectsAndModifiersForToken(target, ["reducedCriticalHit"])
-    : [];
-
-  const modifiers = [];
-  increaseCriticalHitMods.forEach((mod) => {
-    modifiers.push({
-      ...mod,
-      value: Math.abs(mod.value),
-    });
-  });
-  decreaseCriticalHitMods.forEach((mod) => {
-    modifiers.push({
-      ...mod,
-      value: -Math.abs(mod.value),
-    });
-  });
-
+function getRollCriticalInjuryMacro(modifiers, critType) {
+  // A critical injury roll is d100 + any modifiers
   const modsAsString = JSON.stringify(modifiers);
 
-  return `\`\`\`Roll_Critical_Hit
-api.promptRoll("Critical Hit", "1d100", JSON.parse('${modsAsString}') , {
-  rollName: "Critical Hit",
-  tooltip: "Critical Hit Roll",
-  isNarrative: false,
+  return `\`\`\`Roll_Critical_${critType === "hit" ? "Hit" : "Injury"}
+const rollName = "Critical ${critType === "hit" ? "Hit" : "Injury"}";
+const additionalModifiers = JSON.parse('${modsAsString}');
+// Here we get the selected token and prompt a roll for it, after we 
+// get mods on this token for reduction of a critical hit, or increase due to previous critical hits
+const selectedTokens = api.getSelectedOrDroppedToken();
+selectedTokens.forEach(token => {
+  const criticalHitReduction = getEffectsAndModifiersForToken(token, ["reducedCriticalHit"]);
+  criticalHitReduction.forEach(mod => {
+    mod.value = -Math.abs(mod.value);
+  });
+  const criticalHitIncrease = [];
+  // Get the number of critical hits this character or vehicle has suffered from
+  const criticalHits = token.data?.criticalInjuries || [];
+  if (criticalHits.length > 0) {
+    criticalHitIncrease.push({
+      name: "Increase from Previous Critical Hits",
+      value: criticalHits.length * 10,
+      active: true,
+    });
+  }
+  const modifiers = [...additionalModifiers, ...criticalHitReduction, ...criticalHitIncrease];
+
+  api.promptRollForToken(token, rollName, "1d100", modifiers, {
+    rollName: rollName,
+    tooltip: 'Critical \${critType === "hit" ? "Hit" : "Injury"} Roll\`',
+    isNarrative: false,
+    critType: '${critType ? critType : "notset"}',
 }, "criticalInjury");
+});
 \`\`\``;
 }
 
@@ -1991,6 +2046,9 @@ function rollAttack(record, weapon, dataPathToWeapon) {
     const targetId = token?._id;
     const animation = weapon.data?.animation;
 
+    // TODO add bonuses for special like accurate, etc.
+    // TODO also superior for adv mods etc.
+
     rollSkill(
       record,
       skillObj,
@@ -2002,7 +2060,8 @@ function rollAttack(record, weapon, dataPathToWeapon) {
         difficulty: difficulty,
         increaseDifficulty: difficultyIncrease,
         upgradeDifficulty: upgradeDifficulty,
-        ourTokenId: ourTokenId,
+        recordId: record._id,
+        tokenId: ourTokenId,
         targetId: targetId,
         animation: animation,
         dataPathToWeapon: dataPathToWeapon,
@@ -2013,6 +2072,14 @@ function rollAttack(record, weapon, dataPathToWeapon) {
       modifiers
     );
   });
+
+  // Deduce ammo if needed
+  const ammo = weapon.data?.ammo || 0;
+  if (ammo > 0 && weapon.data?.special?.includes("limited-ammo")) {
+    api.setValuesOnRecord(record, {
+      [`${dataPathToWeapon}.data.ammo`]: ammo - 1,
+    });
+  }
 }
 
 function getDamageForMacroForAttack(record, weapon, damage = 0) {
@@ -2033,6 +2100,8 @@ function getDamageForMacroForAttack(record, weapon, damage = 0) {
       damage += mod.value;
     }
   });
+
+  // TODO automate pierce unless cortosis
 
   return getDamageMacro(damage);
 }
