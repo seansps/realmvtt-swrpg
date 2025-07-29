@@ -7,13 +7,6 @@ const recordId = metadata?.recordId;
 const tokenId = metadata?.tokenId;
 const targetId = metadata?.targetId;
 
-// Todo macros for damage to strain (reduced by soak and not depending on
-// source, such as Brawling, or item qualities)
-
-// TODO macros for Effects for things like ensnare, disorient, etc.
-
-// TODO macro for Guided, if it has it
-
 const tags = [
   {
     name: metadata?.rollName || "Attack",
@@ -78,7 +71,7 @@ if (weapon) {
   // Check for auto-fire trigger if this was an auto-fire attack
   if (
     metadata?.attackType === "auto-fire" &&
-    results.advantages >= 2 &&
+    (results.advantages >= 2 || results.triumphs >= 1) &&
     results.successes > 0
   ) {
     const autoFireTimes = Math.floor(results.advantages / 2);
@@ -155,10 +148,10 @@ if (weapon) {
     } Triggered if Damage Exceeds Soak[/color][/center]**`;
   }
 
-  // If this has the active stun quality, and they have advantage >=2, show stun macro
+  // If this has the active stun quality, and they have advantage >=2 or triumph, show stun macro
   const stunRating = weapon.data?.stun || 0;
   let stunMacro = "";
-  if (stunRating > 0 && results.advantages >= 2) {
+  if (stunRating > 0 && (results.advantages >= 2 || results.triumphs >= 1)) {
     message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
     stunMacro = getDamageForMacroForAttack({
       record,
@@ -181,14 +174,16 @@ if (weapon) {
     });
   }
 
-  // Blast: If success and >= 2 advanatage, show blast macro,
+  // Blast: If success and >= 2 advanatage or triumph, show blast macro,
   // or if failure and >= 3 advantage, show blast macro
   let blastMacro = "";
   if (
     weapon.data?.special &&
     weapon.data?.special.includes("blast") &&
-    ((results.successes > 0 && results.advantages >= 2) ||
-      results.advantages >= 3)
+    ((results.successes > 0 &&
+      (results.advantages >= 2 || results.triumphs >= 1)) ||
+      (results.successes < 1 &&
+        (results.advantages >= 3 || results.triumphs >= 1)))
   ) {
     message += `\n\n**[center][color=blue]Blast can be Triggered[/color][/center]**`;
     // Blast damage is blast rating + successes
@@ -201,7 +196,10 @@ if (weapon) {
 
   // Check for other macros to add
   let additionalMacros = [];
-  if (results.successes > 0 && results.advantages >= 2) {
+  if (
+    results.successes > 0 &&
+    (results.advantages >= 2 || results.triumphs >= 1)
+  ) {
     // Burn:  If the  attack is successful, the target continues to suffer the
     // weapon's base damage for a number of rounds equal to the weapon’s Burn rating.
     if (weapon.data?.special && weapon.data?.special.includes("burn")) {
@@ -217,7 +215,33 @@ if (weapon) {
       additionalMacros.push(
         getEffectMacroByName("Staggered", concussiveRating)
       );
+      message += `\n\n**[center][color=blue]Concussive can be Triggered[/color][/center]**`;
     }
+    // Disorient: If the attack is successful, the target is disoriented for a number of rounds equal to the weapon’s Disorient rating.
+    if (weapon.data?.special && weapon.data?.special.includes("disorient")) {
+      const disorientRating = weapon.data?.disorient || 0;
+      additionalMacros.push(
+        getEffectMacroByName("Disoriented", disorientRating)
+      );
+      message += `\n\n**[center][color=blue]Disorient can be Triggered[/color][/center]**`;
+    }
+    // Ensnare: If the attack is successful, the target is ensnared for a number of rounds equal to the weapon’s Ensnare rating.
+    if (weapon.data?.special && weapon.data?.special.includes("ensnare")) {
+      const ensnareRating = weapon.data?.ensnare || 0;
+      additionalMacros.push(getEffectMacroByName("Immobilized", ensnareRating));
+      message += `\n\n**[center][color=blue]Ensnare can be Triggered[/color][/center]**`;
+    }
+  }
+
+  // Guided, if the attack misses, and guided activates, show guided macro
+  if (
+    weapon.data?.special &&
+    weapon.data?.special.includes("guided") &&
+    results.successes < 1 &&
+    (results.advantages >= 3 || results.triumphs >= 1) // Generally, guided requires 3 advantage to activate
+  ) {
+    additionalMacros.push(getGuidedMacro(dataPathToWeapon));
+    message += `\n\n**[center][color=blue]Guided can be Triggered[/color][/center]**`;
   }
 
   message += `\n\n${damageMacro}`;

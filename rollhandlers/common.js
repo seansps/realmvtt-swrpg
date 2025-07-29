@@ -1415,7 +1415,14 @@ function rollSkill(
     record?.data?.[skill.data?.stat || "brawn"] || "0",
     10
   );
-  const skillRank = parseInt(skill.data?.rank || "0", 10);
+
+  let abilityOverride = undefined;
+  if (additionalMetadata.abilityOverride) {
+    abilityOverride = additionalMetadata.abilityOverride;
+  }
+
+  const skillRank =
+    abilityOverride === undefined ? parseInt(skill.data?.rank || "0", 10) : 0;
 
   // Star Wars RPG skill dice mechanics:
   // Start with Ability dice equal to the characteristic
@@ -1431,6 +1438,10 @@ function rollSkill(
     abilityDice =
       Math.max(0, abilityDice - upgrades) +
       Math.max(0, skillRank - attributeValue);
+  }
+
+  if (abilityOverride) {
+    abilityDice = abilityOverride;
   }
 
   // Build the dice string
@@ -2011,6 +2022,16 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
       difficulty = "Daunting";
     }
 
+    // Increase difficulty if the weapon has cumbersome and their brawn is deficient
+    if (
+      weapon.data?.special?.includes("cumbersome") &&
+      record.data?.brawn < (weapon.data?.cumbersome || 0)
+    ) {
+      difficultyIncrease += Math.abs(
+        (weapon.data?.cumbersome || 0) - (record.data?.brawn || 0)
+      );
+    }
+
     // Check target's difficultyOfAttacksTargetingYou modifiers
     const difficultyOfAttacksTargetingYouModifiers =
       getEffectsAndModifiersForToken(
@@ -2092,6 +2113,11 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
     if (attackType === "stun-setting") {
       rollName = "Stun Attack";
     }
+    let abilityOverride = undefined;
+    if (attackType === "guided") {
+      rollName = "Guided Attack";
+      abilityOverride = weapon.data?.guided || 0;
+    }
 
     rollSkill(
       record,
@@ -2110,6 +2136,7 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
         animation: animation,
         dataPathToWeapon: dataPathToWeapon,
         attackType: attackType,
+        abilityOverride: abilityOverride,
         // Send brawn for melee / unarmed attacks
         brawn: record.data?.brawn || 0,
       },
@@ -2151,8 +2178,6 @@ function getDamageForMacroForAttack({
       damage += mod.value;
     }
   });
-
-  // TODO automate pierce unless cortosis
 
   return getDamageMacro({ damage, damageType, breach });
 }
@@ -2433,4 +2458,25 @@ function useItem(record, itemDataPath) {
       api.removeValueFromRecord(record, `data.inventory`, indexValue);
     }
   }
+}
+
+function getGuidedMacro(dataPathToWeapon) {
+  // This is a macro that rolls an attack again
+  // with the same weapon but using the guided rating
+  // as the ability dice
+  return `\`\`\`Roll_Guided_Attack
+const selectedTokens = api.getSelectedOrDroppedToken();
+selectedTokens.forEach(token => {
+  const weapon = api.getValueOnRecord(token, "${dataPathToWeapon}");
+  if (weapon) {
+    rollAttack(token, weapon, "${dataPathToWeapon}", "guided");
+  } else {
+    api.showNotification(
+      'Guided weapon was not found. Make sure the correct token is selected and try again.',
+      "red",
+      "Weapon Not Found"
+    );
+  }
+});
+\`\`\``;
 }
