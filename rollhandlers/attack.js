@@ -10,8 +10,6 @@ const targetId = metadata?.targetId;
 // Todo macros for damage to strain (reduced by soak and not depending on
 // source, such as Brawling, or item qualities)
 
-// TODO macro for Blast too, if it has it
-
 // TODO macros for Effects for things like ensnare, disorient, etc.
 
 // TODO macro for Guided, if it has it
@@ -116,32 +114,6 @@ if (weapon) {
     breach,
   });
 
-  // If this has the active stun quality, and they have advantage >=2, show stun macro
-  const stunRating = weapon.data?.stun || 0;
-  let stunMacro = "";
-  if (stunRating > 0 && results.advantages >= 2) {
-    message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
-    stunMacro = getDamageForMacroForAttack({
-      record,
-      weapon,
-      damage: stunRating,
-      damageType: "stun",
-      breach,
-    });
-  } else if (
-    weapon.data?.special &&
-    weapon.data?.special.includes("unarmed") &&
-    results.successes > 0
-  ) {
-    stunMacro = getDamageForMacroForAttack({
-      record,
-      weapon,
-      damage,
-      damageType: "stun",
-      breach,
-    });
-  }
-
   // If there is 1 triumph or advantage >= crit rating, show the crit macro
   let critMacro = "";
   const critRating = weapon.data?.crit || 0;
@@ -183,19 +155,69 @@ if (weapon) {
     } Triggered if Damage Exceeds Soak[/color][/center]**`;
   }
 
-  // Check for other macros to add
-  // Burn:  If the  attack is successful, the target continues to suffer the
-  // weapon's base damage for a number of rounds equal to the weapon’s Burn rating.
-  let additionalMacros = [];
+  // If this has the active stun quality, and they have advantage >=2, show stun macro
+  const stunRating = weapon.data?.stun || 0;
+  let stunMacro = "";
+  if (stunRating > 0 && results.advantages >= 2) {
+    message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
+    stunMacro = getDamageForMacroForAttack({
+      record,
+      weapon,
+      damage: stunRating,
+      damageType: "stun",
+      breach,
+    });
+  } else if (
+    weapon.data?.special &&
+    weapon.data?.special.includes("unarmed") &&
+    results.successes > 0
+  ) {
+    stunMacro = getDamageForMacroForAttack({
+      record,
+      weapon,
+      damage,
+      damageType: "stun",
+      breach,
+    });
+  }
+
+  // Blast: If success and >= 2 advanatage, show blast macro,
+  // or if failure and >= 3 advantage, show blast macro
+  let blastMacro = "";
   if (
     weapon.data?.special &&
-    weapon.data?.special.includes("burn") &&
-    results.successes > 0 &&
-    results.advantages >= 2
+    weapon.data?.special.includes("blast") &&
+    ((results.successes > 0 && results.advantages >= 2) ||
+      results.advantages >= 3)
   ) {
-    const burnRating = weapon.data?.burn || 0;
-    additionalMacros.push(getEffectMacroByName("Burn", burnRating, baseDamage));
-    message += `\n\n**[center][color=blue]Burn can be Triggered[/color][/center]**`;
+    message += `\n\n**[center][color=blue]Blast can be Triggered[/color][/center]**`;
+    // Blast damage is blast rating + successes
+    const blastDamage = (weapon.data?.blast || 0) + results.successes;
+    blastMacro = getDamageMacro({
+      damage: blastDamage,
+      damageType: "blast",
+    });
+  }
+
+  // Check for other macros to add
+  let additionalMacros = [];
+  if (results.successes > 0 && results.advantages >= 2) {
+    // Burn:  If the  attack is successful, the target continues to suffer the
+    // weapon's base damage for a number of rounds equal to the weapon’s Burn rating.
+    if (weapon.data?.special && weapon.data?.special.includes("burn")) {
+      const burnRating = weapon.data?.burn || 0;
+      additionalMacros.push(
+        getEffectMacroByName("Burn", burnRating, baseDamage)
+      );
+      message += `\n\n**[center][color=blue]Burn can be Triggered[/color][/center]**`;
+    }
+    // Concussive, staggered for a number of rounds equal to the weapon’s Concussive rating.
+    if (weapon.data?.special && weapon.data?.special.includes("concussive")) {
+      const concussiveRating = weapon.data?.concussive || 0;
+      additionalMacros.push(
+        getEffectMacroByName("Staggered", concussiveRating)
+      );
+    }
   }
 
   message += `\n\n${damageMacro}`;
@@ -204,6 +226,9 @@ if (weapon) {
   }
   if (stunMacro) {
     message += `\n\n${stunMacro}`;
+  }
+  if (blastMacro) {
+    message += `\n\n${blastMacro}`;
   }
   if (additionalMacros.length > 0) {
     message += `\n\n${additionalMacros.join("\n\n")}`;

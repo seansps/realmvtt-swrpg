@@ -2222,7 +2222,11 @@ function targetHasCortosis(target) {
 }
 
 function getDamageMacro({ damage, damageType = "wounds", breach = 0 }) {
-  const macroName = damageType === "wounds" ? "Apply_Damage" : "Apply_Strain";
+  let macroName = damageType === "wounds" ? "Apply_Damage" : "Apply_Strain";
+  if (damageType === "blast") {
+    macroName = "Apply_Blast_Damage";
+    damageType = "wounds";
+  }
   return `\`\`\`${macroName}
   let targets = api.getSelectedOrDroppedToken();
   targets.forEach(target => {
@@ -2306,7 +2310,7 @@ function getSkillCheckMacro(skillCheck) {
   \`\`\``;
 }
 
-function getEffectMacroByName(name, duration, value) {
+function getEffectMacroByName(name, duration, value = undefined) {
   return `\`\`\`Apply_${name.replace(/ /g, "_")}
 let targets = api.getSelectedOrDroppedToken();
 targets.forEach(target => {
