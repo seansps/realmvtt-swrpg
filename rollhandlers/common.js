@@ -931,7 +931,7 @@ function getTagsForQualities(weapon) {
 
   if (qualities.includes("stun")) {
     tags.push({
-      name: "Stun (Active)",
+      name: `Stun (Active) [${weapon.data?.stun || 0}]`,
       tooltip:
         "May spend 2 Advantage to deal direct strain damage equal to the weapon's Stun rating.",
     });
@@ -2127,12 +2127,13 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
   }
 }
 
-function getDamageForMacroForAttack(
+function getDamageForMacroForAttack({
   record,
   weapon,
   damage = 0,
-  damageType = "wounds"
-) {
+  damageType = "wounds",
+  breach = 0,
+}) {
   // Get the weapon's type
   const isMelee = weapon.data?.type === "melee weapon";
 
@@ -2153,7 +2154,7 @@ function getDamageForMacroForAttack(
 
   // TODO automate pierce unless cortosis
 
-  return getDamageMacro(damage, damageType);
+  return getDamageMacro({ damage, damageType, breach });
 }
 
 function getHealingMacro(healing, deduct = false) {
@@ -2208,20 +2209,45 @@ function getHealingMacro(healing, deduct = false) {
   \`\`\``;
 }
 
-function getDamageMacro(damage, damageType = "wounds") {
-  const macroName = damageType === "wounds" ? "Apply_Wounds" : "Apply_Strain";
+function targetHasCortosis(target) {
+  // Get best equipped armor
+  const bestArmor = getBestArmor(target);
+  if (!bestArmor.armor) {
+    return false;
+  }
+
+  // Check if the best armor is cortosis
+  const special = bestArmor.armor?.data?.special || [];
+  return special.includes("cortosis");
+}
+
+function getDamageMacro({ damage, damageType = "wounds", breach = 0 }) {
+  const macroName = damageType === "wounds" ? "Apply_Damage" : "Apply_Strain";
   return `\`\`\`${macroName}
   let targets = api.getSelectedOrDroppedToken();
   targets.forEach(target => {
     const damageType = "${damageType}";
     const valuesToSet = {};
     // Damage is reduced by target's soak value
-    const soakValue = target.data?.soakValue || 0;
+    let soakValue = target.data?.soakValue || 0;
+
+    // Breach ignores vehicle 1 armor and 10 soak
+    // for each point of breach
+    let breachValue = ${breach};
+    if (target.data?.type !== "vehicle") {
+      breachValue = 10 * breachValue;
+    }
+    // Check if the target has cortosis armor before applying breach
+    if (breachValue > 0 && !targetHasCortosis(target)) {
+      soakValue = Math.max(0, soakValue - breachValue);
+    }
+
     const damageToApply = ${damage};
     const damageValue = Math.max(0, damageToApply - soakValue);
     const oldValues = {};
+    const damageMessage = damageType === "wounds" ? "damage" : "strain";
     const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
-    const message = \`Took \${damageValue} damage\${soakMessage}\\n\`;
+    const message = \`Took \${damageValue} \${damageMessage}\${soakMessage}\\n\`;
     
     if (damageValue > 0 && damageType === "wounds") {
       oldValues["data.wounds"] = target.data?.wounds;
@@ -2229,7 +2255,7 @@ function getDamageMacro(damage, damageType = "wounds") {
       valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
       valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
       api.setValuesOnRecord(target, valuesToSet);
-      api.floatText(target, '+' + damageValue + ' Wounds', "#FF0000");
+      api.floatText(target, '+' + damageValue, "#FF0000");
     }
     else if (damageValue > 0 && damageType === "stun") {
       oldValues["data.strain"] = target.data?.strain;
@@ -2278,6 +2304,15 @@ function getSkillCheckMacro(skillCheck) {
     }
   });
   \`\`\``;
+}
+
+function getEffectMacroByName(name, duration, value) {
+  return `\`\`\`Apply_${name.replace(/ /g, "_")}
+let targets = api.getSelectedOrDroppedToken();
+targets.forEach(target => {
+  api.addEffect('${name}', target, ${duration}, ${value});
+});
+\`\`\``;
 }
 
 function getEffectMacros(effects) {
@@ -2358,7 +2393,8 @@ function useItem(record, itemDataPath) {
   const damageValue = damage
     ? parseInt(checkForReplacements(damage, {}, record), 10)
     : 0;
-  const damageMacro = damageValue > 0 ? getDamageMacro(damageValue) : "";
+  const damageMacro =
+    damageValue > 0 ? getDamageMacro({ damage: damageValue }) : "";
 
   // If there is skill check, get the skill check macro
   const skillCheckMacro = skillCheck ? getSkillCheckMacro(skillCheck) : "";

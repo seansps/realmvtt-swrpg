@@ -7,16 +7,6 @@ const recordId = metadata?.recordId;
 const tokenId = metadata?.tokenId;
 const targetId = metadata?.targetId;
 
-// TODO (dont forget to add modifiers in rollAttack based on weapon special)
-
-// TODO need stunBtn on attacks if stun is present
-// which will tell this to show stun damage (for passive stun)
-// (OR: remove the stunBtn entirely and just show both macros -- which
-// means we'd need a Stun Active and Stun Passive macro))
-// When you set to stun, it does 'Stun Damage'
-// which gets soaked. When you activate the Stun (Active) quality it gives the
-// target that much strain, which is not soaked.
-
 // Todo macros for damage to strain (reduced by soak and not depending on
 // source, such as Brawling, or item qualities)
 
@@ -76,13 +66,16 @@ if (weapon) {
     tooltip: `Range: ${range}`,
   });
 
-  let damage = parseInt(weapon.data?.damage || 0, 10) + results.successes;
+  const baseDamage = parseInt(weapon.data?.damage || 0, 10);
+  let damage = baseDamage + results.successes;
   // If this is unarmed or melee add brawn from metadata
   if (weapon.data?.type === "melee weapon") {
     damage += record?.data?.brawn || 0;
   }
 
-  message += `\n\n**[center]Total Damage: ${damage}[/center]**`;
+  if (results.successes > 0) {
+    message += `\n\n**[center]Total Damage: ${damage}[/center]**`;
+  }
 
   // Check for auto-fire trigger if this was an auto-fire attack
   if (
@@ -109,24 +102,44 @@ if (weapon) {
     damageType = "stun";
   }
 
-  const damageMacro = getDamageForMacroForAttack(
+  // Check if damage has the "breach" quality
+  let breach = 0;
+  if (weapon.data?.special && weapon.data?.special.includes("breach")) {
+    breach = weapon.data?.breach || 0;
+  }
+
+  const damageMacro = getDamageForMacroForAttack({
     record,
     weapon,
     damage,
-    damageType
-  );
+    damageType,
+    breach,
+  });
 
   // If this has the active stun quality, and they have advantage >=2, show stun macro
-  const strainRating = weapon.data?.strainRating || 0;
+  const stunRating = weapon.data?.stun || 0;
   let stunMacro = "";
-  if (strainRating > 0 && results.advantages >= 2) {
+  if (stunRating > 0 && results.advantages >= 2) {
     message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
-    stunMacro = getDamageForMacroForAttack(
+    stunMacro = getDamageForMacroForAttack({
       record,
       weapon,
-      strainRating,
-      "stun"
-    );
+      damage: stunRating,
+      damageType: "stun",
+      breach,
+    });
+  } else if (
+    weapon.data?.special &&
+    weapon.data?.special.includes("unarmed") &&
+    results.successes > 0
+  ) {
+    stunMacro = getDamageForMacroForAttack({
+      record,
+      weapon,
+      damage,
+      damageType: "stun",
+      breach,
+    });
   }
 
   // If there is 1 triumph or advantage >= crit rating, show the crit macro
@@ -165,14 +178,35 @@ if (weapon) {
     }
 
     critMacro = getRollCriticalInjuryMacro(increaseCriticalHitMods, critType);
-    message += `\n\n**[center]Critical ${
+    message += `\n\n**[center][color=blue]Critical ${
       critType === "hit" ? "Hit" : "Injury"
-    } Triggered if Damage Exceeds Soak[/center]**`;
+    } Triggered if Damage Exceeds Soak[/color][/center]**`;
+  }
+
+  // Check for other macros to add
+  // Burn:  If the  attack is successful, the target continues to suffer the
+  // weapon's base damage for a number of rounds equal to the weapon’s Burn rating.
+  let additionalMacros = [];
+  if (
+    weapon.data?.special &&
+    weapon.data?.special.includes("burn") &&
+    results.successes > 0 &&
+    results.advantages >= 2
+  ) {
+    const burnRating = weapon.data?.burn || 0;
+    additionalMacros.push(getEffectMacroByName("Burn", burnRating, baseDamage));
+    message += `\n\n**[center][color=blue]Burn can be Triggered[/color][/center]**`;
   }
 
   message += `\n\n${damageMacro}`;
   if (critMacro) {
     message += `\n\n${critMacro}`;
+  }
+  if (stunMacro) {
+    message += `\n\n${stunMacro}`;
+  }
+  if (additionalMacros.length > 0) {
+    message += `\n\n${additionalMacros.join("\n\n")}`;
   }
 
   api.sendMessage(message, roll, [], tags);
