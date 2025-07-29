@@ -107,6 +107,13 @@ if (weapon) {
     breach,
   });
 
+  // Attempt to get the target
+  let target = null;
+  const targets = api.getTargets();
+  if (targets.length > 0) {
+    target = targets.find((t) => t.token?._id === targetId);
+  }
+
   // If there is 1 triumph or advantage >= crit rating, show the crit macro
   let critMacro = "";
   const critRating = weapon.data?.crit || 0;
@@ -125,13 +132,6 @@ if (weapon) {
       mod.value = Math.abs(mod.value);
     });
 
-    // Attempt to get the target
-    let target = null;
-    const targets = api.getTargets();
-    if (targets.length > 0) {
-      target = targets.find((t) => t.token?._id === targetId);
-    }
-
     let critType = "notset";
     if (target?.token?.data?.type === "vehicle") {
       critType = "hit";
@@ -147,6 +147,12 @@ if (weapon) {
       critType === "hit" ? "Hit" : "Injury"
     } Triggered if Damage Exceeds Soak[/color][/center]**`;
   }
+
+  // Get target's silhoutte
+  // Size is a field in the format `Silhouette x`
+  const targetSilhouette = target?.token?.data?.size || "Silhouette 1";
+  const silhouetteNumber = parseInt(targetSilhouette.split(" ")[1], 10);
+  const amountSilhouetteBeyondOne = Math.max(silhouetteNumber - 1, 0);
 
   // If this has the active stun quality, and they have advantage >=2 or triumph, show stun macro
   const stunRating = weapon.data?.stun || 0;
@@ -230,6 +236,16 @@ if (weapon) {
       const ensnareRating = weapon.data?.ensnare || 0;
       additionalMacros.push(getEffectMacroByName("Immobilized", ensnareRating));
       message += `\n\n**[center][color=blue]Ensnare can be Triggered[/color][/center]**`;
+    }
+    // Knockdown applies Prone, can be triggered if 2 adv + 1 for each silhouette beyond 1
+    if (
+      weapon.data?.special &&
+      weapon.data?.special.includes("knockdown") &&
+      (results.advantages >= 2 + amountSilhouetteBeyondOne ||
+        results.triumphs >= 1)
+    ) {
+      additionalMacros.push(getEffectMacroByName("Prone"));
+      message += `\n\n**[center][color=blue]Knockdown can be Triggered[/color][/center]**`;
     }
   }
 
