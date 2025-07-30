@@ -57,7 +57,13 @@ if (weapon) {
     tooltip: `Range: ${range}`,
   });
 
-  const baseDamage = parseInt(weapon.data?.damage || 0, 10);
+  let baseDamage = parseInt(weapon.data?.damage || 0, 10);
+  // Check for superior, which increases baseDamage by 1
+  const isSuperior = (weapon.data?.special || []).includes("superior");
+  if (isSuperior) {
+    baseDamage += 1;
+  }
+
   let damage = baseDamage + results.successes;
   // If this is unarmed or melee add brawn from metadata
   if (weapon.data?.type === "melee weapon") {
@@ -65,7 +71,8 @@ if (weapon) {
   }
 
   if (results.successes > 0) {
-    message += `\n\n**[center]Total Damage: ${damage}[/center]**`;
+    const superiorMessage = isSuperior ? " (Superior +1)" : "";
+    message += `\n\n**[center]Total Damage: ${damage}${superiorMessage}[/center]**`;
   }
 
   // Check for auto-fire trigger if this was an auto-fire attack
@@ -88,7 +95,9 @@ if (weapon) {
   if (
     metadata?.attackType === "stun-setting" ||
     (weapon.data?.special && weapon.data?.special.includes("stun-damage")) ||
-    (weapon.data?.special && weapon.data?.special.includes("stun-damage-droid"))
+    (weapon.data?.special &&
+      weapon.data?.special.includes("stun-damage-droid")) ||
+    (weapon.data?.special && weapon.data?.special.includes("ion"))
   ) {
     damageType = "stun";
   }
@@ -99,12 +108,19 @@ if (weapon) {
     breach = weapon.data?.breach || 0;
   }
 
+  // Check if damage has the "pierce" quality
+  let pierce = 0;
+  if (weapon.data?.special && weapon.data?.special.includes("pierce")) {
+    pierce = weapon.data?.pierce || 0;
+  }
+
   const damageMacro = getDamageForMacroForAttack({
     record,
     weapon,
     damage,
     damageType,
     breach,
+    pierce,
   });
 
   // Attempt to get the target
@@ -125,12 +141,25 @@ if (weapon) {
         results.advantages >= critRating))
   ) {
     // Get any increaseCriticalHitMods for person doing the attack, send it to the macro
+    const increaseCrit = [];
     const increaseCriticalHitMods = getEffectsAndModifiersForToken(record, [
       "increaseCriticalHit",
     ]);
     increaseCriticalHitMods.forEach((mod) => {
       mod.value = Math.abs(mod.value);
     });
+    increaseCrit.push(...increaseCriticalHitMods);
+
+    // Check for vicious which increases crit by 10*rating
+    const isVicious = (weapon.data?.special || []).includes("vicious");
+    if (isVicious) {
+      const viciousRating = weapon.data?.vicious || 0;
+      increaseCrit.push({
+        name: "Vicious",
+        value: `${viciousRating * 10}`,
+        active: true,
+      });
+    }
 
     let critType = "notset";
     if (target?.token?.data?.type === "vehicle") {
@@ -142,7 +171,7 @@ if (weapon) {
       critType = "injury";
     }
 
-    critMacro = getRollCriticalInjuryMacro(increaseCriticalHitMods, critType);
+    critMacro = getRollCriticalInjuryMacro(increaseCrit, critType);
     message += `\n\n**[center][color=blue]Critical ${
       critType === "hit" ? "Hit" : "Injury"
     } Triggered if Damage Exceeds Soak[/color][/center]**`;
@@ -155,7 +184,10 @@ if (weapon) {
   const amountSilhouetteBeyondOne = Math.max(silhouetteNumber - 1, 0);
 
   // If this has the active stun quality, and they have advantage >=2 or triumph, show stun macro
-  const stunRating = weapon.data?.stun || 0;
+  const stunRating =
+    weapon.data?.special && weapon.data?.special.includes("stun")
+      ? weapon.data?.stun || 0
+      : 0;
   let stunMacro = "";
   if (stunRating > 0 && (results.advantages >= 2 || results.triumphs >= 1)) {
     message += `\n\n**[center][color=blue]Stun can be Triggered[/color][/center]**`;
@@ -165,6 +197,7 @@ if (weapon) {
       damage: stunRating,
       damageType: "stun",
       breach,
+      pierce,
     });
   } else if (
     weapon.data?.special &&
@@ -177,6 +210,7 @@ if (weapon) {
       damage,
       damageType: "stun",
       breach,
+      pierce,
     });
   }
 
@@ -247,6 +281,18 @@ if (weapon) {
       additionalMacros.push(getEffectMacroByName("Prone"));
       message += `\n\n**[center][color=blue]Knockdown can be Triggered[/color][/center]**`;
     }
+    // Linked
+    if (weapon.data?.special && weapon.data?.special.includes("linked")) {
+      message += `\n\n**[center][color=blue]Linked can be Triggered[/color][/center]**`;
+    }
+  }
+
+  // Slow-firing effect doesn't require success or advantage
+  if (weapon.data?.special && weapon.data?.special.includes("slow-firing")) {
+    const slowFiringRating = weapon.data?.slowFiring || 0;
+    additionalMacros.push(
+      getEffectMacroByName("Slow-Firing", slowFiringRating)
+    );
   }
 
   // Guided, if the attack misses, and guided activates, show guided macro
@@ -258,6 +304,17 @@ if (weapon) {
   ) {
     additionalMacros.push(getGuidedMacro(dataPathToWeapon));
     message += `\n\n**[center][color=blue]Guided can be Triggered[/color][/center]**`;
+  }
+
+  // Sunder, we'll check for 1 or more advantage or triumph
+  if (
+    results.successes > 0 &&
+    weapon.data?.special &&
+    weapon.data?.special.includes("sunder") &&
+    (results.advantages >= 1 || results.triumphs >= 1)
+  ) {
+    // We'll handle it narratively
+    message += `\n\n**[center][color=blue]Sunder can be Triggered[/color][/center]**`;
   }
 
   message += `\n\n${damageMacro}`;

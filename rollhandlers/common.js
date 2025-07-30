@@ -2108,6 +2108,25 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
         active: true,
       });
     }
+    const inaccurate = weapon.data?.inaccurate || 0;
+    if (inaccurate > 0) {
+      // Inaccurate adds a penalty for each value
+      modifiers.push({
+        name: "Inaccurate",
+        value: `${inaccurate} setback`,
+        active: true,
+      });
+    }
+
+    // Check for superior, which generates automatic advantage on each use
+    const isSuperior = weapon.data?.special?.includes("superior");
+    if (isSuperior) {
+      modifiers.push({
+        name: "Superior",
+        value: "1 advantage",
+        active: true,
+      });
+    }
 
     let rollName = attackType === "auto-fire" ? "Auto-Fire Attack" : "Attack";
     if (attackType === "stun-setting") {
@@ -2160,6 +2179,7 @@ function getDamageForMacroForAttack({
   damage = 0,
   damageType = "wounds",
   breach = 0,
+  pierce = 0,
 }) {
   // Get the weapon's type
   const isMelee = weapon.data?.type === "melee weapon";
@@ -2179,7 +2199,7 @@ function getDamageForMacroForAttack({
     }
   });
 
-  return getDamageMacro({ damage, damageType, breach });
+  return getDamageMacro({ damage, damageType, breach, pierce });
 }
 
 function getHealingMacro(healing, deduct = false) {
@@ -2246,7 +2266,12 @@ function targetHasCortosis(target) {
   return special.includes("cortosis");
 }
 
-function getDamageMacro({ damage, damageType = "wounds", breach = 0 }) {
+function getDamageMacro({
+  damage,
+  damageType = "wounds",
+  breach = 0,
+  pierce = 0,
+}) {
   let macroName = damageType === "wounds" ? "Apply_Damage" : "Apply_Strain";
   if (damageType === "blast") {
     macroName = "Apply_Blast_Damage";
@@ -2263,12 +2288,18 @@ function getDamageMacro({ damage, damageType = "wounds", breach = 0 }) {
     // Breach ignores vehicle 1 armor and 10 soak
     // for each point of breach
     let breachValue = ${breach};
+    // Pierce ignores 1 soak for each point unless cortosis
+    let pierceValue = ${pierce};
     if (target.data?.type !== "vehicle") {
       breachValue = 10 * breachValue;
     }
-    // Check if the target has cortosis armor before applying breach
-    if (breachValue > 0 && !targetHasCortosis(target)) {
+    // Check if the target has cortosis armor before applying breach or pierce
+    const hasCortosis = targetHasCortosis(target);
+    if (breachValue > 0 && !hasCortosis) {
       soakValue = Math.max(0, soakValue - breachValue);
+    }
+    if (pierceValue > 0 && !hasCortosis) {
+      soakValue = Math.max(0, soakValue - pierceValue);
     }
 
     const damageToApply = ${damage};
