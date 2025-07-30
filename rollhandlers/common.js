@@ -1518,6 +1518,15 @@ function rollSkill(
     ability
   );
 
+  // Get modifiers for the stat used
+  const abilityModifiers = getEffectsAndModifiersForToken(
+    record,
+    ["abilityBonus"],
+    skill.data?.stat || "brawn"
+  );
+
+  modifiers.push(...abilityModifiers);
+
   // Add additional modifiers if provided
   if (additionalModifiers) {
     modifiers.push(...additionalModifiers);
