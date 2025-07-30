@@ -1777,14 +1777,15 @@ function addConditionToRecord(record, recordLink) {
       valuesToSet
     );
 
-    const token =
-      record.linked !== undefined
-        ? record
-        : api.getSelectedOrDroppedToken()?.[0];
-
     if (Object.keys(valuesToSet).length > 0) {
       api.setValuesOnRecord(updatedRecord, valuesToSet);
     }
+
+    api.showNotification(
+      `Added ${conditionObj.name} to ${record.name}`,
+      "green",
+      "Condition Added"
+    );
 
     const effects = conditionObj.data?.effects || [];
 

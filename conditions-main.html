@@ -60,16 +60,27 @@
       width="100%"
       minvalue="0"
     ></numberfield>
+  </div>
 
+  <div style="display: flex; gap: 4px; width: 100%">  
     <dropdown
-      placeholder="Severity..."
-      field="severity"
-      label="Severity"
-      width="100%"
-      options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
-      {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
-      {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
-    ></dropdown>
+    placeholder="Severity..."
+    field="severity"
+    label="Severity"
+    width="100%"
+    options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
+    {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
+    {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
+  ></dropdown>
+
+  <numberfield
+    placeholder="0"
+    label="Strain when Applied"
+    field="strain"
+    width="100%"
+    minvalue="0"
+  ></numberfield>
+</div>
   </div>
 
   <div style="margin-top: 8px; margin-bottom: 8px">

@@ -130,7 +130,21 @@ api.getRecord('conditions', '${tableData.injuryId}', (injuryRecord) => {
       tooltip: injuryRecord?.name || "Injury",
     };
     targets.forEach(target => {
-      addCondition(target, injuryRecordLink);
+      // Add strain if set
+      const strain = injuryRecord?.data?.strain || 0;
+      if (strain > 0) {
+        const valuesToSet = {
+         'data.strain': (target.data?.strain || 0) + strain,
+          'data.strainRemaining': (target.data?.strainThreshold || 0) - ((target.data?.strain || 0) + strain),
+        };
+        api.floatText(target, '+' + strain + ' Strain', "#0000FF")
+        api.setValuesOnRecord(target, valuesToSet, () => {
+          addCondition(target, injuryRecordLink);
+        });
+      }
+      else {
+        addCondition(target, injuryRecordLink);
+      }
     });
   }
 });
