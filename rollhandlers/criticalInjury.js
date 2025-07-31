@@ -132,12 +132,33 @@ api.getRecord('conditions', '${tableData.injuryId}', (injuryRecord) => {
     targets.forEach(target => {
       // Add strain if set
       const strain = injuryRecord?.data?.strain || 0;
-      if (strain > 0) {
-        const valuesToSet = {
-         'data.strain': (target.data?.strain || 0) + strain,
+      // Minions and rivals don't have strain
+      const isMinionOrRival = target.recordType === "npcs" && 
+        (!target.data?.type || target.data?.type === "minion" || target.data?.type === "rival");
+      if (strain > 0 && !isMinionOrRival) {
+        let valuesToSet = {
+          'data.strain': (target.data?.strain || 0) + strain,
           'data.strainRemaining': (target.data?.strainThreshold || 0) - ((target.data?.strain || 0) + strain),
         };
-        api.floatText(target, '+' + strain + ' Strain', "#0000FF")
+        api.floatText(target, '+' + strain + ' Strain', "#0000FF");
+        api.setValuesOnRecord(target, valuesToSet, () => {
+          addCondition(target, injuryRecordLink);
+        });
+      }
+      else if (isMinionOrRival) {
+        // Apply wounds if minion or rival
+        let valuesToSet = {
+          'data.wounds': (target.data?.wounds || 0) + strain,
+          'data.woundsRemaining': (target.data?.woundThreshold || 0) - ((target.data?.wounds || 0) + strain),
+        };
+        // Also, if this is a minion, a critical injury inflicts wounds equal to 1 minion's worth
+        let additionalWounds = 0;
+        additionalWounds = target.data?.woundsPerMinion || 0;
+        valuesToSet['data.wounds'] += additionalWounds;
+        valuesToSet['data.woundsRemaining'] -= additionalWounds;
+        if (strain + additionalWounds > 0) {
+          api.floatText(target, '+' + (strain + additionalWounds), "#FF0000");
+        }
         api.setValuesOnRecord(target, valuesToSet, () => {
           addCondition(target, injuryRecordLink);
         });

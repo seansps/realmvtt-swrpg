@@ -1,1 +1,677 @@
-<!-- Add size with label "Silhouette" -->
+<script>
+  function onDrop(type, recordLink) {
+    if (type === "conditions") {
+      onDropCondition(type, recordLink);
+    }
+  }
+
+  function onDropCondition(type, recordLink) {
+    // Requery the record to get the latest record
+    api.getRecord(record.recordType, record._id, (actualRecord) => {
+      addConditionToRecord(actualRecord, recordLink);
+    });
+  }
+
+  function onTypeChange() {
+    showHideFields();
+  }
+
+  function onChangeConditions() {
+    // Recalculate wounds and strain, and other attributes
+    const deletedItem = data.deletedItem;
+    if (!deletedItem) return;
+
+    onConditionChange(record, deletedItem);
+  }
+
+  function updateForceRating() {
+    const baseForceRating = parseInt(record?.data?.forceRating || "0", 10);
+    const committedForce = parseInt(record?.data?.committedForce || "0", 10);
+    const remainingForce = Math.max(0, baseForceRating - committedForce);
+
+    api.setValues({
+      "data.totalForceRating": baseForceRating,
+      "data.remainingForce": remainingForce,
+    });
+  }
+
+  function onLoadNPC() {
+    // Initialize skills if needed
+    if (record.data?.type && record.data?.type !== "vehicle") {
+      initializeSkills(record);
+    }
+
+    // Show/hide fields based on type
+    showHideFields();
+  }
+
+  function showHideFields() {
+    // TODO show/hide fields based on type
+    // Get type
+    // Set skills if needed
+    // Show/hide fields based
+  }
+
+  function onRollCriticalInjury() {
+    rollCriticalInjury(record, "injury", []);
+  }
+</script>
+
+<div style="display: flex; margin-top: 4px; flex-direction: column; gap: 8px">
+  <!-- First Flex Row: Portrait | (Species | Career) -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: flex-start;
+    "
+  >
+    <div style="display: flex; flex-direction: column">
+      <div
+        style="
+          width: 125px;
+          min-width: 125px;
+          max-width: 125px;
+          min-height: 125px;
+          max-height: 125px;
+        "
+      >
+        <portrait width="125px" height="125px"></portrait>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: flex-end;
+        "
+      >
+        <dropdown
+          width="100%"
+          size="sm"
+          field="type"
+          label="Type"
+          placeholder="Select Type..."
+          defaultvalue="minion"
+          onchange="onTypeChange();"
+          options='[{"value": "minion", "label": "Minion"}, {"value": "rival", "label": "Rival"},
+          {"value": "nemesis", "label": "Nemesis"}, {"value": "vehicle", "label": "Vehicle"}]'
+        ></dropdown>
+
+        <stringfield
+          width="100%"
+          size="sm"
+          field="subype"
+          label="Subtype"
+          placeholder="Enter Subtype..."
+        ></stringfield>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: flex-end;
+        "
+      >
+        <stringfield
+          width="100%"
+          size="sm"
+          field="speciesName"
+          placeholder="Enter species..."
+          label="Species"
+        ></stringfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second Flex Row: Stats (Brawn, Agility, Intellect, Cunning, Willpower, Presence) -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        textalign="center"
+        field="brawn"
+        label="Brawn"
+        onchange="updateAttribute({ record, attribute: 'brawn', value })"
+        onclick="rollCheck('brawn');"
+        onload="onLoadNPC();"
+      ></numberfield>
+      <button
+        field="Brawn Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('brawn');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        field="agility"
+        label="Agility"
+        textalign="center"
+        onchange="updateAttribute({ record, attribute: 'agility', value })"
+        onclick="rollCheck('agility');"
+      ></numberfield>
+      <button
+        field="Agility Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('agility');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        field="intellect"
+        textalign="center"
+        label="Intellect"
+        onchange="updateAttribute({ record, attribute: 'intellect', value })"
+        onclick="rollCheck('intellect');"
+      ></numberfield>
+      <button
+        field="Intellect Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('intellect');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        textalign="center"
+        field="cunning"
+        label="Cunning"
+        onchange="updateAttribute({ record, attribute: 'cunning', value })"
+        onclick="rollCheck('cunning');"
+      ></numberfield>
+      <button
+        field="Cunning Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('cunning');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        textalign="center"
+        field="willpower"
+        label="Willpower"
+        onchange="updateAttribute({ record, attribute: 'willpower', value })"
+        onclick="rollCheck('willpower');"
+      ></numberfield>
+      <button
+        field="Willpower Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('willpower');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="sm"
+        width="80px"
+        textalign="center"
+        field="presence"
+        label="Presence"
+        onchange="updateAttribute({ record, attribute: 'presence', value })"
+        onclick="rollCheck('presence');"
+      ></numberfield>
+      <button
+        field="Presence Check"
+        size="xs"
+        width="80px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('presence');"
+      ></button>
+    </div>
+  </div>
+
+  <!-- Third Flex Row: Health Stats -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="90px"
+      field="soakValue"
+      label="Soak Value"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="120px"
+      icon="IconHeartFilled"
+      field="woundThreshold"
+      label="Wound Threshold"
+      color="pink"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="90px"
+      icon="IconBandageFilled"
+      field="wounds"
+      label="Wounds"
+      color="red"
+      minvalue="0"
+      onchange="updateAttribute({ record, attribute: 'wounds', value })"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="120px"
+      icon="IconHeartbeat"
+      field="strainThreshold"
+      label="Strain Threshold"
+      color="blue"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="90px"
+      icon="IconActivity"
+      field="strain"
+      label="Strain"
+      color="cyan"
+      minvalue="0"
+      onchange="updateAttribute({ record, attribute: 'strain', value })"
+    ></numberfield>
+  </div>
+
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+      align-items: flex-end;
+    "
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="120px"
+      field="defenseMelee"
+      icon="IconShield"
+      label="Defense (Melee)"
+      color="violet"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="120px"
+      field="defenseRanged"
+      icon="IconShield"
+      label="Defense (Ranged)"
+      color="violet"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="115px"
+      field="spentXp"
+      label="Spent XP"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="115px"
+      field="xp"
+      label="Total XP"
+    ></numberfield>
+
+    <iconbutton
+      field="Rest"
+      size="lg"
+      variant="default"
+      options='[{"icon": "IconBed", "label": "Rest", "value": "rest"}]'
+      onchange=""
+      onclick="rest();"
+    ></iconbutton>
+  </div>
+
+  <!-- Critical Injuries List -->
+  <divider label="Critical Injuries"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: flex-end;
+      justify-content: right;
+    "
+  >
+    <button
+      field="rollCriticalInjuryBtn"
+      size="xs"
+      variant="outline"
+      color="primary"
+      label="Roll for Critical Injury"
+      onclick="onRollCriticalInjury();"
+    ></button>
+  </div>
+  <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
+    <list
+      listtype="conditions_list"
+      field="criticalInjuries"
+      height="100%"
+      variant="striped"
+      onchange="onChangeConditions();"
+    ></list>
+  </div>
+
+  <!-- Obligation List -->
+  <divider label="Obligation"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100;
+      align-items: flex-end;
+    "
+  >
+    <div style="width: 70px">
+      <label
+        field="obligationValueLabel"
+        size="xs"
+        variant="bold"
+        label="Value"
+      ></label>
+    </div>
+    <div style="flex-grow: 1">
+      <label
+        field="obligationNameLabel"
+        size="xs"
+        variant="bold"
+        label="Obligation Type"
+      ></label>
+    </div>
+    <div style="margin-left: 8px; display: flex; flex-direction: row; gap: 4px">
+      <button
+        field="showTableBtn"
+        size="xs"
+        variant="outline"
+        color="secondary"
+        label="Show Party Table in Chat"
+        onclick="showObligationTable();"
+      ></button>
+      <button
+        field="rollObligationBtn"
+        size="xs"
+        variant="outline"
+        color="primary"
+        label="Roll for Session"
+        onclick="rollObligation();"
+      ></button>
+    </div>
+  </div>
+  <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
+    <list
+      listtype="obligation_list"
+      field="obligations"
+      height="100%"
+      variant="striped"
+    ></list>
+  </div>
+
+  <!-- Duty List -->
+  <divider label="Duty"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100;
+      align-items: flex-end;
+    "
+  >
+    <div style="width: 70px">
+      <label
+        field="dutyValueLabel"
+        size="xs"
+        variant="bold"
+        label="Value"
+      ></label>
+    </div>
+    <div style="flex-grow: 1">
+      <label
+        field="dutyNameLabel"
+        size="xs"
+        variant="bold"
+        label="Duty Type"
+      ></label>
+    </div>
+    <div style="margin-left: 8px; display: flex; flex-direction: row; gap: 4px">
+      <button
+        field="showDutyTableBtn"
+        size="xs"
+        variant="outline"
+        color="secondary"
+        label="Show Party Table in Chat"
+        onclick="showDutyTable();"
+      ></button>
+      <button
+        field="rollDutyBtn"
+        size="xs"
+        variant="outline"
+        color="primary"
+        label="Roll for Session"
+        onclick="rollDuty();"
+      ></button>
+    </div>
+  </div>
+  <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
+    <list
+      listtype="duty_list"
+      field="duties"
+      height="100%"
+      variant="striped"
+    ></list>
+  </div>
+
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      size="xs"
+      field="contributionRank"
+      label="Contribution Rank"
+    ></numberfield>
+  </div>
+
+  <!-- Morality Value and Notes -->
+  <divider label="Morality"></divider>
+  <!-- Morality: Value, Conflict -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: flex-end;
+      justify-content: center;
+    "
+  >
+    <numberfield
+      size="sm"
+      label="Morality"
+      width="100px"
+      field="morality"
+      defaultvalue="50"
+      placeholder="50"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="100px"
+      field="conflict"
+      label="Conflict"
+      minvalue="0"
+    ></numberfield>
+
+    <button
+      field="moralityRollBtn"
+      size="xs"
+      variant="outline"
+      color="primary"
+      label="Conflict Roll"
+      onclick="rollMorality();"
+    ></button>
+  </div>
+  <accordion field="moralityAcc" label="Notes" size="xs" variant="filled">
+    <richtextfield disablecontrols="true" field="moralityNotes"></richtextfield>
+  </accordion>
+
+  <!-- Force Rating -->
+  <divider label="Force Rating"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    "
+  >
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="120px"
+      field="forceRating"
+      label="Total Force Rating"
+      onchange="updateForceRating()"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="100px"
+      field="committedForce"
+      label="Committed"
+      onchange="updateForceRating()"
+      minvalue="0"
+    ></numberfield>
+
+    <numberfield
+      placeholder="0"
+      size="sm"
+      width="100px"
+      field="remainingForce"
+      hidecontrols="true"
+      label="Remaining"
+      editable="false"
+    ></numberfield>
+  </div>
+</div>

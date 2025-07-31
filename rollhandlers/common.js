@@ -2312,14 +2312,21 @@ function getDamageMacro({
       soakValue = Math.max(0, soakValue - pierceValue);
     }
 
+    // minions and rivals don't have strain
+    const isMinionOrRival = target.recordType === "npcs" && 
+      (!target.data?.type || target.data?.type === "minion" || target.data?.type === "rival");
+
     const damageToApply = ${damage};
     const damageValue = Math.max(0, damageToApply - soakValue);
     const oldValues = {};
-    const damageMessage = damageType === "wounds" ? "damage" : "strain";
+    let damageMessage = damageType === "wounds" ? "damage" : "strain";
+    if (damageMessage === "strain" && isMinionOrRival) {
+      damageMessage = "strain as wounds";
+    }
     const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
     const message = \`Took \${damageValue} \${damageMessage}\${soakMessage}\\n\`;
-    
-    if (damageValue > 0 && damageType === "wounds") {
+
+    if (damageValue > 0 && (damageType === "wounds" || isMinionOrRival)) {
       oldValues["data.wounds"] = target.data?.wounds;
       oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
       valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
