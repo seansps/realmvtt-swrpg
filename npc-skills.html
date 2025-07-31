@@ -1,0 +1,253 @@
+<box field="creatureProperties">
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        textalign="center"
+        field="brawn"
+        label="Brawn"
+        onchange="updateAttribute({ record, attribute: 'brawn', value })"
+        onclick="rollCheck('brawn');"
+      ></numberfield>
+      <button
+        field="Brawn Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('brawn');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        field="agility"
+        label="Agility"
+        textalign="center"
+        onchange="updateAttribute({ record, attribute: 'agility', value })"
+        onclick="rollCheck('agility');"
+      ></numberfield>
+      <button
+        field="Agility Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('agility');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        field="intellect"
+        textalign="center"
+        label="Intellect"
+        onchange="updateAttribute({ record, attribute: 'intellect', value })"
+        onclick="rollCheck('intellect');"
+      ></numberfield>
+      <button
+        field="Intellect Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('intellect');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        textalign="center"
+        field="cunning"
+        label="Cunning"
+        onchange="updateAttribute({ record, attribute: 'cunning', value })"
+        onclick="rollCheck('cunning');"
+      ></numberfield>
+      <button
+        field="Cunning Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('cunning');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        textalign="center"
+        field="willpower"
+        label="Willpower"
+        onchange="updateAttribute({ record, attribute: 'willpower', value })"
+        onclick="rollCheck('willpower');"
+      ></numberfield>
+      <button
+        field="Willpower Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('willpower');"
+      ></button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        placeholder="0"
+        size="xs"
+        width="60px"
+        textalign="center"
+        field="presence"
+        label="Presence"
+        onchange="updateAttribute({ record, attribute: 'presence', value })"
+        onclick="rollCheck('presence');"
+      ></numberfield>
+      <button
+        field="Presence Check"
+        size="xs"
+        width="60px"
+        variant="outline"
+        label="Roll"
+        onclick="rollCheck('presence');"
+      ></button>
+    </div>
+  </div>
+
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+      width: 100%;
+    "
+  >
+    <label
+      field="skills"
+      label="Skills"
+      variant="bold"
+      size="md"
+      textalign="center"
+    ></label>
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+      "
+    >
+      <dropdown
+        width="120px"
+        field="groupFilter"
+        disablediflocked="false"
+        options='[{"label": "All", "value": ""}, {"label": "General", "value": "General"}, {"label": "Combat", "value": "Combat"}, {"label": "Knowledge", "value": "Knowledge"}]'
+        size="xs"
+        label="Filter by Group"
+        placeholder="All"
+      ></dropdown>
+      <dropdown
+        width="120px"
+        field="attributeFilter"
+        disablediflocked="false"
+        options='[{"label": "All", "value": ""}, {"label": "Brawn", "value": "brawn"}, {"label": "Agility", "value": "agility"}, {"label": "Intellect", "value": "intellect"}, {"label": "Cunning", "value": "cunning"}, {"label": "Willpower", "value": "willpower"}, {"label": "Presence", "value": "presence"}]'
+        size="xs"
+        label="Filter by Attribute"
+        placeholder="All"
+      ></dropdown>
+    </div>
+    <list
+      listtype="skill_list"
+      field="skills"
+      height="100%"
+      variant="striped"
+    ></list>
+  </div>
+</box>
+
+<box field="vehicleProperties" hidden="true">
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+      width: 100%;
+    "
+  >
+    <label
+      field="vehicleProperties"
+      label="Not Applicable for Vehicles"
+      variant="bold"
+      size="md"
+      textalign="center"
+    ></label>
+  </div>
+</box>
