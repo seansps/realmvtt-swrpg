@@ -2,6 +2,10 @@
   function onDrop(type, recordLink) {
     if (type === "conditions") {
       onDropCondition(type, recordLink);
+    } else if (type === "items") {
+      onDropItem(recordLink);
+    } else if (type === "talents") {
+      onDropTalent(recordLink);
     }
   }
 
@@ -146,6 +150,155 @@
 
   function rollInit() {
     rollInitiative(record);
+  }
+
+  function onDropItem(recordLink) {
+    const item = recordLink?.value;
+
+    const isConsumable = item?.data?.consumable || false;
+    const hasUseBtn = item?.data?.hasUseBtn || false;
+
+    let unitCount = 1;
+    // Add the item and set the attunement hidden field to visible if requires attunement
+    const itemToAdd = {
+      ...item,
+      icon: "IconBox",
+      data: {
+        ...item?.data,
+        // Track old ID for count tracking
+        fromId: item._id,
+        // Default count to 1
+        count: unitCount,
+      },
+      fields: {
+        ...item?.fields,
+        useBtn: {
+          hidden: !isConsumable && !hasUseBtn,
+        },
+      },
+    };
+
+    // Determine if we are adding the item or adding count to an existing item
+    const items = record?.data?.inventory || [];
+    const index = items.findIndex((i) => i.data?.fromId === item._id);
+
+    // If the item is an item pack, we're adding a list of items
+    if (item.data?.type === "pack") {
+      // Get the total weight of all items in the pack
+      const itemsInPack = item.data?.items || [];
+      const valuesToSet = {};
+      // Add any currency in pack to character
+      valuesToSet["data.cash"] =
+        (record?.data?.cash || 0) + (item.data?.cash || 0);
+      const itemsToAdd = itemsInPack
+        .map((item) => {
+          // If this is existing item, get the current count
+          let thisIndex = items.findIndex((i) => i.data?.fromId === item._id);
+          let existingItem = thisIndex !== -1 ? items[thisIndex] : undefined;
+          let itemCount = parseFloat(item?.data?.count || "0");
+          const isConsumable = item.data?.consumable || false;
+          let curCount = parseFloat(existingItem?.data?.count || "0");
+          if (!existingItem) {
+            return {
+              ...item,
+              icon: "IconBox",
+              data: {
+                ...item.data,
+                fromId: item._id,
+                count: itemCount,
+              },
+              fields: {
+                ...item?.fields,
+                useBtn: {
+                  hidden: !isConsumable && !hasUseBtn,
+                },
+              },
+            };
+          } else {
+            valuesToSet[`data.inventory.${thisIndex}.data.count`] =
+              curCount + itemCount;
+          }
+        })
+        .filter((i) => i);
+      api.addValues(`data.inventory`, itemsToAdd, (updatedRecord) => {
+        if (Object.keys(valuesToSet).length > 0) {
+          api.setValues(valuesToSet, () => {
+            // Requery the record to get the latest data
+            api.getRecord(record.recordType, record._id);
+          });
+        } else {
+          api.getRecord(record.recordType, record._id);
+        }
+      });
+    } else {
+      let existingItem = index !== -1 ? items[index] : undefined;
+      if (existingItem) {
+        // Add count to existing item
+        const count = parseFloat(existingItem.data?.count || "0");
+        let unitCount = 1;
+        // Update the value
+        api.setValue(`data.inventory.${index}.data.count`, count + unitCount);
+      } else {
+        // Add the item to the list
+        api.addValue(`data.inventory`, itemToAdd);
+      }
+    }
+  }
+
+  function onItemDeleted() {
+    // Update attributes as per modifiers
+    const valuesToSet = {};
+    setTotalEncumbrance(record, valuesToSet);
+    updateAttributes(record, valuesToSet);
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
+
+  function onDropTalent(recordLink) {
+    const talent = recordLink?.value;
+    // Add the talent to the list
+    // If the talent is ranked, find the existing talent with the same name and add the rank
+    // If the talent is not ranked, add it to the list
+    const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
+
+    const talentId = talent._id;
+    const talentIdToUse = rankedTalent ? talentId : undefined;
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = record?.data?.talents?.find(
+      (t) => t._id === talentId
+    );
+    const existingTalentIndex = record?.data?.talents?.findIndex(
+      (t) => t._id === talentId
+    );
+
+    if (rankedTalent && existingTalentIndex !== -1) {
+      // Update the rank
+      api.setValues({
+        [`data.talents.${existingTalentIndex}.data.rank`]:
+          (existingTalent?.data?.rank || 1) + 1,
+      });
+    } else if (talent) {
+      // Add the talent to the list
+      api.addValue(`data.talents`, {
+        ...talent,
+        _id: talentIdToUse,
+        data: {
+          ...talent?.data,
+          rank: 1,
+        },
+        fields: {
+          ...talent?.fields,
+          useButton: {
+            // Unhide the use button if not passive
+            hidden: !(talent?.data?.activation || "")
+              .toLowerCase()
+              .includes("active"),
+          },
+        },
+      });
+    }
   }
 </script>
 
@@ -611,9 +764,18 @@
 
   <!-- Equipment -->
   <divider label="Equipment"></divider>
-  <list listtype="npc_inventory_list" field="inventory"></list>
+  <list
+    listtype="npc_inventory_list"
+    field="inventory"
+    variant="striped"
+    ondelete="onItemDeleted();"
+  ></list>
 
   <box field="creatureProperties">
+    <!-- Talents -->
+    <divider label="Talents"></divider>
+    <list listtype="npc_talents_list" field="talents" variant="striped"></list>
+
     <divider label="Critical Injuries"></divider>
   </box>
 

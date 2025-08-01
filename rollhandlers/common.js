@@ -1173,6 +1173,8 @@ function getBestArmor(record) {
     return {
       defense: 0,
       soakBonus: 0,
+      meleeDefenseBonus: 0,
+      rangedDefenseBonus: 0,
       armor: null,
     };
   }
@@ -1524,7 +1526,7 @@ function rollSkill(
     diceString += `${abilityDice}ability`;
   }
   if (proficiencyDice > 0) {
-    if (diceString) diceString += " ";
+    if (diceString) diceString += " + ";
     diceString += `${proficiencyDice}proficiency`;
   }
 
@@ -1559,15 +1561,36 @@ function rollSkill(
     if (upgradeDifficulty > 0) {
       const challengeDice = Math.min(difficultyDice, upgradeDifficulty);
       const remainingDifficultyDice = difficultyDice - challengeDice;
+      const additionalDifficultyDice = upgradeDifficulty - challengeDice;
 
+      // Add challenge dice
       if (challengeDice > 0) {
-        diceString += ` ${challengeDice}challenge`;
+        if (diceString) {
+          diceString += ` + ${challengeDice}challenge`;
+        } else {
+          diceString += ` ${challengeDice}challenge`;
+        }
       }
       if (remainingDifficultyDice > 0) {
-        diceString += ` ${remainingDifficultyDice}difficulty`;
+        if (diceString) {
+          diceString += ` + ${remainingDifficultyDice}difficulty`;
+        } else {
+          diceString += ` ${remainingDifficultyDice}difficulty`;
+        }
+      }
+      if (additionalDifficultyDice > 0) {
+        if (diceString) {
+          diceString += ` + ${additionalDifficultyDice}difficulty`;
+        } else {
+          diceString += ` ${additionalDifficultyDice}difficulty`;
+        }
       }
     } else {
-      diceString += ` ${difficultyDice}difficulty`;
+      if (diceString) {
+        diceString += ` + ${difficultyDice}difficulty`;
+      } else {
+        diceString += ` ${difficultyDice}difficulty`;
+      }
     }
   }
 
