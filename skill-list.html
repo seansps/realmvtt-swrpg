@@ -17,25 +17,45 @@
     });
   }
 
-  function onChangeCareerOrMinionSkill() {
+  function onChangeCareerOrMinionSkill(value) {
     // If this is a minion, we need to recalculate the skill rank
     const dataPathToSkill = dataPath.replace(".data.careerOrMinionSkill", "");
     const isNPC = record.recordType === "npcs";
     const isMinion =
       isNPC && (!record.data?.type || record.data?.type === "minion");
     if (isMinion) {
-      const woundsPerMinion = parseInt(
-        record?.data?.woundsPerMinion || "0",
-        10
-      );
-      const totalWounds = parseInt(record?.data?.wounds || "0", 10);
-      const woundThreshold = parseInt(record?.data?.woundThreshold || "0", 10);
-      const minionsDefeated = Math.floor(
-        Math.max(0, totalWounds - 1) / woundsPerMinion
-      );
-      const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
-      const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
-      const rank = Math.max(0, minionsRemaining - 1);
+      let rank = 0;
+
+      if (value === true) {
+        const woundsPerMinion = parseInt(
+          record?.data?.woundsPerMinion || "0",
+          10
+        );
+        const totalWounds = parseInt(record?.data?.wounds || "0", 10);
+        const woundThreshold = parseInt(
+          record?.data?.woundThreshold || "0",
+          10
+        );
+        const minionsDefeated = Math.max(
+          0,
+          Math.floor((totalWounds - 1) / woundsPerMinion)
+        );
+        const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
+        const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
+
+        // If wounds exceeds threshold, all minions are dead
+        if (totalWounds > woundThreshold) {
+          minionsRemaining = 0;
+        }
+
+        rank = Math.max(0, minionsRemaining - 1);
+      }
+
+      // Update the skill rank
+      const skill = api.getValue(dataPathToSkill);
+      if (skill && skill.data?.rank !== rank) {
+        api.setValue(dataPathToSkill + ".data.rank", rank);
+      }
     }
   }
 </script>
@@ -60,7 +80,7 @@
   <checkbox
     field="careerOrMinionSkill"
     size="xs"
-    onchange="onChangeCareerOrMinionSkill()"
+    onchange="onChangeCareerOrMinionSkill(value)"
   ></checkbox>
 
   <div style="min-width: 60px; width: 100%">

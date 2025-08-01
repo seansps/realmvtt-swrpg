@@ -1224,7 +1224,7 @@ function getBestArmor(record) {
 }
 
 function recalculateThresholds(record, moreValuesToSet = undefined) {
-  const valuesToSet = moreValuesToSet || {};
+  const valuesToSet = { ...(moreValuesToSet || {}) };
 
   // Get mods for soakBonus, soakPenalty, woundThresholdBonus, strainThresholdBonus
   const soakBonuses = getEffectsAndModifiersForToken(record, ["soakBonus"]);
@@ -1366,14 +1366,22 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   // Calculate remaining wounds and strain
   const currentWounds = parseInt(record?.data?.wounds || "0", 10);
   const currentStrain = parseInt(record?.data?.strain || "0", 10);
-  valuesToSet["data.woundsRemaining"] = Math.max(
-    0,
-    valuesToSet["data.woundThreshold"] - currentWounds
-  );
-  valuesToSet["data.strainRemaining"] = Math.max(
-    0,
-    valuesToSet["data.strainThreshold"] - currentStrain
-  );
+
+  // Only calculate woundsRemaining if it hasn't been set in valuesToSet
+  if (valuesToSet["data.woundsRemaining"] === undefined) {
+    valuesToSet["data.woundsRemaining"] = Math.max(
+      0,
+      valuesToSet["data.woundThreshold"] - currentWounds
+    );
+  }
+
+  // Only calculate strainRemaining if it hasn't been set in valuesToSet
+  if (valuesToSet["data.strainRemaining"] === undefined) {
+    valuesToSet["data.strainRemaining"] = Math.max(
+      0,
+      valuesToSet["data.strainThreshold"] - currentStrain
+    );
+  }
 
   const isNPC = record?.recordType !== "characters";
   const isMinion =
