@@ -2315,6 +2315,8 @@ function getDamageMacro({
     // minions and rivals don't have strain
     const isMinionOrRival = target.recordType === "npcs" && 
       (!target.data?.type || target.data?.type === "minion" || target.data?.type === "rival");
+    const isMinion = target.recordType === "npcs" && 
+      (!target.data?.type || target.data?.type === "minion");
 
     const damageToApply = ${damage};
     const damageValue = Math.max(0, damageToApply - soakValue);
@@ -2324,23 +2326,58 @@ function getDamageMacro({
       damageMessage = "strain as wounds";
     }
     const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
-    const message = \`Took \${damageValue} \${damageMessage}\${soakMessage}\\n\`;
+    let message = \`Took \${damageValue} \${damageMessage}\${soakMessage}\\n\`;
+
+    let minionRemainingMessage = '';
+    let addDeadEffect = false;
+    let addUnconsciousEffect = false;
 
     if (damageValue > 0 && (damageType === "wounds" || isMinionOrRival)) {
-      oldValues["data.wounds"] = target.data?.wounds;
-      oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
-      valuesToSet["data.wounds"] = target.data?.wounds + damageValue;
-      valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+      const woundThreshold = parseInt(target.data?.woundThreshold || "0", 10);
+      const woundsRemaining = woundThreshold;
+      const wounds = parseInt(target.data?.wounds || "0", 10);
+      oldValues["data.wounds"] = wounds;
+      oldValues["data.woundsRemaining"] = woundsRemaining;
+      valuesToSet["data.wounds"] = wounds + damageValue;
+      valuesToSet["data.woundsRemaining"] = Math.max(0, woundsRemaining - valuesToSet["data.wounds"]);
       api.setValuesOnRecord(target, valuesToSet);
       api.floatText(target, '+' + damageValue, "#FF0000");
+      if (isMinionOrRival) {
+        const woundsPerMinion = parseInt(target.data?.woundsPerMinion || "0", 10);
+        let minionsRemaining = Math.max(1, Math.ceil(valuesToSet["data.woundsRemaining"] / woundsPerMinion));
+        if (isMinion) {
+          minionRemainingMessage = \`\n\nMinions remaining: \${minionsRemaining}\`;
+        }
+        if (wounds + damageValue > woundThreshold) {
+          if (isMinion) {
+            minionsRemaining = 0;
+            minionRemainingMessage = \`\n\nAll minions are dead.\`;
+          }
+          addDeadEffect = true;
+        }
+        message += minionRemainingMessage;
+      }
+      else {
+        // Check if we need to add unconscious effect
+        if (wounds + damageValue > woundThreshold) {
+          addUnconsciousEffect = true;
+        }
+      }
     }
     else if (damageValue > 0 && damageType === "stun") {
-      oldValues["data.strain"] = target.data?.strain;
-      oldValues["data.strainRemaining"] = target.data?.strainRemaining;
-      valuesToSet["data.strain"] = target.data?.strain + damageValue;
-      valuesToSet["data.strainRemaining"] = Math.max(0, target.data?.strainThreshold - valuesToSet["data.strain"]);
+      const strainThreshold = parseInt(target.data?.strainThreshold || "0", 10);
+      const strainRemaining = strainThreshold;
+      const strain = parseInt(target.data?.strain || "0", 10);
+      oldValues["data.strain"] = strain;
+      oldValues["data.strainRemaining"] = strainRemaining;
+      valuesToSet["data.strain"] = strain + damageValue;
+      valuesToSet["data.strainRemaining"] = Math.max(0, strainRemaining - valuesToSet["data.strain"]);
       api.setValuesOnRecord(target, valuesToSet);
       api.floatText(target, '+' + damageValue + ' Strain', "#0000FF");
+      // Check if we need to add unconscious effect
+      if (strain + damageValue > strainThreshold) {
+        addUnconsciousEffect = true;
+      }
     }
     else {
       api.floatText(target, 'Absorbed by Soak', "#0000FF");
@@ -2358,6 +2395,12 @@ function getDamageMacro({
     api.showNotification('Only the GM can undo damage.', 'yellow', 'Notice'); 
   } 
   \\\`\\\`\\\`\` : '';
+
+    if (addDeadEffect) {
+      api.addEffect("Dead", target);
+    } else if (addUnconsciousEffect) {
+      api.addEffect("Unconscious", target);
+    }
 
     api.sendMessage(\`\${message.trim()}\\n\${undoMacro ? '\\n' + undoMacro : ''}\`, undefined, undefined, undefined, target);
   });

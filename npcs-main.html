@@ -16,6 +16,26 @@
     onLoadNPC();
   }
 
+  function onChangeMinionWounds() {
+    // Set the wound threshold = to numberInGroup * woundsPerMinion
+    const woundsPerMinion =
+      record.data?.woundsPerMinion === undefined
+        ? 0
+        : record.data?.woundsPerMinion;
+    const woundThreshold =
+      woundsPerMinion *
+      (record.data?.numberInGroup === undefined
+        ? 1
+        : record.data?.numberInGroup);
+    api.setValues({
+      "data.woundThreshold": woundThreshold,
+      "data.woundsRemaining": Math.max(
+        0,
+        woundThreshold - (record.data?.wounds || 0)
+      ),
+    });
+  }
+
   function onChangeConditions() {
     // Recalculate wounds and strain, and other attributes
     const deletedItem = data.deletedItem;
@@ -72,6 +92,19 @@
       if (record.fields?.vehicleProperties?.hidden !== true) {
         fieldsToSet["fields.vehicleProperties.hidden"] = true;
       }
+
+      // Show/hide fields specific to creature types (minions, rivals, nemeses)
+      const showStrain = record.data?.type === "nemesis"; // Only nemeses have strain
+      if (record.fields?.strainThreshold?.hidden !== !showStrain) {
+        fieldsToSet["fields.strainThreshold.hidden"] = !showStrain;
+        fieldsToSet["fields.strain.hidden"] = !showStrain;
+      }
+      const showMinionFields = // Only minions have wounds per minion and numberInGroup
+        !record.data?.type || record.data?.type === "minion";
+      if (record.fields?.woundsPerMinion?.hidden !== !showMinionFields) {
+        fieldsToSet["fields.woundsPerMinion.hidden"] = !showMinionFields;
+        fieldsToSet["fields.numberInGroup.hidden"] = !showMinionFields;
+      }
     } else {
       // Show/hide vehicle properties
       if (record.fields?.creatureProperties?.hidden !== true) {
@@ -86,7 +119,6 @@
     }
 
     if (Object.keys(fieldsToSet).length > 0) {
-      console.log("Setting fields", fieldsToSet);
       api.setValues(fieldsToSet, () => {
         if (callback) {
           callback();
@@ -391,6 +423,17 @@
       <numberfield
         placeholder="0"
         size="xs"
+        width="100px"
+        field="woundsPerMinion"
+        label="W.T. Per Minion"
+        onchange="onChangeMinionWounds();"
+        icon="IconHeart"
+        color="pink"
+      ></numberfield>
+
+      <numberfield
+        placeholder="0"
+        size="xs"
         width="80px"
         icon="IconBandageFilled"
         field="wounds"
@@ -404,6 +447,7 @@
         placeholder="0"
         size="xs"
         width="80px"
+        hidden="true"
         icon="IconHeartbeat"
         field="strainThreshold"
         label="S. Threshold"
@@ -414,6 +458,7 @@
         placeholder="0"
         size="xs"
         width="80px"
+        hidden="true"
         icon="IconActivity"
         field="strain"
         label="Strain"
@@ -433,6 +478,17 @@
         align-items: flex-end;
       "
     >
+      <numberfield
+        size="xs"
+        width="120px"
+        field="numberInGroup"
+        icon="IconUsers"
+        placeholder="1"
+        defaultvalue="1"
+        label="# Minions in Group"
+        color="cyan"
+        onchange="onChangeMinionWounds();"
+      ></numberfield>
       <numberfield
         placeholder="0"
         size="xs"
