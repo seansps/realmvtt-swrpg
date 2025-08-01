@@ -102,12 +102,13 @@
       if (record.fields?.strainThreshold?.hidden !== !showStrain) {
         fieldsToSet["fields.strainThreshold.hidden"] = !showStrain;
         fieldsToSet["fields.strain.hidden"] = !showStrain;
-      } else {
+      } else if (
+        record.data?.type === undefined ||
+        record.data?.type === "minion" ||
+        record.data?.type === "rival"
+      ) {
         // Minions and rivals have no strain
-        if (
-          record.data?.strainThreshold !== undefined ||
-          record.data?.strainThreshold !== 0
-        ) {
+        if (record.data?.strainThreshold !== 0) {
           fieldsToSet["data.strainThreshold"] = 0;
           fieldsToSet["data.strain"] = 0;
           fieldsToSet["data.strainRemaining"] = 0;
@@ -132,7 +133,23 @@
       }
     }
 
+    // Show/hide use button for talents
+    const talents = record?.data?.talents || [];
+    talents.forEach((talent, index) => {
+      if (
+        talent?.data?.activation &&
+        record.data?.talents?.[index]?.fields?.useButton?.hidden === undefined
+      ) {
+        fieldsToSet[`data.talents.${index}.fields.useButton.hidden`] = !(
+          talent?.data?.activation || ""
+        )
+          .toLowerCase()
+          .includes("active");
+      }
+    });
+
     if (Object.keys(fieldsToSet).length > 0) {
+      console.log("fieldsToSet", fieldsToSet);
       api.setValues(fieldsToSet, () => {
         if (callback) {
           callback();
@@ -262,10 +279,8 @@
     // If the talent is not ranked, add it to the list
     const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
 
-    const talentId = talent._id;
-    const talentIdToUse = rankedTalent ? talentId : undefined;
-
     // If it is ranked, check if it already exists in the talents list
+    const talentId = rankedTalent ? talent._id : generateUuid();
     const existingTalent = record?.data?.talents?.find(
       (t) => t._id === talentId
     );
@@ -281,9 +296,10 @@
       });
     } else if (talent) {
       // Add the talent to the list
-      api.addValue(`data.talents`, {
+      const talents = [...(record?.data?.talents || [])];
+      talents.push({
         ...talent,
-        _id: talentIdToUse,
+        _id: talentId,
         data: {
           ...talent?.data,
           rank: 1,
@@ -297,6 +313,9 @@
               .includes("active"),
           },
         },
+      });
+      api.setValues({
+        [`data.talents`]: talents,
       });
     }
   }
@@ -592,7 +611,7 @@
       <numberfield
         placeholder="0"
         size="xs"
-        width="80px"
+        width="50px"
         field="soakValue"
         label="Soak"
       ></numberfield>
