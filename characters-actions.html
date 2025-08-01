@@ -19,24 +19,33 @@
         {"label": "Medium", "value": "Medium"}, {"label": "Long", "value": "Long"},
         {"label": "Extreme", "value": "Extreme"}]'
     ></dropdown>
-    <div style="margin-left: auto"></div>
-    <label size="xs" variant="bold" label="Initiative Skill:"></label>
-    <dropdown
-      field="initiativeSkill"
-      placeholder="Select Initiative Skill..."
-      disablediflocked="false"
-      defaultvalue="Vigilance"
-      options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
-    ></dropdown>
+    <div
+      style="
+        margin-left: auto;
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        align-items: flex-end;
+      "
+    >
+      <dropdown
+        field="initiativeSkill"
+        label="Initiative Skill"
+        size="xs"
+        placeholder="Select Initiative Skill..."
+        disablediflocked="false"
+        defaultvalue="Vigilance"
+        options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
+      ></dropdown>
 
-    <button
-      field="rollInitBtn"
-      size="xs"
-      icon="D20"
-      label="Initiative"
-      variant="outline"
-      onclick="rollInit();"
-    ></button>
+      <button
+        field="rollInitBtn"
+        size="xs"
+        label="Roll Initiative"
+        variant="outline"
+        onclick="rollInit();"
+      ></button>
+    </div>
   </div>
 
   <div

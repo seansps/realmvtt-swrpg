@@ -1,0 +1,98 @@
+<script>
+  function onItemEquipped() {
+    const itemDataPath = dataPath.replace(".data.carried", "");
+    const item = api.getValue(itemDataPath);
+
+    const itemFields = api.getValue(`${itemDataPath}.fields`) || {};
+    const itemType = api.getValue(`${itemDataPath}.data.type`);
+
+    const isConsumable =
+      api.getValue(`${itemDataPath}.data.consumable`) || false;
+
+    const hasUseBtn = api.getValue(`${itemDataPath}.data.hasUseBtn`) || false;
+
+    // Some items add/remove effects when equipped
+    const equipEffect = api.getValue(`${itemDataPath}.data.equipEffect`);
+    const isEquipEffect = value === "equipped";
+
+    if (equipEffect) {
+      const effect = JSON.parse(equipEffect);
+      const effectId = effect?._id || "";
+      const ourToken = api.getToken();
+      if (effectId && isEquipEffect && ourToken) {
+        api.addEffectById(effectId, ourToken);
+      } else if (effectId && !isEquipEffect && ourToken) {
+        api.removeEffectById(effectId, ourToken);
+      }
+    }
+
+    // If an item's equipped status changes, update any bonuses
+    const valuesToSet = {};
+
+    // Update the fields to show/hide the correct buttons on attack list
+    // based on type incase it changed
+    valuesToSet[`${itemDataPath}.fields`] = {
+      ...itemFields,
+      // Hide use button unless it's consumable, has use button, of is ammo (with values) or drug
+      useBtn: {
+        hidden: !isConsumable && !hasUseBtn,
+      },
+    };
+
+    // Update the attributes as per modifiers on items
+    updateAttributes(record, valuesToSet);
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
+
+  function useInvItem() {
+    const itemDataPath = dataPath.replace(".data.useBtn", "");
+    useItem(record, itemDataPath);
+  }
+</script>
+
+<div style="height: 30px; display: flex; gap: 4px; align-items: center">
+  <div style="width: 30px; min-width: 30px">
+    <portrait width="30px" height="30px" name="portrait"></portrait>
+  </div>
+  <div style="width: 60px">
+    <numberfield
+      size="xs"
+      variant="tooltip"
+      label="Count"
+      field="count"
+      onchange="onItemCountChange();"
+      placeholder="0"
+    ></numberfield>
+  </div>
+  <div style="flex-grow: 1">
+    <namefield
+      size="xs"
+      variant="standard"
+      placeholder="Item Name..."
+      field="namefield"
+      updateonblur="true"
+    />
+  </div>
+  <button
+    hidden="true"
+    size="xs"
+    field="useBtn"
+    variant="light"
+    onclick="useInvItem();"
+    label="Use"
+  ></button>
+  </stringfield>
+  <dropdown
+    size="xs"
+    field="carried"
+    variant="default"
+    width="95px"
+    defaultvalue="carried"
+    disablediflocked="false"
+    options='[{"label": "Carried", "value": "carried"}, {"label": "Equipped", "value": "equipped"}, {"label": "Dropped", "value": "dropped"}]'
+    onchange="onItemEquipped();"
+  ></dropdown>
+</div>

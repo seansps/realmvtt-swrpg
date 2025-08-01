@@ -143,6 +143,10 @@
     const critType = record.data?.type === "vehicle" ? "hit" : "injury";
     rollCriticalInjury(record, critType, []);
   }
+
+  function rollInit() {
+    rollInitiative(record);
+  }
 </script>
 
 <div style="display: flex; margin-top: 4px; flex-direction: column; gap: 8px">
@@ -214,6 +218,25 @@
           placeholder="Enter species..."
           label="Species"
         ></stringfield>
+
+        <dropdown
+          width="100%"
+          field="size"
+          label="Silhouette"
+          placeholder="Silhouette 1"
+          defaultvalue="Silhouette 1"
+          options='[{"value": "Silhouette 0", "label": "Silhouette 0"},
+  {"value": "Silhouette 1", "label": "Silhouette 1"}, 
+  {"value": "Silhouette 2", "label": "Silhouette 2"}, 
+  {"value": "Silhouette 3", "label": "Silhouette 3"}, 
+  {"value": "Silhouette 4", "label": "Silhouette 4"}, 
+  {"value": "Silhouette 5", "label": "Silhouette 5"}, 
+  {"value": "Silhouette 6", "label": "Silhouette 6"}, 
+  {"value": "Silhouette 7", "label": "Silhouette 7"}, 
+  {"value": "Silhouette 8", "label": "Silhouette 8"}, 
+  {"value": "Silhouette 9", "label": "Silhouette 9"}, 
+  {"value": "Silhouette 10", "label": "Silhouette 10"}]'
+        ></dropdown>
       </div>
     </div>
   </div>
@@ -522,10 +545,83 @@
         color="violet"
       ></numberfield>
     </div>
+
+    <!-- Attacks for minions/rivals/nemeses -->
+    <divider label="Attacks"></divider>
+
+    <div style="width: 100%; display: flex; gap: 4px; align-items: flex-end">
+      <dropdown
+        field="rangeBand"
+        placeholder="Select Range Band..."
+        disablediflocked="false"
+        size="xs"
+        label="Range to Target"
+        width="fit-content"
+        options='[{"label": "Engaged / Close", "value": "Engaged"}, {"label": "Short", "value": "Short"},
+          {"label": "Medium", "value": "Medium"}, {"label": "Long", "value": "Long"},
+          {"label": "Extreme", "value": "Extreme"}]'
+      ></dropdown>
+      <div
+        style="
+          margin-left: auto;
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: flex-end;
+        "
+      >
+        <dropdown
+          label="Initiative Skill"
+          field="initiativeSkill"
+          placeholder="Select Initiative Skill..."
+          disablediflocked="false"
+          size="xs"
+          defaultvalue="Vigilance"
+          options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
+        ></dropdown>
+
+        <div style="min-width: 120px">
+          <button
+            field="rollInitBtn"
+            size="xs"
+            label="Roll Initiative"
+            variant="outline"
+            onclick="rollInit();"
+          ></button>
+        </div>
+      </div>
+    </div>
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        margin-top: 8px;
+        flex-grow: 1;
+      "
+    >
+      <list
+        listtype="attack_list"
+        emptylisttext="None"
+        variant="striped"
+        field="inventory"
+      >
+      </list>
+    </div>
+  </box>
+
+  <!-- Equipment -->
+  <divider label="Equipment"></divider>
+  <list listtype="npc_inventory_list" field="inventory"></list>
+
+  <box field="creatureProperties">
+    <divider label="Critical Injuries"></divider>
+  </box>
+
+  <box field="vehicleProperties" hidden="true">
+    <divider label="Critical Hits"></divider>
   </box>
 
   <!-- Critical Injuries List -->
-  <divider label="Critical Injuries"></divider>
   <div
     style="
       display: flex;
@@ -541,7 +637,7 @@
       size="xs"
       variant="outline"
       color="primary"
-      label="Roll for Critical Injury"
+      label="Roll for Critical Injury / Hit"
       onclick="onRollCriticalInjury();"
     ></button>
   </div>
@@ -569,7 +665,7 @@
     >
       <numberfield
         placeholder="0"
-        size="sm"
+        size="xs"
         width="120px"
         field="forceRating"
         label="Total Force Rating"
@@ -578,7 +674,7 @@
 
       <numberfield
         placeholder="0"
-        size="sm"
+        size="xs"
         width="100px"
         field="committedForce"
         label="Committed"
@@ -588,7 +684,7 @@
 
       <numberfield
         placeholder="0"
-        size="sm"
+        size="xs"
         width="100px"
         field="remainingForce"
         hidecontrols="true"

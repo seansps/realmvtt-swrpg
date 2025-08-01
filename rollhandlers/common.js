@@ -1626,14 +1626,15 @@ function rollSkill(
     });
   }
 
+  let rollName = `${skill.name} Check`;
+  if (metadata.rollType === "initiative") {
+    rollName = `Initiative (${skill.name}) for ${record.name}`;
+  } else if (metadata.rollType === "attack") {
+    rollName = `Attack with ${skill.name}`;
+  }
+
   // Star Wars RPG narrative dice system
-  api.promptRoll(
-    `${skill.name} Check`,
-    diceString,
-    modifiers,
-    metadata,
-    metadata.rollType
-  );
+  api.promptRoll(rollName, diceString, modifiers, metadata, metadata.rollType);
 }
 
 function rollInitiative(record) {
