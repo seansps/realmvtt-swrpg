@@ -1,6 +1,6 @@
 <script>
   function onUseAbility() {
-    const talent = api.getValue(dataPath);
+    const talent = api.getValue(dataPath.replace(".data.useButton", ""));
     useAbility(record, talent);
   }
 </script>
