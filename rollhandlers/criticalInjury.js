@@ -153,14 +153,19 @@ api.getRecord('conditions', '${tableData.injuryId}', (injuryRecord) => {
           'data.wounds': (target.data?.wounds || 0) + strain,
           'data.woundsRemaining': (target.data?.woundThreshold || 0) - ((target.data?.wounds || 0) + strain),
         };
-        // Also, if this is a minion, a critical injury inflicts wounds equal to 1 minion's worth
+        // Also, if this is a minion, a critical injury inflicts wounds equal to 1 minion's worth + 1 (so it exceeds the threshold)
         let additionalWounds = 0;
         if (isMinion) {
-          additionalWounds = target.data?.woundsPerMinion || 0;
+          additionalWounds = (target.data?.woundsPerMinion || 0) + 1;
         }
-          // TODO UPDATE MINIONS RANK
         valuesToSet['data.wounds'] += additionalWounds;
         valuesToSet['data.woundsRemaining'] -= additionalWounds;
+        
+        // If this is a minion, recalculate thresholds to update skill ranks
+        if (isMinion) {
+          recalculateThresholds(target, valuesToSet);
+        }
+        
         if (strain + additionalWounds > 0) {
           api.floatText(target, '+' + (strain + additionalWounds), "#FF0000");
         }

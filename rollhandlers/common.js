@@ -2406,6 +2406,12 @@ function getDamageMacro({
       oldValues["data.woundsRemaining"] = woundsRemaining;
       valuesToSet["data.wounds"] = wounds + damageValue;
       valuesToSet["data.woundsRemaining"] = Math.max(0, woundsRemaining - valuesToSet["data.wounds"]);
+      
+      // If this is a minion, recalculate thresholds to update skill ranks
+      if (isMinion) {
+        recalculateThresholds(target, valuesToSet);
+      }
+      
       api.setValuesOnRecord(target, valuesToSet);
       api.floatText(target, '+' + damageValue, "#FF0000");
       if (isMinionOrRival) {
