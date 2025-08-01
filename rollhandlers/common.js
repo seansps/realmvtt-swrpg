@@ -565,7 +565,7 @@ function updateAttribute({
 
   // Recalculate derived attributes based on which attribute changed
   if (attribute === "brawn") {
-    // Only set wound threshold if it's undefined (first time)
+    // Only set wound threshold if it's undefined (first time) and not an NPC
     if (record?.data?.woundThreshold === undefined) {
       const species = record?.data?.species?.[0];
       const speciesWoundThreshold = species?.data?.woundThreshold || 10;
@@ -611,6 +611,16 @@ function updateAttribute({
     );
   }
 
+  if (attribute === "woundThreshold") {
+    // Update wounds remaining: threshold - wounds
+    const woundThreshold = parseInt(value || "0", 10);
+    const woundsRemaining = Math.max(
+      0,
+      woundThreshold - parseInt(record?.data?.wounds || "0", 10)
+    );
+    valuesToSet["data.woundsRemaining"] = woundsRemaining;
+  }
+
   if (attribute === "wounds") {
     // Update wounds remaining: threshold - wounds
     const woundThreshold = parseInt(record?.data?.woundThreshold || "0", 10);
@@ -619,6 +629,16 @@ function updateAttribute({
       woundThreshold - parseInt(value || "0", 10)
     );
     valuesToSet["data.woundsRemaining"] = woundsRemaining;
+  }
+
+  if (attribute === "strainThreshold") {
+    // Update wounds remaining: threshold - wounds
+    const strainThreshold = parseInt(value || "0", 10);
+    const strainRemaining = Math.max(
+      0,
+      strainThreshold - parseInt(record?.data?.strain || "0", 10)
+    );
+    valuesToSet["data.strainRemaining"] = strainRemaining;
   }
 
   if (attribute === "strain") {
@@ -1354,6 +1374,52 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
     0,
     valuesToSet["data.strainThreshold"] - currentStrain
   );
+
+  const isNPC = record?.recordType !== "characters";
+  const isMinion =
+    isNPC && (!record?.data?.type || record?.data?.type === "minion");
+  // If this is a minion, recalculate skill ranks
+  if (isMinion) {
+    const skills = record?.data?.skills || [];
+    // A minion group gains one skill rank for each member of the group beyond the first
+    skills.forEach((skill, index) => {
+      if (skill.data?.careerOrMinionSkill) {
+        // They have this skill, so we need to set the rank equal to
+        // number of remaining minions - 1
+        const woundsPerMinion = parseInt(
+          record?.data?.woundsPerMinion || "0",
+          10
+        );
+        const totalWounds = parseInt(
+          valuesToSet["data.wounds"] !== undefined
+            ? valuesToSet["data.wounds"]
+            : record?.data?.wounds || "0",
+          10
+        );
+        const woundThreshold = parseInt(
+          valuesToSet["data.woundThreshold"] !== undefined
+            ? valuesToSet["data.woundThreshold"]
+            : record?.data?.woundThreshold || "0",
+          10
+        );
+        const minionsDefeated = Math.max(
+          0,
+          Math.floor((totalWounds - 1) / woundsPerMinion)
+        );
+        const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
+        const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
+        const rank = Math.max(0, minionsRemaining - 1);
+        // Only set if changed
+        if (skills[index].data?.rank !== rank) {
+          valuesToSet[`data.skills.${index}.data.rank`] = rank;
+        }
+      } else {
+        if (skills[index].data?.rank !== 0) {
+          valuesToSet[`data.skills.${index}.data.rank`] = 0;
+        }
+      }
+    });
+  }
 
   // If moreValuesToSet was passed, merge the values instead of setting them
   if (moreValuesToSet) {
@@ -2334,8 +2400,8 @@ function getDamageMacro({
 
     if (damageValue > 0 && (damageType === "wounds" || isMinionOrRival)) {
       const woundThreshold = parseInt(target.data?.woundThreshold || "0", 10);
-      const woundsRemaining = woundThreshold;
       const wounds = parseInt(target.data?.wounds || "0", 10);
+      const woundsRemaining = parseInt(target.data?.woundsRemaining !== undefined ? target.data?.woundsRemaining : woundThreshold, 10);
       oldValues["data.wounds"] = wounds;
       oldValues["data.woundsRemaining"] = woundsRemaining;
       valuesToSet["data.wounds"] = wounds + damageValue;
@@ -2344,16 +2410,33 @@ function getDamageMacro({
       api.floatText(target, '+' + damageValue, "#FF0000");
       if (isMinionOrRival) {
         const woundsPerMinion = parseInt(target.data?.woundsPerMinion || "0", 10);
-        let minionsRemaining = Math.max(1, Math.ceil(valuesToSet["data.woundsRemaining"] / woundsPerMinion));
-        if (isMinion) {
-          minionRemainingMessage = \`\n\nMinions remaining: \${minionsRemaining}\`;
+        const totalWounds = wounds + damageValue;
+        const minionsDefeated = Math.max(0, Math.floor((totalWounds - 1) / woundsPerMinion));
+        const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
+        let minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
+        
+        // If wounds exceeds threshold, all minions are dead
+        if (totalWounds > woundThreshold) {
+          minionsRemaining = 0;
         }
-        if (wounds + damageValue > woundThreshold) {
+        
+        if (isMinion) {
+          if (minionsRemaining > 0) {
+            minionRemainingMessage = \`\n\nMinions remaining: \${minionsRemaining}\`;
+          } else {
+            minionRemainingMessage = \`\n\nAll minions are dead.\`;
+          }
+        }
+        
+        if (totalWounds > woundThreshold) {
           if (isMinion) {
             minionsRemaining = 0;
             minionRemainingMessage = \`\n\nAll minions are dead.\`;
           }
           addDeadEffect = true;
+        } else if (isMinion && minionsRemaining <= 0) {
+          minionsRemaining = 0;
+          minionRemainingMessage = \`\n\nAll minions are dead.\`;
         }
         message += minionRemainingMessage;
       }
@@ -2366,8 +2449,8 @@ function getDamageMacro({
     }
     else if (damageValue > 0 && damageType === "stun") {
       const strainThreshold = parseInt(target.data?.strainThreshold || "0", 10);
-      const strainRemaining = strainThreshold;
-      const strain = parseInt(target.data?.strain || "0", 10);
+      const strainRemaining = parseInt(target.data?.strainRemaining !== undefined ? target.data?.strainRemaining : strainThreshold, 10);
+      const strain = parseInt(target.data?.strain || "0", 10);  
       oldValues["data.strain"] = strain;
       oldValues["data.strainRemaining"] = strainRemaining;
       valuesToSet["data.strain"] = strain + damageValue;

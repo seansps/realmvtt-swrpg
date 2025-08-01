@@ -16,6 +16,28 @@
       }
     });
   }
+
+  function onChangeCareerOrMinionSkill() {
+    // If this is a minion, we need to recalculate the skill rank
+    const dataPathToSkill = dataPath.replace(".data.careerOrMinionSkill", "");
+    const isNPC = record.recordType === "npcs";
+    const isMinion =
+      isNPC && (!record.data?.type || record.data?.type === "minion");
+    if (isMinion) {
+      const woundsPerMinion = parseInt(
+        record?.data?.woundsPerMinion || "0",
+        10
+      );
+      const totalWounds = parseInt(record?.data?.wounds || "0", 10);
+      const woundThreshold = parseInt(record?.data?.woundThreshold || "0", 10);
+      const minionsDefeated = Math.floor(
+        Math.max(0, totalWounds - 1) / woundsPerMinion
+      );
+      const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
+      const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
+      const rank = Math.max(0, minionsRemaining - 1);
+    }
+  }
 </script>
 
 <div
@@ -35,7 +57,11 @@
     options='[{"label": "View Skill Details", "value": "openSkill", "icon": "IconTools"}]'
   ></iconbutton>
 
-  <checkbox field="careerOrMinionSkill" size="xs"></checkbox>
+  <checkbox
+    field="careerOrMinionSkill"
+    size="xs"
+    onchange="onChangeCareerOrMinionSkill()"
+  ></checkbox>
 
   <div style="min-width: 60px; width: 100%">
     <namefield

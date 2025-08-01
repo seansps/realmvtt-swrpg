@@ -98,6 +98,16 @@
       if (record.fields?.strainThreshold?.hidden !== !showStrain) {
         fieldsToSet["fields.strainThreshold.hidden"] = !showStrain;
         fieldsToSet["fields.strain.hidden"] = !showStrain;
+      } else {
+        // Minions and rivals have no strain
+        if (
+          record.data?.strainThreshold !== undefined ||
+          record.data?.strainThreshold !== 0
+        ) {
+          fieldsToSet["data.strainThreshold"] = 0;
+          fieldsToSet["data.strain"] = 0;
+          fieldsToSet["data.strainRemaining"] = 0;
+        }
       }
       const showMinionFields = // Only minions have wounds per minion and numberInGroup
         !record.data?.type || record.data?.type === "minion";
@@ -130,7 +140,8 @@
   }
 
   function onRollCriticalInjury() {
-    rollCriticalInjury(record, "injury", []);
+    const critType = record.data?.type === "vehicle" ? "hit" : "injury";
+    rollCriticalInjury(record, critType, []);
   }
 </script>
 
@@ -418,6 +429,7 @@
         field="woundThreshold"
         label="W. Threshold"
         color="pink"
+        onchange="updateAttribute({ record, attribute: 'woundThreshold', value })"
       ></numberfield>
 
       <numberfield
@@ -452,6 +464,7 @@
         field="strainThreshold"
         label="S. Threshold"
         color="blue"
+        onchange="updateAttribute({ record, attribute: 'strainThreshold', value })"
       ></numberfield>
 
       <numberfield
