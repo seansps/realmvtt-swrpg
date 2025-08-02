@@ -573,10 +573,12 @@ function updateAttribute({
       valuesToSet["data.woundThreshold"] = woundThreshold;
     }
 
-    // Update Soak Value: brawn + armor soak (always updates)
-    const armorSoak = 0;
-    const soakValue = parseInt(value || "0", 10) + armorSoak;
-    valuesToSet["data.soakValue"] = soakValue;
+    // Update Soak Value: brawn + armor soak, unless it's a vehicle
+    if (record.data?.type !== "vehicle") {
+      const armorSoak = 0;
+      const soakValue = parseInt(value || "0", 10) + armorSoak;
+      valuesToSet["data.soakValue"] = soakValue;
+    }
 
     // Update wounds remaining with current threshold
     const currentWounds = parseInt(record?.data?.wounds || "0", 10);
@@ -1331,39 +1333,42 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   const meleeDefenseBonus = bestArmor.meleeDefenseBonus;
   const rangedDefenseBonus = bestArmor.rangedDefenseBonus;
 
-  valuesToSet["data.soakValue"] = brawn + bestArmor.soakBonus;
-  soakBonuses.forEach((bonus) => {
-    valuesToSet["data.soakValue"] += bonus.value;
-  });
-  soakPenalties.forEach((penalty) => {
-    valuesToSet["data.soakValue"] -= penalty.value;
-  });
+  // Update soak and defense values for non-vehicles
+  if (record.data?.type !== "vehicle") {
+    valuesToSet["data.soakValue"] = brawn + bestArmor.soakBonus;
+    soakBonuses.forEach((bonus) => {
+      valuesToSet["data.soakValue"] += bonus.value;
+    });
+    soakPenalties.forEach((penalty) => {
+      valuesToSet["data.soakValue"] -= penalty.value;
+    });
 
-  // Set defense values to the best armor's defense
-  valuesToSet["data.defenseRanged"] = bestArmor.defense;
-  valuesToSet["data.defenseMelee"] = bestArmor.defense;
-  defenseBonuses.forEach((bonus) => {
-    valuesToSet["data.defenseRanged"] += bonus.value;
-    valuesToSet["data.defenseMelee"] += bonus.value;
-  });
-  defensePenalties.forEach((penalty) => {
-    valuesToSet["data.defenseRanged"] -= penalty.value;
-    valuesToSet["data.defenseMelee"] -= penalty.value;
-  });
-  rangedDefenseBonuses.forEach((bonus) => {
-    valuesToSet["data.defenseRanged"] += bonus.value;
-  });
-  rangedDefensePenalties.forEach((penalty) => {
-    valuesToSet["data.defenseRanged"] -= penalty.value;
-  });
-  meleeDefenseBonuses.forEach((bonus) => {
-    valuesToSet["data.defenseMelee"] += bonus.value;
-  });
-  valuesToSet["data.defenseRanged"] += rangedDefenseBonus;
-  meleeDefensePenalties.forEach((penalty) => {
-    valuesToSet["data.defenseMelee"] -= penalty.value;
-  });
-  valuesToSet["data.defenseMelee"] += meleeDefenseBonus;
+    // Set defense values to the best armor's defense
+    valuesToSet["data.defenseRanged"] = bestArmor.defense;
+    valuesToSet["data.defenseMelee"] = bestArmor.defense;
+    defenseBonuses.forEach((bonus) => {
+      valuesToSet["data.defenseRanged"] += bonus.value;
+      valuesToSet["data.defenseMelee"] += bonus.value;
+    });
+    defensePenalties.forEach((penalty) => {
+      valuesToSet["data.defenseRanged"] -= penalty.value;
+      valuesToSet["data.defenseMelee"] -= penalty.value;
+    });
+    rangedDefenseBonuses.forEach((bonus) => {
+      valuesToSet["data.defenseRanged"] += bonus.value;
+    });
+    rangedDefensePenalties.forEach((penalty) => {
+      valuesToSet["data.defenseRanged"] -= penalty.value;
+    });
+    meleeDefenseBonuses.forEach((bonus) => {
+      valuesToSet["data.defenseMelee"] += bonus.value;
+    });
+    valuesToSet["data.defenseRanged"] += rangedDefenseBonus;
+    meleeDefensePenalties.forEach((penalty) => {
+      valuesToSet["data.defenseMelee"] -= penalty.value;
+    });
+    valuesToSet["data.defenseMelee"] += meleeDefenseBonus;
+  }
 
   // Calculate remaining wounds and strain
   const currentWounds = parseInt(record?.data?.wounds || "0", 10);
@@ -2069,7 +2074,13 @@ function getRollCriticalInjuryMacro(modifiers, critType) {
   \`\`\``;
 }
 
-function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
+function rollAttack(
+  record,
+  weapon,
+  dataPathToWeapon,
+  attackType = "attack",
+  scale = "personal"
+) {
   const isMelee = weapon.data?.type === "melee weapon";
   let skill = weapon.data?.weaponSkill || "";
   if (skill === "") {
@@ -2272,6 +2283,7 @@ function rollAttack(record, weapon, dataPathToWeapon, attackType = "attack") {
         dataPathToWeapon: dataPathToWeapon,
         attackType: attackType,
         abilityOverride: abilityOverride,
+        scale: scale,
         // Send brawn for melee / unarmed attacks
         brawn: record.data?.brawn || 0,
       },
@@ -2293,6 +2305,8 @@ function getDamageForMacroForAttack({
   record,
   weapon,
   damage = 0,
+  // Damage scale (personal for characters, planetary for vehicles)
+  scale = "personal",
   damageType = "wounds",
   breach = 0,
   pierce = 0,
@@ -2315,7 +2329,7 @@ function getDamageForMacroForAttack({
     }
   });
 
-  return getDamageMacro({ damage, damageType, breach, pierce });
+  return getDamageMacro({ damage, damageType, scale, breach, pierce });
 }
 
 function getHealingMacro(healing, deduct = false) {
@@ -2385,6 +2399,7 @@ function targetHasCortosis(target) {
 function getDamageMacro({
   damage,
   damageType = "wounds",
+  scale = "personal",
   breach = 0,
   pierce = 0,
 }) {
@@ -2396,10 +2411,22 @@ function getDamageMacro({
   return `\`\`\`${macroName}
   let targets = api.getSelectedOrDroppedToken();
   targets.forEach(target => {
+    let damageToApply = ${damage};
     const damageType = "${damageType}";
     const valuesToSet = {};
     // Damage is reduced by target's soak value
     let soakValue = target.data?.soakValue || 0;
+
+    // If the scale is personal, and the target is a vehicle,
+    // we multiply the soakValue by 10 (because armor is technically 10x soak)
+    if (scale === "personal" && target.data?.type === "vehicle") {
+      soakValue = soakValue * 10;
+    }
+    else if (scale === "planetary" && target.data?.type !== "vehicle") {
+      // If the scale is planetary, and the target is not a vehicle,
+      // we multiply the damage by 10 (because vehicles do 10x damage)
+      damageToApply = damageToApply * 10;
+    }
 
     // Breach ignores vehicle 1 armor and 10 soak
     // for each point of breach
@@ -2407,6 +2434,7 @@ function getDamageMacro({
     // Pierce ignores 1 soak for each point unless cortosis
     let pierceValue = ${pierce};
     if (target.data?.type !== "vehicle") {
+      // In personal scale, breach ignores 10x 
       breachValue = 10 * breachValue;
     }
     // Check if the target has cortosis armor before applying breach or pierce
@@ -2424,7 +2452,6 @@ function getDamageMacro({
     const isMinion = target.recordType === "npcs" && 
       (!target.data?.type || target.data?.type === "minion");
 
-    const damageToApply = ${damage};
     const damageValue = Math.max(0, damageToApply - soakValue);
     const oldValues = {};
     let damageMessage = damageType === "wounds" ? "damage" : "strain";
@@ -2642,8 +2669,13 @@ function useItem(record, itemDataPath) {
   const damageValue = damage
     ? parseInt(checkForReplacements(damage, {}, record), 10)
     : 0;
+  // If this is being used by a vehicle, use the planetary damage macro
+  let scale = "personal";
+  if (record.data?.type === "vehicle") {
+    scale = "planetary";
+  }
   const damageMacro =
-    damageValue > 0 ? getDamageMacro({ damage: damageValue }) : "";
+    damageValue > 0 ? getDamageMacro({ damage: damageValue, scale }) : "";
 
   // If there is skill check, get the skill check macro
   const skillCheckMacro = skillCheck ? getSkillCheckMacro(skillCheck) : "";

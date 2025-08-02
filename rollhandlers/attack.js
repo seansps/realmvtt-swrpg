@@ -6,6 +6,10 @@ const animation = metadata?.animation;
 const recordId = metadata?.recordId;
 const tokenId = metadata?.tokenId;
 const targetId = metadata?.targetId;
+// Generally all attacks are on personal scale.
+// Attacks made using vehicle weapons though
+// will be on a planetary scale
+const scale = metadata?.scale || "personal";
 
 const tags = [
   {
@@ -118,6 +122,7 @@ if (weapon) {
     record,
     weapon,
     damage,
+    scale,
     damageType,
     breach,
     pierce,
@@ -194,6 +199,7 @@ if (weapon) {
     stunMacro = getDamageForMacroForAttack({
       record,
       weapon,
+      scale,
       damage: stunRating,
       damageType: "stun",
       breach,
@@ -207,6 +213,7 @@ if (weapon) {
     stunMacro = getDamageForMacroForAttack({
       record,
       weapon,
+      scale,
       damage,
       damageType: "stun",
       breach,

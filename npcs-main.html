@@ -140,6 +140,12 @@
       if (record.fields?.speciesName?.hidden !== true) {
         fieldsToSet["fields.speciesName.hidden"] = true;
       }
+      if (record.fields?.strainThreshold?.hidden !== false) {
+        fieldsToSet["fields.strainThreshold.hidden"] = false;
+      }
+      if (record.fields?.strain?.hidden !== false) {
+        fieldsToSet["fields.strain.hidden"] = false;
+      }
     }
 
     // Show/hide use button for talents
@@ -828,6 +834,195 @@
     </div>
   </box>
 
+  <box field="vehicleProperties">
+    <!-- Armor & Hull (Vehicle health)-->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <numberfield
+        width="100%"
+        size="xs"
+        field="soakValue"
+        label="Armor"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        color="pink"
+        icon="IconHeartFilled"
+        field="woundThreshold"
+        label="HT Threshold"
+        placeholder="0"
+        onchange="updateAttribute({ record, attribute: 'woundThreshold', value })"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        color="red"
+        icon="IconHeart"
+        field="wounds"
+        label="Hull Trauma"
+        placeholder="0"
+        onchange="updateAttribute({ record, attribute: 'wounds', value })"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        color="blue"
+        icon="IconActivity"
+        field="strainThreshold"
+        label="SS Threshold"
+        placeholder="0"
+        onchange="updateAttribute({ record, attribute: 'strainThreshold', value })"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        color="cyan"
+        icon="IconHeartbeat"
+        field="strain"
+        label="S. Strain"
+        placeholder="0"
+        onchange="updateAttribute({ record, attribute: 'strain', value })"
+      ></numberfield>
+    </div>
+
+    <!-- Basic Vehicle Stats -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <stringfield
+        width="100%"
+        size="xs"
+        field="price"
+        placeholder="Enter cost..."
+        label="Cost"
+      ></stringfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="rarity"
+        label="Rarity"
+        placeholder="0"
+      ></numberfield>
+    </div>
+
+    <!-- Hyperdrive & Navigation -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <stringfield
+        width="100%"
+        size="xs"
+        label="Hyperdrive"
+        placeholder="Enter Hyperdrive..."
+      ></stringfield>
+      <checkbox field="naviComputer" label="Navigation Computer"></checkbox>
+    </div>
+
+    <!-- Sensors & Crew -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <stringfield
+        width="100%"
+        size="xs"
+        field="sensorRange"
+        placeholder="Enter Sensor Range..."
+        label="Sensor Range"
+      ></stringfield>
+      <stringfield
+        width="100%"
+        size="xs"
+        field="crew"
+        placeholder="Enter Crew..."
+        label="Crew"
+      ></stringfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="passengers"
+        label="Passengers"
+        placeholder="0"
+      ></numberfield>
+    </div>
+
+    <!-- Capacity & Consumables -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <numberfield
+        width="100%"
+        size="xs"
+        field="encumbranceCapacity"
+        label="Encumbrance Capacity"
+        placeholder="0"
+      ></numberfield>
+      <stringfield
+        width="100%"
+        size="xs"
+        field="consumables"
+        placeholder="Enter Consumables..."
+        label="Consumables"
+      ></stringfield>
+    </div>
+
+    <!-- Vehicle Characteristics -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <numberfield
+        width="100%"
+        size="xs"
+        field="speed"
+        label="Speed"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="handling"
+        label="Handling"
+        placeholder="0"
+      ></numberfield>
+    </div>
+
+    <!-- Defense Ratings -->
+    <div
+      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+    >
+      <numberfield
+        width="100%"
+        size="xs"
+        field="defFore"
+        label="Defense (Fore)"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="defAft"
+        label="Defense (Aft)"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="defPort"
+        label="Defense (Port)"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="100%"
+        size="xs"
+        field="defStarboard"
+        label="Defense (Starboard)"
+        placeholder="0"
+      ></numberfield>
+    </div>
+  </box>
+
   <!-- Equipment -->
   <divider label="Equipment"></divider>
   <list
@@ -853,16 +1048,6 @@
   </box>
 
   <box field="vehicleProperties" hidden="true">
-    <!-- TODO = nextup: modifications/hardpoints and adjsut on equip -->
-    <div style="display: flex; flex-direction: row; gap: 4px">
-      <stringfield
-        width="100%"
-        size="xs"
-        field="price"
-        placeholder="Enter cost..."
-        label="Cost"
-      ></stringfield>
-    </div>
     <divider label="Critical Hits"></divider>
   </box>
 
