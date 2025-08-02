@@ -894,7 +894,7 @@
         variant="bold"
         size="sm"
         textalign="center"
-        label="Defense Ratings"
+        label="Defense and Current Speed"
       ></label>
       <div
         style="
@@ -904,6 +904,16 @@
           gap: 4px;
           max-width: 300px;
           margin: 0 auto;
+          position: relative;
+          padding: 0px 8px 8px 8px;
+          background: linear-gradient(
+            45deg,
+            rgba(147, 51, 234, 0.1),
+            rgba(79, 70, 229, 0.1)
+          );
+          border-radius: 8px;
+          border: 1px solid rgba(147, 51, 234, 0.2);
+          margin-top: 4px;
         "
       >
         <!-- Top row - Fore -->
@@ -942,6 +952,28 @@
             textalign="center"
             label="Port"
             placeholder="--"
+          ></numberfield>
+        </div>
+        <!-- Center - Speed -->
+        <div
+          style="
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+          "
+        >
+          <numberfield
+            width="80px"
+            size="xs"
+            field="currentSpeed"
+            color="orange"
+            textalign="left"
+            label="Current Speed"
+            placeholder="0"
+            icon="IconZap"
           ></numberfield>
         </div>
         <div
