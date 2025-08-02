@@ -837,17 +837,24 @@
   <box field="vehicleProperties" hidden="true">
     <!-- Armor & Hull (Vehicle health)-->
     <div
-      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        margin-bottom: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      "
     >
       <numberfield
-        width="100%"
+        width="60px"
         size="xs"
         field="soakValue"
         label="Armor"
         placeholder="0"
       ></numberfield>
       <numberfield
-        width="100%"
+        width="80px"
         size="xs"
         color="pink"
         icon="IconHeartFilled"
@@ -857,7 +864,7 @@
         onchange="updateAttribute({ record, attribute: 'woundThreshold', value })"
       ></numberfield>
       <numberfield
-        width="100%"
+        width="80px"
         size="xs"
         color="red"
         icon="IconHeart"
@@ -867,7 +874,7 @@
         onchange="updateAttribute({ record, attribute: 'wounds', value })"
       ></numberfield>
       <numberfield
-        width="100%"
+        width="80px"
         size="xs"
         color="blue"
         icon="IconActivity"
@@ -877,7 +884,7 @@
         onchange="updateAttribute({ record, attribute: 'strainThreshold', value })"
       ></numberfield>
       <numberfield
-        width="100%"
+        width="80px"
         size="xs"
         color="cyan"
         icon="IconHeartbeat"
