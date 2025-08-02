@@ -1532,7 +1532,7 @@ function rollSkill(
 
   // Fallback if no dice (shouldn't happen normally)
   if (!diceString) {
-    diceString = "1ability";
+    diceString = "";
   }
 
   // If difficulty, add it to the dice string
