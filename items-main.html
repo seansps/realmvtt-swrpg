@@ -69,9 +69,13 @@
       valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
       valuesToSet[`${pathToFields}.weaponAttachmentProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.slots.hidden`] = false;
-    } else if (typeStr === "armor attachment") {
+    } else if (
+      typeStr === "armor attachment" ||
+      typeStr === "vehicle attachment"
+    ) {
       valuesToSet[`${pathToFields}.consumable.hidden`] = true;
       valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+      // We use armorAttachmentPropertie box for vehicle attachments too
       valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
       valuesToSet[`${pathToFields}.slots.hidden`] = false;
     } else {
@@ -396,10 +400,11 @@
         valuesToSet[`${pathToFields}.weaponAttached.hidden`] = false;
         valuesToSet[`${pathToFields}.weaponAttachedLabel.hidden`] = false;
       }
-    } else if (type === "armor attachment") {
+    } else if (type === "armor attachment" || type === "vehicle attachment") {
       if (item?.fields?.armorAttachmentProperties?.hidden === undefined) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
+        // We use armorAttachmentPropertie box for vehicle attachments too
         valuesToSet[`${pathToFields}.armorAttachmentProperties.hidden`] = false;
         valuesToSet[`${pathToFields}.slots.hidden`] = false;
       }
@@ -453,7 +458,12 @@
         field="type"
         label="Type"
         defaultvalue="general"
-        options='[{"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Ranged Weapon", "value": "ranged weapon"},  {"label": "Armor", "value": "armor"}, {"label": "Weapon Attachment", "value": "weapon attachment"}, {"label": "Armor Attachment", "value": "armor attachment"}, {"label": "Item Pack", "value": "pack"}]'
+        options='[{"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, 
+        {"label": "Ranged Weapon", "value": "ranged weapon"},  {"label": "Armor", "value": "armor"}, 
+        {"label": "Weapon Attachment", "value": "weapon attachment"}, 
+        {"label": "Armor Attachment", "value": "armor attachment"}, 
+        {"label": "Starship or Vehicle Modification", "value": "vehicle attachment"}, 
+        {"label": "Item Pack", "value": "pack"}]'
       >
       </dropdown>
       <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">

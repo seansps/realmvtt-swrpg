@@ -98,6 +98,9 @@
       if (record.fields?.vehicleProperties?.hidden !== true) {
         fieldsToSet["fields.vehicleProperties.hidden"] = true;
       }
+      if (record.fields?.speciesName?.hidden !== false) {
+        fieldsToSet["fields.speciesName.hidden"] = false;
+      }
 
       // Show/hide fields specific to creature types (minions, rivals, nemeses)
       const showStrain = record.data?.type === "nemesis"; // Only nemeses have strain
@@ -132,6 +135,10 @@
       }
       if (record.fields?.vehicleProperties?.hidden !== false) {
         fieldsToSet["fields.vehicleProperties.hidden"] = false;
+      }
+      // Show/hide species name
+      if (record.fields?.speciesName?.hidden !== true) {
+        fieldsToSet["fields.speciesName.hidden"] = true;
       }
     }
 
@@ -846,6 +853,16 @@
   </box>
 
   <box field="vehicleProperties" hidden="true">
+    <!-- TODO = nextup: modifications/hardpoints and adjsut on equip -->
+    <div style="display: flex; flex-direction: row; gap: 4px">
+      <stringfield
+        width="100%"
+        size="xs"
+        field="price"
+        placeholder="Enter cost..."
+        label="Cost"
+      ></stringfield>
+    </div>
     <divider label="Critical Hits"></divider>
   </box>
 
