@@ -6,6 +6,8 @@
       onDropItem(recordLink);
     } else if (type === "talents") {
       onDropTalent(recordLink);
+    } else if (type === "force_powers") {
+      onDropForcePower(recordLink);
     }
   }
 
@@ -167,6 +169,28 @@
 
   function rollInit() {
     rollInitiative(record);
+  }
+
+  function onDropForcePower(recordLink) {
+    const forcePower = recordLink?.value;
+    api.addValue(`data.features`, {
+      ...forcePower,
+      data: {
+        ...forcePower?.data,
+        isForcePower: true,
+      },
+      fields: {
+        ...forcePower?.fields,
+        // Show the portrait for force powers
+        abilityPortrait: {
+          hidden: false,
+        },
+        // Hide the icon button for force powers
+        customAbility: {
+          hidden: true,
+        },
+      },
+    });
   }
 
   function onDropItem(recordLink) {
@@ -794,6 +818,13 @@
     <!-- Talents -->
     <divider label="Talents"></divider>
     <list listtype="npc_talents_list" field="talents" variant="striped"></list>
+
+    <divider label="Abilities"></divider>
+    <list
+      listtype="npc_abilities_list"
+      field="features"
+      variant="striped"
+    ></list>
 
     <divider label="Critical Injuries"></divider>
   </box>

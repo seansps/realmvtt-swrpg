@@ -1725,6 +1725,14 @@ function useAbility(record, ability) {
   if (ability.recordType === "talents") {
     type = "Active Talent";
   }
+  if (ability.recordType === "records") {
+    // An NPC ability
+    type = "Ability";
+  }
+  // If isForcePower is set, set type accordingly
+  if (ability.data?.isForcePower !== undefined) {
+    type = ability.data?.isForcePower ? "Force Power" : "Ability";
+  }
 
   const tags = [
     {
