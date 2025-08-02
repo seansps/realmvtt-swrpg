@@ -150,8 +150,24 @@
       }
     });
 
+    // Set values for force powers if needed
+    const forcePowers = record?.data?.features || [];
+    forcePowers.forEach((forcePower, index) => {
+      if (
+        forcePower?.recordType === "force_powers" &&
+        forcePower?.fields?.abilityPortrait?.hidden === undefined
+      ) {
+        fieldsToSet[
+          `data.features.${index}.fields.abilityPortrait.hidden`
+        ] = false;
+        fieldsToSet[
+          `data.features.${index}.fields.customAbility.hidden`
+        ] = true;
+        fieldsToSet[`data.features.${index}.data.isForcePower`] = true;
+      }
+    });
+
     if (Object.keys(fieldsToSet).length > 0) {
-      console.log("fieldsToSet", fieldsToSet);
       api.setValues(fieldsToSet, () => {
         if (callback) {
           callback();
