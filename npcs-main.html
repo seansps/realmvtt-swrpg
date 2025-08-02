@@ -834,7 +834,7 @@
     </div>
   </box>
 
-  <box field="vehicleProperties">
+  <box field="vehicleProperties" hidden="true">
     <!-- Armor & Hull (Vehicle health)-->
     <div
       style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
@@ -889,37 +889,99 @@
     </div>
 
     <!-- Defense Ratings -->
-    <div
-      style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px"
-    >
-      <numberfield
-        width="100%"
-        size="xs"
-        field="defFore"
-        label="Defense (Fore)"
-        placeholder="0"
-      ></numberfield>
-      <numberfield
-        width="100%"
-        size="xs"
-        field="defAft"
-        label="Defense (Aft)"
-        placeholder="0"
-      ></numberfield>
-      <numberfield
-        width="100%"
-        size="xs"
-        field="defPort"
-        label="Defense (Port)"
-        placeholder="0"
-      ></numberfield>
-      <numberfield
-        width="100%"
-        size="xs"
-        field="defStarboard"
-        label="Defense (Starboard)"
-        placeholder="0"
-      ></numberfield>
+    <div style="margin-bottom: 8px">
+      <label
+        variant="bold"
+        size="sm"
+        textalign="center"
+        label="Defense Ratings"
+      ></label>
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-rows: auto auto auto;
+          gap: 4px;
+          max-width: 300px;
+          margin: 0 auto;
+        "
+      >
+        <!-- Top row - Fore -->
+        <div
+          style="
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            justify-content: center;
+          "
+        >
+          <numberfield
+            width="80px"
+            size="xs"
+            field="defFore"
+            textalign="center"
+            label="Fore"
+            placeholder="--"
+            color="violet"
+          ></numberfield>
+        </div>
+        <!-- Middle row - Port and Starboard -->
+        <div
+          style="
+            grid-column: 1;
+            grid-row: 2;
+            display: flex;
+            justify-content: center;
+          "
+        >
+          <numberfield
+            width="80px"
+            size="xs"
+            field="defPort"
+            color="violet"
+            textalign="center"
+            label="Port"
+            placeholder="--"
+          ></numberfield>
+        </div>
+        <div
+          style="
+            grid-column: 3;
+            grid-row: 2;
+            display: flex;
+            justify-content: center;
+          "
+        >
+          <numberfield
+            width="80px"
+            size="xs"
+            field="defStarboard"
+            color="violet"
+            textalign="center"
+            label="Starboard"
+            placeholder="--"
+          ></numberfield>
+        </div>
+        <!-- Bottom row - Aft -->
+        <div
+          style="
+            grid-column: 2;
+            grid-row: 3;
+            display: flex;
+            justify-content: center;
+          "
+        >
+          <numberfield
+            width="80px"
+            size="xs"
+            field="defAft"
+            color="violet"
+            textalign="center"
+            label="Aft"
+            placeholder="--"
+          ></numberfield>
+        </div>
+      </div>
     </div>
   </box>
 
