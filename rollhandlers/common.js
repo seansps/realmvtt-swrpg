@@ -2409,6 +2409,7 @@ function getDamageMacro({
     damageType = "wounds";
   }
   return `\`\`\`${macroName}
+  const scale = "${scale}";
   let targets = api.getSelectedOrDroppedToken();
   targets.forEach(target => {
     let damageToApply = ${damage};
@@ -2458,7 +2459,10 @@ function getDamageMacro({
     if (damageMessage === "strain" && isMinionOrRival) {
       damageMessage = "strain as wounds";
     }
-    const soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
+    let soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Soak.)\` : '.';
+    if (target.data?.type === "vehicle") {
+      soakMessage = soakValue > 0 ? \` (\${soakValue} absorbed by Armor.)\` : '.';
+    }
     let message = \`Took \${damageValue} \${damageMessage}\${soakMessage}\\n\`;
 
     let minionRemainingMessage = '';
