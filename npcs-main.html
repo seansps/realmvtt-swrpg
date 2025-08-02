@@ -146,6 +146,18 @@
       if (record.fields?.strain?.hidden !== false) {
         fieldsToSet["fields.strain.hidden"] = false;
       }
+      if (
+        record.fields?.vehicleHardpoints?.hidden !== false &&
+        record.data?.hardpoints &&
+        record.data?.hardpoints > 0
+      ) {
+        fieldsToSet["fields.vehicleHardpoints.hidden"] = false;
+      } else if (
+        record.fields?.vehicleHardpoints?.hidden !== true &&
+        (!record.data?.hardpoints || record.data?.hardpoints === 0)
+      ) {
+        fieldsToSet["fields.vehicleHardpoints.hidden"] = true;
+      }
     }
 
     // Show/hide use button for talents
@@ -895,6 +907,33 @@
       ></numberfield>
     </div>
 
+    <!-- Additional Vehicle Characteristics -->
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      "
+    >
+      <numberfield
+        width="80px"
+        size="xs"
+        field="speed"
+        label="Speed"
+        placeholder="0"
+      ></numberfield>
+      <numberfield
+        width="80px"
+        size="xs"
+        field="handling"
+        label="Handling"
+        placeholder="0"
+      ></numberfield>
+    </div>
+
     <!-- Defense Ratings -->
     <div style="margin-bottom: 8px">
       <label
@@ -1026,6 +1065,31 @@
 
   <!-- Equipment -->
   <divider label="Equipment"></divider>
+  <box field="vehicleHardpoints" hidden="true">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        margin-bottom: 8px;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <label
+        variant="bold"
+        size="sm"
+        textalign="center"
+        label="Hardpoints Used"
+      ></label>
+      <counter
+        field="hardpointsUsed"
+        minvalue="0"
+        maxvaluefield="hardpoints"
+      ></counter>
+    </div>
+  </box>
+
   <list
     listtype="npc_inventory_list"
     field="inventory"
