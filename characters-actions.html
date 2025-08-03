@@ -2,6 +2,10 @@
   function rollInit() {
     rollInitiative(record);
   }
+
+  function isVehicle(value) {
+    return value?.data?.type === "vehicle";
+  }
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 4px">
@@ -66,7 +70,11 @@
   <div
     style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
   >
-    <list listtype="character_active_talent_action_list" field="talents">
+    <list
+      listtype="character_active_talent_action_list"
+      variant="striped"
+      field="talents"
+    >
     </list>
   </div>
 
@@ -82,8 +90,25 @@
   >
     <list
       listtype="character_specialization_action_list"
-      variant="striped"
       field="specializations"
+    >
+    </list>
+  </div>
+
+  <label
+    size="md"
+    variant="bold"
+    label="Active Vehicle"
+    textalign="center"
+  ></label>
+
+  <div
+    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
+  >
+    <list
+      listtype="active_vehicle_list"
+      field="activeVehicle"
+      allowadd="isVehicle(value);"
     >
     </list>
   </div>

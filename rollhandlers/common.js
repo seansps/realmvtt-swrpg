@@ -1227,6 +1227,8 @@ function getBestArmor(record) {
   };
 }
 
+// Recalculates the thresholds for a character or NPC and other derived
+// values based on the current effects and modifiers, equipments, etc.
 function recalculateThresholds(record, moreValuesToSet = undefined) {
   const valuesToSet = { ...(moreValuesToSet || {}) };
 
@@ -1771,6 +1773,16 @@ function useAbility(record, ability) {
   if (skillRoll) {
     const skills = record?.data?.skills || [];
     const skill = skills.find((skill) => skill.name === skillRoll);
+    const isVehicle = record?.data?.type === "vehicle";
+
+    if (isVehicle) {
+      api.showNotification(
+        `This action requires a Skill Check. Set the vehicle as the active vehicle for a Character or NPC and roll from their sheet.`,
+        "red",
+        "Skill Not Found"
+      );
+      return;
+    }
 
     if (!skill) {
       api.showNotification(
@@ -2116,37 +2128,66 @@ function rollAttack(
   }
   const narrativeDistance = record.data?.rangeBand || "Short";
   targets.forEach((target) => {
+    const ourSilhouette = record.data?.size || "Silhouette 1";
+    const ourSilhouetteNumber = parseInt(ourSilhouette.split(" ")[1], 10);
+    const token = target?.token;
+    const targetSilhouette = token?.data?.size || "Silhouette 1";
+    const targetSilhouetteNumber = parseInt(targetSilhouette.split(" ")[1], 10);
+
     // Check for difficultyIncrease modifiers
     let difficultyIncrease = 0;
-    const token = target?.token;
 
     // Default difficulty to Easy (Engaged | Short)
     let difficulty = "Easy";
     // Ranged difficulty is based on the range band
-    if (narrativeDistance === "Engaged") {
-      difficulty = "Easy";
-      // Add modifiers if engaged w/ specific skills
-      if (skillObj.name === "Ranged (Light)") {
-        difficultyIncrease += 1;
-      } else if (skillObj.name === "Ranged (Heavy)") {
-        difficultyIncrease += 2;
-      } else if (skillObj.name === "Gunnery") {
-        // Technically impossible - show error
-        api.showNotification(
-          "Gunnery is impossible to use when Engaged with a target.",
-          "red",
-          "Impossible Roll"
-        );
-        return;
+    // Distance is used for base difficulty on personal scale
+    if (scale === "personal") {
+      if (narrativeDistance === "Engaged") {
+        difficulty = "Easy";
+        // Add modifiers if engaged w/ specific skills
+        if (skillObj.name === "Ranged (Light)") {
+          difficultyIncrease += 1;
+        } else if (skillObj.name === "Ranged (Heavy)") {
+          difficultyIncrease += 2;
+        } else if (skillObj.name === "Gunnery") {
+          // Technically impossible - show error
+          api.showNotification(
+            "Gunnery is impossible to use when Engaged with a target.",
+            "red",
+            "Impossible Roll"
+          );
+          return;
+        }
+      } else if (narrativeDistance === "Short") {
+        difficulty = "Easy";
+      } else if (narrativeDistance === "Medium") {
+        difficulty = "Average";
+      } else if (narrativeDistance === "Long") {
+        difficulty = "Hard";
+      } else if (narrativeDistance === "Extreme") {
+        difficulty = "Daunting";
       }
-    } else if (narrativeDistance === "Short") {
-      difficulty = "Easy";
-    } else if (narrativeDistance === "Medium") {
-      difficulty = "Average";
-    } else if (narrativeDistance === "Long") {
-      difficulty = "Hard";
-    } else if (narrativeDistance === "Extreme") {
-      difficulty = "Daunting";
+    } else {
+      // In planetary scale, difficulty is dependent on silhouette of target
+      // vs our silhouette according to Table 7-4: Silhouette Comparison
+      const silhouetteDifference = ourSilhouetteNumber - targetSilhouetteNumber;
+
+      if (silhouetteDifference >= 4) {
+        // Firing vessel has a silhouette four or more points larger than target ship
+        difficulty = "Formidable";
+      } else if (silhouetteDifference === 3) {
+        // Firing vessel has a silhouette three points larger than the target ship
+        difficulty = "Daunting";
+      } else if (silhouetteDifference === 2) {
+        // Firing vessel has a silhouette two points larger than the target ship
+        difficulty = "Hard";
+      } else if (silhouetteDifference <= -2) {
+        // Firing vessel has a silhouette two or more points smaller than the target vessel
+        difficulty = "Easy";
+      } else {
+        // Firing vessel has the same silhouette as target, or the silhouette is one larger or smaller than the target
+        difficulty = "Average";
+      }
     }
 
     // Increase difficulty if the weapon has cumbersome and their brawn is deficient
@@ -2199,6 +2240,28 @@ function rollAttack(
       modifiers.push(mod);
     });
 
+    // Add modifiers based on silhouette of target compared to ours
+    if (scale === "personal") {
+      const silhouetteDifference = ourSilhouetteNumber - targetSilhouetteNumber;
+
+      // If target is 2+ points larger than attacker, decrease difficulty by 1
+      if (silhouetteDifference <= -2) {
+        modifiers.push({
+          name: "Target Silhouette is 2+ Points Larger",
+          value: `-1 difficulty`,
+          active: true,
+        });
+      }
+      // If target is 2+ points smaller than attacker, increase difficulty by 1
+      else if (silhouetteDifference >= 2) {
+        modifiers.push({
+          name: "Target Silhouette is 2+ Points Smaller",
+          value: `+1 difficulty`,
+          active: true,
+        });
+      }
+    }
+
     // Get target's defense and apply as setback
     const targetDefense = isMelee
       ? token?.data?.defenseMelee || 0
@@ -2208,6 +2271,26 @@ function rollAttack(
         name: "Target Defense",
         value: `${targetDefense} setback`,
         active: true,
+      });
+    }
+
+    // For vehicles, we don't know the firing arc, so we
+    // set each shield defense as an optional setback modifier
+    if (token.data?.type === "vehicle") {
+      const shieldDefenses = [
+        { name: "Fore Defense", value: "defFore" },
+        { name: "Aft Defense", value: "defAft" },
+        { name: "Port Defense", value: "defPort" },
+        { name: "Starboard Defense", value: "defStarboard" },
+      ];
+      shieldDefenses.forEach(({ name, value }) => {
+        if (token.data?.[value] && token.data?.[value] > 0) {
+          modifiers.push({
+            name: name,
+            value: `${token.data?.[value] || 0} setback`,
+            active: false,
+          });
+        }
       });
     }
 

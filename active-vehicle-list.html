@@ -1,0 +1,101 @@
+<div style="display: flex; flex-direction: column">
+  <!-- Main row for icon, name, buttons -->
+  <div
+    style="display: flex; flex-direction: row; gap: 4px; align-items: center"
+  >
+    <div style="width: 30px; height: 30px; min-width: 30px; min-height: 30px">
+      <portrait width="30px" height="30px" field="portrait"></portrait>
+    </div>
+    <div style="width: 100%">
+      <namefield
+        field="namefield"
+        variant="standard"
+        placeholder="Vehicle Name..."
+      ></namefield>
+    </div>
+  </div>
+
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      flex-grow: 1;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <numberfield
+      width="60px"
+      size="xs"
+      field="soakValue"
+      label="Armor"
+      placeholder="0"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="pink"
+      icon="IconHeartFilled"
+      field="woundThreshold"
+      label="HT Threshold"
+      placeholder="0"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="red"
+      icon="IconHeart"
+      field="wounds"
+      label="Hull Trauma"
+      placeholder="0"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="blue"
+      icon="IconActivity"
+      field="strainThreshold"
+      label="SS Threshold"
+      placeholder="0"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="cyan"
+      icon="IconHeartbeat"
+      field="strain"
+      label="S. Strain"
+      placeholder="0"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <numberfield
+      field="speed"
+      size="xs"
+      label="Current Speed"
+      width="80px"
+      minvalue="0"
+      maxvalue="100"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+  </div>
+
+  <divider label="Attacks"></divider>
+  <list field="attacks" variant="striped" listtype="attack_list"></list>
+</div>
