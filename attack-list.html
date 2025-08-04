@@ -62,19 +62,32 @@
   function onRollAttack() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(record, weapon, dataPathToWeapon);
+    // If this is a vehicle attack, we set the scale to planetary
+    let scale = "personal";
+    if (dataPathToWeapon.includes("activeVehicle")) {
+      scale = "planetary";
+    }
+    rollAttack(record, weapon, dataPathToWeapon, "attack", scale);
   }
 
   function onRollStun() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(record, weapon, dataPathToWeapon, "stun-setting");
+    let scale = "personal";
+    if (dataPathToWeapon.includes("activeVehicle")) {
+      scale = "planetary";
+    }
+    rollAttack(record, weapon, dataPathToWeapon, "stun-setting", scale);
   }
 
   function onRollAutoFire() {
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
-    rollAttack(record, weapon, dataPathToWeapon, "auto-fire");
+    let scale = "personal";
+    if (dataPathToWeapon.includes("activeVehicle")) {
+      scale = "planetary";
+    }
+    rollAttack(record, weapon, dataPathToWeapon, "auto-fire", scale);
   }
 </script>
 

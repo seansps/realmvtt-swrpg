@@ -2128,11 +2128,26 @@ function rollAttack(
   }
   const narrativeDistance = record.data?.rangeBand || "Short";
   targets.forEach((target) => {
-    const ourSilhouette = record.data?.size || "Silhouette 1";
-    const ourSilhouetteNumber = parseInt(ourSilhouette.split(" ")[1], 10);
+    let ourSilhouette = record.data?.size || "Silhouette 1";
+    let ourSilhouetteNumber = parseInt(ourSilhouette.split(" ")[1], 10);
     const token = target?.token;
-    const targetSilhouette = token?.data?.size || "Silhouette 1";
-    const targetSilhouetteNumber = parseInt(targetSilhouette.split(" ")[1], 10);
+    let targetSilhouette = token?.data?.size || "Silhouette 1";
+    let targetSilhouetteNumber = parseInt(targetSilhouette.split(" ")[1], 10);
+
+    // Check if we're making a planetary attack and the record is not a vehicle
+    // which is likely the case because vehicle attacks are made from non-vehicle NPCs and Characters
+    if (scale === "planetary" && record.data?.type !== "vehicle") {
+      // If we're making a planetary attack, we use the vehicle's silhouette
+      const vehicleDataPath = getNearestParentDataPath(dataPathToWeapon);
+      const vehicle = api.getValue(vehicleDataPath);
+      ourSilhouette = vehicle.data?.size || "Silhouette 1";
+      ourSilhouetteNumber = parseInt(ourSilhouette.split(" ")[1], 10);
+      // If target is not defined, assume silhouette is the same so we have an Avg difficulty
+      if (!token?.data?.size) {
+        targetSilhouette = ourSilhouette;
+        targetSilhouetteNumber = ourSilhouetteNumber;
+      }
+    }
 
     // Check for difficultyIncrease modifiers
     let difficultyIncrease = 0;
@@ -2283,15 +2298,43 @@ function rollAttack(
         { name: "Port Defense", value: "defPort" },
         { name: "Starboard Defense", value: "defStarboard" },
       ];
-      shieldDefenses.forEach(({ name, value }) => {
-        if (token.data?.[value] && token.data?.[value] > 0) {
+
+      // Check if this is a small ship (silhouette 4 or lower)
+      const isSmallShip = targetSilhouetteNumber <= 4;
+
+      // For small ships, find the highest defense and set it as active
+      if (isSmallShip) {
+        let highestDefense = 0;
+        let highestDefenseName = "";
+
+        shieldDefenses.forEach(({ name, value }) => {
+          const defenseValue = token.data?.[value] || 0;
+          if (defenseValue > highestDefense) {
+            highestDefense = defenseValue;
+            highestDefenseName = name;
+          }
+        });
+
+        // Add only the highest defense as active
+        if (highestDefense > 0) {
           modifiers.push({
-            name: name,
-            value: `${token.data?.[value] || 0} setback`,
-            active: false,
+            name: `${highestDefenseName}`,
+            value: `${highestDefense} setback`,
+            active: true,
           });
         }
-      });
+      } else {
+        // For larger ships (silhouette 5+), all defenses are optional
+        shieldDefenses.forEach(({ name, value }) => {
+          if (token.data?.[value] && token.data?.[value] > 0) {
+            modifiers.push({
+              name: name,
+              value: `${token.data?.[value] || 0} setback`,
+              active: false,
+            });
+          }
+        });
+      }
     }
 
     // Get modifiers for attacksTargetingYou on token
