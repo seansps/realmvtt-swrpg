@@ -85,10 +85,13 @@
   }
 
   function showHideFields(callback) {
-    // TODO show/hide fields based on type
-    // Get type
-    // Set skills if needed
-    // Show/hide fields based
+    // Return immediately if this is a NPC (i.e. vehicle) linked to another record
+    if (
+      record.recordType !== "npcs" ||
+      dataPath.includes("data.activeVehicle")
+    ) {
+      return;
+    }
 
     // Determine if we need to change any fields
     const fieldsToSet = {};
@@ -210,8 +213,13 @@
   }
 
   function onRollCriticalInjury() {
-    const critType = record.data?.type === "vehicle" ? "hit" : "injury";
-    rollCriticalInjury(record, critType, []);
+    const critType =
+      record.data?.type === "vehicle" || dataPath.includes("data.activeVehicle")
+        ? "hit"
+        : "injury";
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(nearestParentDataPath) || record;
+    rollCriticalInjury(thisRecord, critType, []);
   }
 
   function rollInit() {
