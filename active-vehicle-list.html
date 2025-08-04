@@ -1,3 +1,27 @@
+<script>
+  function onChangeWounds() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const vehicle = api.getValue(vehicleDataPath);
+    const wounds = api.getValue(`${vehicleDataPath}.data.wounds`);
+    const woundThreshold = api.getValue(
+      `${vehicleDataPath}.data.woundThreshold`
+    );
+    const woundsRemaining = Math.max(woundThreshold - wounds, 0);
+    api.setValue(`${vehicleDataPath}.data.woundsRemaining`, woundsRemaining);
+  }
+
+  function onChangeStrain() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const vehicle = api.getValue(vehicleDataPath);
+    const strain = api.getValue(`${vehicleDataPath}.data.strain`);
+    const strainThreshold = api.getValue(
+      `${vehicleDataPath}.data.strainThreshold`
+    );
+    const strainRemaining = Math.max(strainThreshold - strain, 0);
+    api.setValue(`${vehicleDataPath}.data.strainRemaining`, strainRemaining);
+  }
+</script>
+
 <div style="display: flex; flex-direction: column">
   <!-- Main row for icon, name, buttons -->
   <div
@@ -9,6 +33,7 @@
     <div style="width: 100%">
       <namefield
         field="namefield"
+        bold="true"
         variant="standard"
         placeholder="Vehicle Name..."
       ></namefield>
@@ -32,8 +57,6 @@
       label="Armor"
       placeholder="0"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
     ></numberfield>
     <numberfield
       width="80px"
@@ -41,11 +64,10 @@
       color="pink"
       icon="IconHeartFilled"
       field="woundThreshold"
+      onchange="onChangeWounds();"
       label="HT Threshold"
       placeholder="0"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
     ></numberfield>
     <numberfield
       width="80px"
@@ -56,8 +78,7 @@
       label="Hull Trauma"
       placeholder="0"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
+      onchange="onChangeWounds();"
     ></numberfield>
     <numberfield
       width="80px"
@@ -68,8 +89,7 @@
       label="SS Threshold"
       placeholder="0"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
+      onchange="onChangeStrain();"
     ></numberfield>
     <numberfield
       width="80px"
@@ -80,8 +100,7 @@
       label="S. Strain"
       placeholder="0"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
+      onchange="onChangeStrain();"
     ></numberfield>
     <numberfield
       field="speed"
@@ -91,11 +110,17 @@
       minvalue="0"
       maxvalue="100"
       textalign="center"
-      editable="false"
-      hidecontrols="true"
+      placeholder="0"
     ></numberfield>
   </div>
 
   <divider label="Attacks"></divider>
-  <list field="attacks" variant="striped" listtype="attack_list"></list>
+  <list field="inventory" variant="striped" listtype="attack_list"></list>
+
+  <divider label="Actions"></divider>
+  <list
+    field="features"
+    variant="striped"
+    listtype="active_vehicle_action_list"
+  ></list>
 </div>

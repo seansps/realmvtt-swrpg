@@ -1,4 +1,10 @@
 <script>
+  function onDrop(type, recordlink) {
+    if (type === "npcs" && isVehicle(recordlink.value)) {
+      api.setValue("data.activeVehicle", [recordlink.value]);
+    }
+  }
+
   function rollInit() {
     rollInitiative(record);
   }
@@ -106,9 +112,9 @@
     style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
   >
     <list
+      emptylisttext="Drag a Vehicle from the NPCs Compendium to the Actions Tab"
       listtype="active_vehicle_list"
       field="activeVehicle"
-      allowadd="isVehicle(value);"
     >
     </list>
   </div>
