@@ -8,7 +8,13 @@
       onDropTalent(recordLink);
     } else if (type === "force_powers") {
       onDropForcePower(recordLink);
+    } else if (type === "npcs" && isVehicle(recordLink.value)) {
+      api.setValue("data.activeVehicle", [recordLink.value]);
     }
+  }
+
+  function isVehicle(value) {
+    return value?.data?.type === "vehicle";
   }
 
   function onDropCondition(type, recordLink) {
@@ -339,6 +345,10 @@
 
   function onDropTalent(recordLink) {
     const talent = recordLink?.value;
+    if (!talent) return;
+    let nearestParentDataPath = getNearestParentDataPath(dataPath);
+    let thisRecord = api.getValue(nearestParentDataPath) || record;
+
     // Add the talent to the list
     // If the talent is ranked, find the existing talent with the same name and add the rank
     // If the talent is not ranked, add it to the list
@@ -346,22 +356,26 @@
 
     // If it is ranked, check if it already exists in the talents list
     const talentId = rankedTalent ? talent._id : generateUuid();
-    const existingTalent = record?.data?.talents?.find(
+    const existingTalent = thisRecord?.data?.talents?.find(
       (t) => t._id === talentId
     );
-    const existingTalentIndex = record?.data?.talents?.findIndex(
+    const existingTalentIndex = thisRecord?.data?.talents?.findIndex(
       (t) => t._id === talentId
     );
 
-    if (rankedTalent && existingTalentIndex !== -1) {
+    if (
+      rankedTalent &&
+      existingTalentIndex !== undefined &&
+      existingTalentIndex >= 0
+    ) {
       // Update the rank
       api.setValues({
         [`data.talents.${existingTalentIndex}.data.rank`]:
           (existingTalent?.data?.rank || 1) + 1,
       });
-    } else if (talent) {
+    } else {
       // Add the talent to the list
-      const talents = [...(record?.data?.talents || [])];
+      const talents = [...(thisRecord?.data?.talents || [])];
       talents.push({
         ...talent,
         _id: talentId,
@@ -1087,6 +1101,14 @@
       field="features"
       variant="striped"
     ></list>
+
+    <divider label="Active Vehicle"></divider>
+    <list
+      emptylisttext="Drag a Vehicle on the Main Tab"
+      listtype="active_vehicle_list"
+      field="activeVehicle"
+    >
+    </list>
 
     <divider label="Critical Injuries"></divider>
   </box>

@@ -1656,6 +1656,22 @@ function rollSkill(
     });
   }
 
+  // If the skill being rolled is Piloting (Space) or Piloting (Vehicle),
+  // check the handling of the active vehicle, if any, and add setback if negative,
+  // boost if positive
+  if (skill.name.toLowerCase().includes("piloting")) {
+    const vehicleDataPath = "data.activeVehicle.0";
+    const vehicle = api.getValue(vehicleDataPath);
+    const handling = vehicle?.data?.handling || 0;
+    if (Math.abs(handling) > 0) {
+      modifiers.push({
+        name: "Handling",
+        value: `${Math.abs(handling)} ${handling > 0 ? "boost" : "setback"}`,
+        active: true,
+      });
+    }
+  }
+
   let rollName = `${skill.name} Check`;
   if (metadata.rollType === "initiative") {
     rollName = `Initiative (${skill.name}) for ${record.name}`;
