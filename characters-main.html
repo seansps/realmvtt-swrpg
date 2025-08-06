@@ -62,6 +62,9 @@
       const valuesToSet = {
         "data.careerName": careerName,
         "fields.careers.hidden": false,
+        "data.forceRating":
+          (careerObj?.data?.forceRating || 0) +
+          (record?.data?.forceRating || 0),
       };
 
       // Mark all career skills
