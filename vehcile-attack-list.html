@@ -147,19 +147,6 @@
         </div>
       </div>
     </box>
-    <div style="width: 100px; min-width: 100px; margin-left: auto">
-      <dropdown
-        field="firingArc"
-        multiselect="true"
-        multiselect="5"
-        width="100%"
-        placeholder="Firing Arc..."
-        size="xs"
-        options='[{"label": "All Arcs", "value": "all"}, {"label": "Fore", "value": "fore"}, {"label": "Aft", "value": "aft"}, 
-      {"label": "Port", "value": "port"}, {"label": "Starboard", "value": "starboard"},
-      {"label": "Dorsal", "value": "dorsal"}, {"label": "Ventral", "value": "ventral"}]'
-      ></dropdown>
-    </div>
     <div style="width: 70px; min-width: 70px">
       <stringfield
         width="100%"
@@ -205,6 +192,19 @@
       ></button>
     </div>
   </div>
+</div>
+
+<div style="width: 100%">
+  <dropdown
+    field="firingArc"
+    multiselect="5"
+    width="100%"
+    placeholder="Select Firing Arcs..."
+    size="xs"
+    options='[{"label": "All Arcs", "value": "all"}, {"label": "Fore", "value": "fore"}, {"label": "Aft", "value": "aft"}, 
+  {"label": "Port", "value": "port"}, {"label": "Starboard", "value": "starboard"},
+  {"label": "Dorsal", "value": "dorsal"}, {"label": "Ventral", "value": "ventral"}]'
+  ></dropdown>
 </div>
 
 <list

@@ -254,6 +254,9 @@
     const isConsumable = item?.data?.consumable || false;
     const hasUseBtn = item?.data?.hasUseBtn || false;
 
+    const recordDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(recordDataPath) || record;
+
     let unitCount = 1;
     // Add the item and set the attunement hidden field to visible if requires attunement
     const itemToAdd = {
@@ -275,7 +278,7 @@
     };
 
     // Determine if we are adding the item or adding count to an existing item
-    const items = record?.data?.inventory || [];
+    const items = thisRecord?.data?.inventory || [];
     const index = items.findIndex((i) => i.data?.fromId === item._id);
 
     // If the item is an item pack, we're adding a list of items
@@ -284,8 +287,8 @@
       const itemsInPack = item.data?.items || [];
       const valuesToSet = {};
       // Add any currency in pack to character
-      valuesToSet["data.cash"] =
-        (record?.data?.cash || 0) + (item.data?.cash || 0);
+      valuesToSet[`${recordDataPath}.data.cash`] =
+        (thisRecord?.data?.cash || 0) + (item.data?.cash || 0);
       const itemsToAdd = itemsInPack
         .map((item) => {
           // If this is existing item, get the current count
@@ -311,21 +314,28 @@
               },
             };
           } else {
-            valuesToSet[`data.inventory.${thisIndex}.data.count`] =
-              curCount + itemCount;
+            valuesToSet[
+              `${
+                recordDataPath ? `${recordDataPath}.` : ""
+              }data.inventory.${thisIndex}.data.count`
+            ] = curCount + itemCount;
           }
         })
         .filter((i) => i);
-      api.addValues(`data.inventory`, itemsToAdd, (updatedRecord) => {
-        if (Object.keys(valuesToSet).length > 0) {
-          api.setValues(valuesToSet, () => {
-            // Requery the record to get the latest data
-            api.getRecord(record.recordType, record._id);
-          });
-        } else {
-          api.getRecord(record.recordType, record._id);
+      api.addValues(
+        `${recordDataPath ? `${recordDataPath}.` : ""}data.inventory`,
+        itemsToAdd,
+        (updatedRecord) => {
+          if (Object.keys(valuesToSet).length > 0) {
+            api.setValues(valuesToSet, () => {
+              // Requery the record to get the latest data
+              api.getRecord(thisRecord.recordType, record._id);
+            });
+          } else {
+            api.getRecord(thisRecord.recordType, record._id);
+          }
         }
-      });
+      );
     } else {
       let existingItem = index !== -1 ? items[index] : undefined;
       if (existingItem) {
@@ -333,10 +343,18 @@
         const count = parseFloat(existingItem.data?.count || "0");
         let unitCount = 1;
         // Update the value
-        api.setValue(`data.inventory.${index}.data.count`, count + unitCount);
+        api.setValue(
+          `${
+            recordDataPath ? `${recordDataPath}.` : ""
+          }data.inventory.${index}.data.count`,
+          count + unitCount
+        );
       } else {
         // Add the item to the list
-        api.addValue(`data.inventory`, itemToAdd);
+        api.addValue(
+          `${recordDataPath ? `${recordDataPath}.` : ""}data.inventory`,
+          itemToAdd
+        );
       }
     }
   }
@@ -344,8 +362,12 @@
   function onItemDeleted() {
     // Update attributes as per modifiers
     const valuesToSet = {};
-    setTotalEncumbrance(record, valuesToSet);
-    updateAttributes(record, valuesToSet);
+
+    const recordDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(recordDataPath) || record;
+
+    setTotalEncumbrance(thisRecord, valuesToSet);
+    updateAttributes(thisRecord, valuesToSet);
     if (Object.keys(valuesToSet).length > 0) {
       api.setValues(valuesToSet);
     }

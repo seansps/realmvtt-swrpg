@@ -23,6 +23,7 @@
       [`${pathToFields}.hardpoints.hidden`]: true,
       [`${pathToFields}.armorProperties.hidden`]: true,
       [`${pathToFields}.weaponAttachedLabel.hidden`]: true,
+      [`${pathToFields}.firingArc.hidden`]: true,
       [`${pathToFields}.weaponAttached.hidden`]: true,
       [`${pathToFields}.consumableProperties.hidden`]:
         item?.data?.consumable || item?.data?.hasUseBtn ? false : true,
@@ -167,6 +168,16 @@
     }
 
     api.setValues(valuesToSet);
+  }
+
+  function onSubtypeChange(value) {
+    const subType = value || "";
+
+    if (subType?.toLowerCase()?.includes("vehicle")) {
+      api.setHidden("firingArc", false);
+    } else {
+      api.setHidden("firingArc", true);
+    }
   }
 
   function showHideConsumableValues(value) {
@@ -340,6 +351,8 @@
     const dataPathToItem = dataPath.replace(/[.]?data.attachments/, "");
     const item = api.getValue(dataPathToItem);
 
+    const subType = item?.data?.subtype || "";
+
     const isWeaponOrArmor =
       item?.data?.type === "ranged weapon" ||
       item?.data?.type === "melee weapon" ||
@@ -418,6 +431,18 @@
     }
 
     if (
+      subType?.toLowerCase()?.includes("vehicle") &&
+      item?.fields?.firingArc?.hidden !== false
+    ) {
+      valuesToSet[`${pathToFields}.firingArc.hidden`] = false;
+    } else if (
+      !subType?.toLowerCase()?.includes("vehicle") &&
+      item?.fields?.firingArc?.hidden !== true
+    ) {
+      valuesToSet[`${pathToFields}.firingArc.hidden`] = true;
+    }
+
+    if (
       (item?.data?.consumable === true || item?.data?.hasUseBtn === true) &&
       item?.fields?.consumableProperties?.hidden !== false
     ) {
@@ -472,6 +497,7 @@
           width="100%"
           field="subtype"
           label="Subtype"
+          onchange="onSubtypeChange(value);"
           placeholder="Enter Subtype..."
           hidewhenidentified="false"
         ></stringfield>
@@ -1045,6 +1071,18 @@
 
     <numberfield placeholder="0" field="cash" label="Credits"></numberfield>
   </box>
+
+  <dropdown
+    label="Firing Arcs"
+    field="firingArc"
+    multiselect="5"
+    hidden="true"
+    width="100%"
+    placeholder="Select Firing Arcs..."
+    options='[{"label": "All Arcs", "value": "all"}, {"label": "Fore", "value": "fore"}, {"label": "Aft", "value": "aft"}, 
+{"label": "Port", "value": "port"}, {"label": "Starboard", "value": "starboard"},
+{"label": "Dorsal", "value": "dorsal"}, {"label": "Ventral", "value": "ventral"}]'
+  ></dropdown>
 
   <!-- Description -->
 
