@@ -122,10 +122,11 @@
     listtype="vehicle_attack_list"
   ></list>
 
-  <divider label="Actions"></divider>
-  <list
-    field="features"
-    variant="striped"
-    listtype="active_vehicle_action_list"
-  ></list>
+  <accordion field="actionsAcc" label="Actions" size="xs">
+    <list
+      field="features"
+      variant="striped"
+      listtype="active_vehicle_action_list"
+    ></list>
+  </accordion>
 </div>
