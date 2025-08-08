@@ -1,7 +1,9 @@
 <script>
   function onDrop(type, recordlink) {
     if (type === "npcs" && isVehicle(recordlink.value)) {
-      api.setValue("data.activeVehicle", [recordlink.value]);
+      api.setValue("data.activeVehicle", [
+        { ...recordlink.value, icon: "IconJetpack" },
+      ]);
     }
   }
 

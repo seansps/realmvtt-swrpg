@@ -9,7 +9,9 @@
     } else if (type === "force_powers") {
       onDropForcePower(recordLink);
     } else if (type === "npcs" && isVehicle(recordLink.value)) {
-      api.setValue("data.activeVehicle", [recordLink.value]);
+      api.setValue("data.activeVehicle", [
+        { ...recordLink.value, icon: "IconJetpack" },
+      ]);
     }
   }
 
@@ -980,6 +982,7 @@
         size="xs"
         field="handling"
         label="Handling"
+        showsign="true"
         placeholder="0"
       ></numberfield>
     </div>
