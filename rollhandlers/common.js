@@ -2751,11 +2751,11 @@ function getEffectMacros(effects) {
         effectButtons += "\n";
       }
       effectButtons += `\`\`\`${effectTitle}
-    let targets = api.getSelectedOrDroppedToken();
-    targets.forEach(target => {
-      api.addEffectById('${effectID}', target);
-    });
-    \`\`\``;
+let targets = api.getSelectedOrDroppedToken();
+targets.forEach(target => {
+  api.addEffectById('${effectID}', target);
+});
+\`\`\``;
     });
 
     return effectButtons;
