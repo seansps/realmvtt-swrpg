@@ -38,7 +38,10 @@
 
       // First set the values, then update the attributes to get the new thresholds
       api.setValues(valuesToSet, (updatedRecord2) => {
-        updateAttributes(updatedRecord2);
+        // Requery the record to get the latest data
+        api.getRecord(record.recordType, record._id, (actualRecord) => {
+          updateAttributes(actualRecord);
+        });
       });
     };
 
