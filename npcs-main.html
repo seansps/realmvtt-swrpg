@@ -39,13 +39,19 @@
       (record.data?.numberInGroup === undefined
         ? 1
         : record.data?.numberInGroup);
-    api.setValues({
-      "data.woundThreshold": woundThreshold,
-      "data.woundsRemaining": Math.max(
-        0,
-        woundThreshold - (record.data?.wounds || 0)
-      ),
-    });
+    api.setValues(
+      {
+        "data.woundThreshold": woundThreshold,
+        "data.woundsRemaining": Math.max(
+          0,
+          woundThreshold - (record.data?.wounds || 0)
+        ),
+      },
+      (updatedRecord) => {
+        // Recalculate skills
+        updateAttributes(updatedRecord);
+      }
+    );
   }
 
   function onChangeConditions() {
