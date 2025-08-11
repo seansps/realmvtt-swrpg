@@ -692,6 +692,16 @@ function setTotalEncumbrance(record, valuesToSet) {
           itemEncumbrance -= 1;
         }
       });
+
+      // Encumbrance is reduced by 3 if any armor is being worn
+      if (item.data?.carried === "equipped") {
+        itemEncumbrance -= 3;
+      }
+
+      // If encumbrance is negative, set it to 0
+      if (itemEncumbrance < 0) {
+        itemEncumbrance = 0;
+      }
     }
 
     return (
