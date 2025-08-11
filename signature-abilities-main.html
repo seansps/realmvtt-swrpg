@@ -18,19 +18,7 @@
   }
 
   function onLoad() {
-    const career = api.getValue(dataPath);
-    if (career && api.getValue(dataPath + ".0.data.cost") === undefined) {
-      api.setValues(
-        {
-          [`${dataPath}.0.data.cost`]: 10,
-        },
-        () => {
-          showHideDividers();
-        }
-      );
-    } else {
-      showHideDividers();
-    }
+    showHideDividers();
   }
 
   function showHideDividers() {
