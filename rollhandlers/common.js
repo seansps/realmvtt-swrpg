@@ -1932,7 +1932,7 @@ function addConditionToRecord(record, recordLink) {
     api.showNotification(
       `Added ${conditionObj.name} to ${record.name}`,
       "green",
-      "Condition Added"
+      "Critical Hit Added"
     );
 
     const effects = conditionObj.data?.effects || [];
