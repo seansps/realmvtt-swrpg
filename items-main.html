@@ -25,6 +25,7 @@
       [`${pathToFields}.weaponAttachedLabel.hidden`]: true,
       [`${pathToFields}.firingArc.hidden`]: true,
       [`${pathToFields}.weaponAttached.hidden`]: true,
+      [`${pathToFields}.noAddBrawn.hidden`]: true,
       [`${pathToFields}.consumableProperties.hidden`]:
         item?.data?.consumable || item?.data?.hasUseBtn ? false : true,
       [`${pathToFields}.animationProps.hidden`]: true,
@@ -52,6 +53,7 @@
       valuesToSet[`${pathToFields}.weaponType.hidden`] = false;
       valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
       valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
+      valuesToSet[`${pathToFields}.noAddBrawn.hidden`] = false;
       valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
     } else if (typeStr === "ranged weapon") {
       valuesToSet[`${pathToFields}.consumable.hidden`] = true;
@@ -371,6 +373,17 @@
     const type = item?.data?.type || "general";
     const pathToFields = `${dataPathToItem}${dot}fields`;
 
+    // Noadd brawn if needed to unhide
+    if (type === "melee weapon") {
+      if (item?.fields?.noAddBrawn?.hidden !== false) {
+        valuesToSet[`${pathToFields}.noAddBrawn.hidden`] = false;
+      }
+    } else if (type === "ranged weapon") {
+      if (item?.fields?.noAddBrawn?.hidden !== true) {
+        valuesToSet[`${pathToFields}.noAddBrawn.hidden`] = true;
+      }
+    }
+
     if (type === "melee weapon" || type === "ranged weapon") {
       if (item?.fields?.weaponProperties?.hidden === undefined) {
         valuesToSet[
@@ -384,6 +397,7 @@
         valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
         valuesToSet[`${pathToFields}.generalWeaponProperties.hidden`] = false;
         valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
+        valuesToSet[`${pathToFields}.noAddBrawn.hidden`] = false;
       }
     } else if (type === "armor") {
       if (item?.fields?.armorProperties?.hidden === undefined) {
@@ -558,7 +572,15 @@
   <!-- Weapon Properties -->
 
   <box field="weaponProperties" hidden="true" hidewhenidentified="false">
-    <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 8px;
+        align-items: flex-end;
+      "
+    >
       <dropdown
         width="100%"
         field="weaponSkill"
@@ -573,6 +595,14 @@
         label="Damage"
         placeholder="0"
       ></numberfield>
+      <checkbox
+        field="noAddBrawn"
+        width="300px"
+        hidden="true"
+        label="Does Not Add Brawn"
+        textalign="left"
+        size="sm"
+      ></checkbox>
     </div>
     <div style="display: flex; flex-direction: row; width: 100%; gap: 8px">
       <numberfield

@@ -69,8 +69,8 @@ if (weapon) {
   }
 
   let damage = baseDamage + results.successes;
-  // If this is unarmed or melee add brawn from metadata
-  if (weapon.data?.type === "melee weapon") {
+  // If this is unarmed or melee add brawn from metadata unless noAddBrawn is true
+  if (weapon.data?.type === "melee weapon" && !weapon.data?.noAddBrawn) {
     damage += record?.data?.brawn || 0;
   }
 
