@@ -179,7 +179,7 @@ if (weapon) {
     critMacro = getRollCriticalInjuryMacro(increaseCrit, critType);
     message += `\n\n**[center][color=blue]Critical ${
       critType === "hit" ? "Hit" : "Injury"
-    } Triggered if Damage Exceeds Soak[/color][/center]**`;
+    } Can Be Triggered if Damage Exceeds Soak[/color][/center]**`;
   }
 
   // Get target's silhoutte
