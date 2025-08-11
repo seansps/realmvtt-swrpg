@@ -45,6 +45,9 @@
         }
       });
       api.setValues(valuesToSet);
+    } else if (recordType === "force_powers") {
+      // Check if we need to show/hide dividers
+      showHideDividers();
     }
   }
 
@@ -146,6 +149,98 @@
       api.setHidden(valuesToShow, false);
     }
   }
+
+  function showHideDividers() {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const forcePower = api.getValue(nearestParentDataPath) || record;
+    const valuesToSet = {};
+
+    // Check all dividers in the talent tree
+    const dividersToCheck = [
+      // Row 0 → Row 1 connections
+      "connector1_1",
+      "connector1_2",
+      "connector1_3",
+      "connector1_4",
+
+      // Row 1 → Row 2 connections
+      "connector2_1",
+      "connector2_2",
+      "connector2_3",
+      "connector2_4",
+
+      // Row 1 horizontal connections
+      "h_connector1_2",
+      "h_connector1_3",
+      "h_connector1_4",
+
+      // Row 2 → Row 3 connections
+      "connector3_1",
+      "connector3_2",
+      "connector3_3",
+      "connector3_4",
+
+      // Row 2 horizontal connections
+      "h_connector2_2",
+      "h_connector2_3",
+      "h_connector2_4",
+
+      // Row 3 → Row 4 connections
+      "connector4_1",
+      "connector4_2",
+      "connector4_3",
+      "connector4_4",
+
+      // Row 3 horizontal connections
+      "h_connector3_2",
+      "h_connector3_3",
+      "h_connector3_4",
+
+      // Row 4 → Row 5 connections
+      "connector5_1",
+      "connector5_2",
+      "connector5_3",
+      "connector5_4",
+
+      // Row 4 horizontal connections
+      "h_connector4_2",
+      "h_connector4_3",
+      "h_connector4_4",
+
+      // Row 5 horizontal connections
+      "h_connector5_2",
+      "h_connector5_3",
+      "h_connector5_4",
+    ];
+
+    dividersToCheck.forEach((divider) => {
+      if (
+        forcePower?.data?.[divider] &&
+        forcePower?.data?.[divider] === "Yes" &&
+        forcePower?.fields?.[`${divider}_divider`]?.hidden !== false
+      ) {
+        valuesToSet[
+          `${nearestParentDataPath}${
+            nearestParentDataPath ? "." : ""
+          }fields.${divider}_divider.hidden`
+        ] = false;
+      } else if (
+        forcePower?.data?.[divider] &&
+        forcePower?.data?.[divider] === "No" &&
+        forcePower?.fields?.[`${divider}_divider`]?.hidden !== true
+      ) {
+        valuesToSet[
+          `${nearestParentDataPath}${
+            nearestParentDataPath ? "." : ""
+          }fields.${divider}_divider.hidden`
+        ] = true;
+      }
+    });
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
 </script>
 
 <div
@@ -214,14 +309,32 @@
         align-items: center;
       "
     >
-      <iconbutton
-        field="connector1_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="connector1_1_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: -4px;
+              left: 10px;
+              right: 10px;
+              bottom: 0;
+              height: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="connector1_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+      </div>
       <div style="position: relative">
         <list
           field="talent1_1"
@@ -234,25 +347,63 @@
         <!-- The first FP upgrade option cannot be hidden -->
       </div>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="connector2_1_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: -4px;
+              left: 10px;
+              right: 10px;
+              bottom: 0;
+              height: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="connector2_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector1_2">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_2_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector1_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 2 -->
     <div
@@ -265,14 +416,32 @@
       "
     >
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector1_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector1_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector1_2"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide1_2"
@@ -314,14 +483,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector2_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector2_2"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide2_2"
@@ -337,14 +524,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector1_3">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_3_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector1_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 3 -->
     <div
@@ -357,14 +564,32 @@
       "
     >
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector1_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector1_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector1_3"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide1_3"
@@ -405,14 +630,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector2_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector2_3"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide2_3"
@@ -428,14 +671,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector1_4">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_4_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector1_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 4 (no horizontal connector after this) -->
     <div
@@ -448,14 +711,32 @@
       "
     >
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector1_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector1_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector1_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide1_4"
@@ -496,14 +777,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector2_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector2_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide2_4"
@@ -548,25 +847,63 @@
         listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector3_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="connector3_1_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: -4px;
+              left: 10px;
+              right: 10px;
+              bottom: 0;
+              height: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="connector3_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector2_2">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_2_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector2_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 2 -->
     <div
@@ -606,14 +943,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector3_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector3_2"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide3_2"
@@ -629,14 +984,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector2_3">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_3_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector2_3"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 3 -->
     <div
@@ -676,14 +1051,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector3_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector3_3"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide3_3"
@@ -699,14 +1092,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector2_4">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_4_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector2_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 4 (no horizontal connector after this) -->
     <div
@@ -746,14 +1159,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector3_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector3_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide3_4"
@@ -798,25 +1229,63 @@
         listtype="force_power_talent_list"
       ></list>
       <!-- Connection Vertical -->
-      <iconbutton
-        field="connector4_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="connector4_1_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: -4px;
+              left: 10px;
+              right: 10px;
+              bottom: 0;
+              height: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="connector4_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+        ></iconbutton>
+      </div>
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector3_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector3_2">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_2_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector3_2"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 2 -->
     <div
@@ -856,14 +1325,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector4_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector4_2"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide4_2"
@@ -879,14 +1366,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector3_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector3_3">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_3_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector3_3"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 3 -->
     <div
@@ -926,14 +1433,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector4_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector4_3"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide4_3"
@@ -949,14 +1474,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector3_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector3_4">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_4_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector3_4"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 4 (no horizontal connector after this) -->
     <div
@@ -996,14 +1541,32 @@
       </box>
       <!-- Connection Vertical -->
       <div style="display: flex; gap: 4px; align-items: center">
-        <iconbutton
-          field="connector4_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector4_4"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
         <!-- Hide button -->
         <iconbutton
           field="hide4_4"
@@ -1050,14 +1613,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector4_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector4_2">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_2_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector4_2"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 2 -->
     <div
@@ -1098,14 +1681,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector4_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector4_3">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_3_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector4_3"
+          variant="default"
+          size="md"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 3 -->
     <div
@@ -1146,14 +1749,34 @@
     </div>
 
     <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector4_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <box field="h_connector4_4">
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_4_divider" hidden="true">
+          <div
+            style="
+              position: absolute;
+              top: 10px;
+              left: -4px;
+              right: 0;
+              bottom: 10px;
+              width: 36px;
+              background: var(--mantine-color-primary-filled);
+              opacity: 0.75;
+            "
+          ></div>
+        </box>
+        <iconbutton
+          field="h_connector4_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          onchange="showHideDividers();"
+          hideonlocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+        ></iconbutton>
+      </div>
+    </box>
 
     <!-- Talent 4 (no horizontal connector after this) -->
     <div
