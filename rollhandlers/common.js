@@ -2208,6 +2208,11 @@ function rollAttack(
       } else if (narrativeDistance === "Extreme") {
         difficulty = "Daunting";
       }
+
+      // Melee is always average
+      if (isMelee) {
+        difficulty = "Average";
+      }
     } else {
       // In planetary scale, difficulty is dependent on silhouette of target
       // vs our silhouette according to Table 7-4: Silhouette Comparison
