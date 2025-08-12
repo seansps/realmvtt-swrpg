@@ -233,14 +233,16 @@
     <div style="width: 60px; height: 60px; min-height: 60px; min-width: 60px">
       <portrait width="60px" height="60px" field="portrait"></portrait>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 4px; width: 200px">
-      <stringfield
+    <div style="display: flex; flex-direction: column; gap: 4px; width: 300px">
+      <dropdown
         onload="onLoad();"
         width="100%"
         field="career"
-        label="Career"
-        placeholder="Enter Career..."
-      ></stringfield>
+        label="Careers"
+        placeholder="Enter Careers..."
+        multiselect="50"
+        combo="true"
+      ></dropdown>
     </div>
   </div>
 
