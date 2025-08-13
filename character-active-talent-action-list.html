@@ -6,38 +6,47 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: column; gap: 4px">
-  <div
-    style="display: flex; flex-direction: row; gap: 4px; align-items: center"
-  >
-    <div style="width: 30px; height: 30px; min-height: 30px; min-width: 30px">
-      <portrait width="30px" height="30px" field="portrait"></portrait>
+<accordion field="descriptionAcc" label="Description" size="xs">
+  <accordion.control>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: center;
+        "
+      >
+        <div
+          style="width: 30px; height: 30px; min-height: 30px; min-width: 30px"
+        >
+          <portrait width="30px" height="30px" field="portrait"></portrait>
+        </div>
+        <namefield
+          field="name"
+          size="sm"
+          width="100%"
+          variant="unstyled"
+          bold="true"
+          placeholder="Talent Name..."
+        ></namefield>
+        <div style="min-width: 50px">
+          <button
+            field="useBtn"
+            size="xs"
+            label="Use"
+            variant="light"
+            width="100%"
+            onclick="onUseAbility();"
+          ></button>
+        </div>
+      </div>
     </div>
-    <namefield
-      field="name"
-      size="sm"
-      width="100%"
-      variant="unstyled"
-      bold="true"
-      placeholder="Talent Name..."
-    ></namefield>
-    <div style="min-width: 50px">
-      <button
-        field="useBtn"
-        size="xs"
-        label="Use"
-        variant="light"
-        width="100%"
-        onclick="onUseAbility();"
-      ></button>
-    </div>
-  </div>
-  <accordion field="descriptionAcc" label="Description" size="xs">
-    <richtextfield
-      field="description"
-      size="xs"
-      width="100%"
-      disablecontrols="true"
-    ></richtextfield>
-  </accordion>
-</div>
+  </accordion.control>
+  <richtextfield
+    field="description"
+    size="xs"
+    width="100%"
+    disablecontrols="true"
+  ></richtextfield>
+</accordion>

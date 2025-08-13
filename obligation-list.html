@@ -1,24 +1,30 @@
-<div style="height: 30px; display: flex; gap: 4px; align-items: center">
-  <div style="width: 70px">
-    <numberfield
-      size="xs"
-      variant="tooltip"
-      width="100%"
-      label="Value"
-      field="value"
-      placeholder="Value..."
-    />
-  </div>
-  <div style="flex-grow: 1">
-    <namefield
-      size="sm"
-      variant="standard"
-      bold="true"
-      placeholder="Enter Obligation Name..."
-      field="namefield"
-    ></namefield>
-  </div>
-</div>
 <accordion field="obligationAcc" label="Notes" size="xs" variant="filled">
-  <richtextfield disablecontrols="true" field="description" />
+  <accordion.control>
+    <div style="height: 30px; display: flex; gap: 4px; align-items: center">
+      <div style="width: 70px">
+        <numberfield
+          size="xs"
+          variant="tooltip"
+          width="100%"
+          label="Value"
+          field="value"
+          placeholder="Value..."
+        />
+      </div>
+      <div style="flex-grow: 1">
+        <namefield
+          size="sm"
+          variant="standard"
+          bold="true"
+          placeholder="Enter Obligation Name..."
+          field="namefield"
+        ></namefield>
+      </div>
+    </div>
+  </accordion.control>
+  <richtextfield
+    disablecontrols="true"
+    field="description"
+    placeholder="Enter Description..."
+  />
 </accordion>
