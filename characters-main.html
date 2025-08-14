@@ -171,6 +171,13 @@
   function showObligationTable() {
     // First get the party characters
     api.getParty((party) => {
+      if (party.length === 0) {
+        api.sendMessage(
+          "No Party Members to show Obligation Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet."
+        );
+        return;
+      }
+
       // Collect all obligations from all characters
       let allObligations = [];
 
@@ -251,6 +258,13 @@
   function showDutyTable() {
     // First get the party characters
     api.getParty((party) => {
+      if (party.length === 0) {
+        api.sendMessage(
+          "No Party Members to show Duty Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet."
+        );
+        return;
+      }
+
       // Collect all duties from all characters
       let allDuties = [];
 

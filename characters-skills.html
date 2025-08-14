@@ -150,7 +150,15 @@
   </div>
 </div>
 
-<div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px">
+<div
+  style="
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    width: 100%;
+  "
+>
   <label
     field="skills"
     label="Skills"
@@ -180,7 +188,7 @@
       placeholder="All"
     ></dropdown>
   </div>
-  <div style="display: flex; flex-direction: row">
+  <div style="display: flex; flex-direction: row; width: 100%">
     <div style="width: 80px">
       <label
         field="skillsLabel1"
@@ -191,17 +199,8 @@
         textalign="left"
       ></label>
     </div>
-    <div style="min-width: 60px; width: 100%">
-      <label
-        field="skillsLabel2"
-        label="Name"
-        variant="bold"
-        width="100%"
-        size="xs"
-        textalign="left"
-      ></label>
-    </div>
-    <div style="width: 120px">
+    <div style="flex: 1"></div>
+    <div style="width: 74px">
       <label
         field="skillsLabel3"
         label="Group"
@@ -211,7 +210,7 @@
         textalign="left"
       ></label>
     </div>
-    <div style="width: 100px">
+    <div style="width: 150px">
       <label
         field="skillsLabel4"
         label="Rank"
@@ -221,8 +220,12 @@
         textalign="left"
       ></label>
     </div>
-    <div style="width: 170px"></div>
     <box field="skillsSpacer" width="30px" hideonlocked="true"> </box>
   </div>
-  <list listtype="skill_list" field="skills" height="100%" variant="striped"></list>
+  <list
+    listtype="skill_list"
+    field="skills"
+    height="100%"
+    variant="striped"
+  ></list>
 </div>
