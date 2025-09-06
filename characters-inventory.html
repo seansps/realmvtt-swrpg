@@ -20,7 +20,7 @@
     const isConsumable = item?.data?.consumable || false;
     const hasUseBtn = item?.data?.hasUseBtn || false;
 
-    let unitCount = 1;
+    let unitCount = item.data?.count || 1;
     // Add the item and set the attunement hidden field to visible if requires attunement
     const itemToAdd = {
       ...item,
@@ -29,7 +29,7 @@
         ...item?.data,
         // Track old ID for count tracking
         fromId: item._id,
-        // Default count to 1
+        // Default count to 1 or the unit count if specified
         count: unitCount,
       },
       fields: {
@@ -101,7 +101,7 @@
       if (existingItem) {
         // Add count to existing item
         const count = parseFloat(existingItem.data?.count || "0");
-        let unitCount = 1;
+        let unitCount = parseFloat(item.data?.count || "1");
         // Update the value
         api.setValue(
           `data.inventory.${index}.data.count`,
@@ -119,9 +119,28 @@
     }
   }
 
-  function onDrop(type, recordLink) {
+  function onDrop(type, recordLink, sourceInfo) {
     if (type === "items") {
       onDropItem(recordLink);
+      if (sourceInfo) {
+        if (sourceInfo?.type === "list") {
+          // Query for the record first, then remove the item from the source list
+          api.getRecord(
+            sourceInfo.recordType,
+            sourceInfo.recordId,
+            (sourceRecord) => {
+              api.removeValueFromRecord(
+                sourceRecord,
+                sourceInfo.dataPath,
+                sourceInfo.index
+              );
+            }
+          );
+        } else if (sourceInfo?.type === "partysheet") {
+          // Remove the item from party sheet
+          api.removePartySheetItem(sourceInfo.itemId);
+        }
+      }
     }
   }
 

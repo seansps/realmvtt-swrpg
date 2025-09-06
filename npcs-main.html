@@ -1,9 +1,28 @@
 <script>
-  function onDrop(type, recordLink) {
+  function onDrop(type, recordLink, sourceInfo) {
     if (type === "conditions") {
       onDropCondition(type, recordLink);
     } else if (type === "items") {
       onDropItem(recordLink);
+      if (sourceInfo) {
+        if (sourceInfo?.type === "list") {
+          // Query for the record first, then remove the item from the source list
+          api.getRecord(
+            sourceInfo.recordType,
+            sourceInfo.recordId,
+            (sourceRecord) => {
+              api.removeValueFromRecord(
+                sourceRecord,
+                sourceInfo.dataPath,
+                sourceInfo.index
+              );
+            }
+          );
+        } else if (sourceInfo?.type === "partysheet") {
+          // Remove the item from party sheet
+          api.removePartySheetItem(sourceInfo.itemId);
+        }
+      }
     } else if (type === "talents") {
       onDropTalent(recordLink);
     } else if (type === "force_powers") {
@@ -265,7 +284,7 @@
     const recordDataPath = getNearestParentDataPath(dataPath);
     const thisRecord = api.getValue(recordDataPath) || record;
 
-    let unitCount = 1;
+    let unitCount = item.data?.count || 1;
     // Add the item and set the attunement hidden field to visible if requires attunement
     const itemToAdd = {
       ...item,
@@ -349,7 +368,7 @@
       if (existingItem) {
         // Add count to existing item
         const count = parseFloat(existingItem.data?.count || "0");
-        let unitCount = 1;
+        let unitCount = parseFloat(item.data?.count || "1");
         // Update the value
         api.setValue(
           `${
