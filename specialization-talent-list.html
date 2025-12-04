@@ -39,6 +39,7 @@
               [`data.spentXp`]:
                 (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -65,6 +66,7 @@
               [`data.spentXp`]:
                 (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -87,6 +89,7 @@
               [`data.spentXp`]:
                 (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -100,7 +103,11 @@
               [`data.spentXp`]:
                 (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
             };
-            api.setValues(valuesToSet);
+            // Requery the record on remove value
+            api.getRecord(record.recordType, record._id, (recordUpdated2) => {
+              updateAttributes(recordUpdated2, valuesToSet);
+              api.setValues(valuesToSet);
+            });
           }
         );
       }
@@ -153,6 +160,7 @@
                 (signatureAbilityUpgrade.data?.cost || 0) +
                 (recordUpdated.data.spentXp || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -180,6 +188,7 @@
                 (signatureAbilityUpgrade.data?.cost || 0) +
                 (recordUpdated.data.spentXp || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -203,6 +212,7 @@
                 (recordUpdated.data.spentXp || 0) -
                 (signatureAbilityUpgrade.data?.cost || 0),
             };
+            updateAttributes(recordUpdated, valuesToSet);
             api.setValues(valuesToSet);
           }
         );
@@ -217,7 +227,11 @@
                 (recordUpdated.data.spentXp || 0) -
                 (signatureAbilityUpgrade.data?.cost || 0),
             };
-            api.setValues(valuesToSet);
+            // Requery the record on remove value
+            api.getRecord(record.recordType, record._id, (recordUpdated2) => {
+              updateAttributes(recordUpdated2, valuesToSet);
+              api.setValues(valuesToSet);
+            });
           }
         );
       }
