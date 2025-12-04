@@ -289,496 +289,569 @@
     ></richtextfield>
   </div>
 
-  <!-- Row 1 -->
+  <!-- Force Power Tree Wrapper - uses margin auto for centering while allowing full scroll -->
   <div
     style="
       display: flex;
+      flex-direction: column;
       gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
+      min-width: fit-content;
+      margin: 0 auto;
     "
   >
-    <!-- Talent 1 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="connector1_1_divider" hidden="true">
+    <!-- Row 1 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector1_1_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector1_1"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+          ></iconbutton>
+        </div>
+        <div style="position: relative">
+          <list
+            field="talent1_1"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="150px"
+            listtype="force_power_talent_list"
+          ></list>
+          <!-- The first FP upgrade option cannot be hidden -->
+        </div>
+        <!-- Connection Vertical -->
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_1_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: -4px;
+                left: 10px;
+                right: 10px;
+                bottom: 0;
+                height: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="connector2_1"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+          ></iconbutton>
+        </div>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector1_2">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector1_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector1_2"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_2"
+              variant="default"
+              size="md"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              disablediflocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide1_2"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent1_2');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                    {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
+        </div>
+        <list
+          field="talent1_2"
+          size="xs"
+          hidden="false"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent1_2"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
           <div
             style="
-              position: absolute;
-              top: -4px;
-              left: 10px;
-              right: 10px;
-              bottom: 0;
-              height: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
             "
-          ></div>
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
         </box>
-        <iconbutton
-          field="connector1_1"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_2"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide2_2"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent2_2');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                  {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
+        </div>
       </div>
-      <div style="position: relative">
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector1_3">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector1_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector1_3"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide1_3"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent1_3');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
+        </div>
         <list
-          field="talent1_1"
+          field="talent1_3"
           size="xs"
           variant="outline"
           width="250px"
           height="150px"
           listtype="force_power_talent_list"
         ></list>
-        <!-- The first FP upgrade option cannot be hidden -->
-      </div>
-      <!-- Connection Vertical -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="connector2_1_divider" hidden="true">
+        <box
+          field="no_talent1_3"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
           <div
             style="
-              position: absolute;
-              top: -4px;
-              left: 10px;
-              right: 10px;
-              bottom: 0;
-              height: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
             "
-          ></div>
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
         </box>
-        <iconbutton
-          field="connector2_1"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide2_3"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent2_3');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
+        </div>
       </div>
-    </div>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector1_2">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector1_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <!-- Connection Horizontal -->
+      <box field="h_connector1_4">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector1_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector1_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_2_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector1_2"
-            variant="default"
-            size="md"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            disablediflocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
           ></iconbutton>
-        </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide1_2"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent1_2');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                    {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-      <list
-        field="talent1_2"
-        size="xs"
-        hidden="false"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent1_2"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
         </div>
       </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_2_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector2_2"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide2_2"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent2_2');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                  {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector1_3">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector1_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_3_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector1_3"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide1_3"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent1_3');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-      <list
-        field="talent1_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent1_3"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
       >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_3_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
           <iconbutton
-            field="connector2_3"
+            field="hide1_4"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent1_4');"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide2_3"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent2_3');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
                 {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector1_4">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_4_divider" hidden="true">
+          ></iconbutton>
+        </div>
+        <list
+          field="talent1_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent1_4"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
           <div
             style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
             "
-          ></div>
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
         </box>
-        <iconbutton
-          field="h_connector1_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_4_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
           <iconbutton
-            field="connector1_4"
+            field="hide2_4"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent2_4');"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide1_4"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent1_4');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
       </div>
-      <list
-        field="talent1_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent1_4"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
+    </div>
+
+    <!-- Row 2 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
       >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+        <list
+          field="talent2_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <!-- Connection Vertical -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_4_divider" hidden="true">
+          <box field="connector3_1_divider" hidden="true">
             <div
               style="
                 position: absolute;
@@ -793,173 +866,7 @@
             ></div>
           </box>
           <iconbutton
-            field="connector2_4"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide2_4"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent2_4');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
-  </div>
-
-  <!-- Row 2 -->
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <!-- Talent 1 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <!-- Connection Vertical -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="connector3_1_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: -4px;
-              left: 10px;
-              right: 10px;
-              bottom: 0;
-              height: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="connector3_1"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
-      </div>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector2_2">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_2"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent2_2"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector3_2_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector3_2"
+            field="connector3_1"
             variant="default"
             size="md"
             disablediflocked="true"
@@ -969,364 +876,365 @@
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide3_2"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent3_2');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector2_2">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector2_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector2_2"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_2"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent2_2"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector3_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector3_2"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide3_2"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent3_2');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
                 {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector2_3">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_3"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent2_3"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+          ></iconbutton>
         </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector2_3">
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector3_3_divider" hidden="true">
+          <box field="h_connector2_3_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector3_3"
+            field="h_connector2_3"
             variant="default"
             size="md"
-            disablediflocked="true"
             onchange="showHideDividers();"
             hideonlocked="true"
+            disablediflocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_3"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent2_3"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector3_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector3_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide3_3"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent3_3');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide3_3"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent3_3');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
       </div>
-    </div>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector2_4">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_4_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent2_4"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Connection Horizontal -->
+      <box field="h_connector2_4">
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector3_4_divider" hidden="true">
+          <box field="h_connector2_4_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector3_4"
+            field="h_connector2_4"
             variant="default"
             size="md"
             disablediflocked="true"
             onchange="showHideDividers();"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent2_4"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector3_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector3_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide3_4"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent3_4');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide3_4"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent3_4');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
-  </div>
-
-  <!-- Row 3 -->
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <!-- Talent 1 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent3_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <!-- Connection Vertical -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="connector4_1_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: -4px;
-              left: 10px;
-              right: 10px;
-              bottom: 0;
-              height: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="connector4_1"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-        ></iconbutton>
       </div>
     </div>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector3_2">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector3_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector3_2"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent3_2"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent3_2"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
+    <!-- Row 3 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
       >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+        <list
+          field="talent3_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <!-- Connection Vertical -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector4_2_divider" hidden="true">
+          <box field="connector4_1_divider" hidden="true">
             <div
               style="
                 position: absolute;
@@ -1341,479 +1249,587 @@
             ></div>
           </box>
           <iconbutton
-            field="connector4_2"
+            field="connector4_1"
             variant="default"
             size="md"
+            disablediflocked="true"
             onchange="showHideDividers();"
             hideonlocked="true"
-            disablediflocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide4_2"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent4_2');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
       </div>
-    </div>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector3_3">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector3_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector3_3"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent3_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent3_3"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Connection Horizontal -->
+      <box field="h_connector3_2">
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector4_3_divider" hidden="true">
+          <box field="h_connector3_2_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector4_3"
+            field="h_connector3_2"
             variant="default"
             size="md"
             onchange="showHideDividers();"
             hideonlocked="true"
             disablediflocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide4_3"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent4_3');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
-                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
-      </div>
-    </div>
+      </box>
 
-    <!-- Connection Horizontal -->
-    <box field="h_connector3_4">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector3_4_divider" hidden="true">
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent3_2"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent3_2"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
           <div
             style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
             "
-          ></div>
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
         </box>
-        <iconbutton
-          field="h_connector3_4"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent3_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent3_4"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector4_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector4_2"
+              variant="default"
+              size="md"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              disablediflocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide4_2"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent4_2');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
         </div>
-      </box>
-      <!-- Connection Vertical -->
-      <div style="display: flex; gap: 4px; align-items: center">
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector3_3">
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector4_4_divider" hidden="true">
+          <box field="h_connector3_3_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector4_4"
+            field="h_connector3_3"
             variant="default"
             size="md"
             onchange="showHideDividers();"
             hideonlocked="true"
             disablediflocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
           ></iconbutton>
         </div>
-        <!-- Hide button -->
-        <iconbutton
-          field="hide4_4"
-          hideonlocked="true"
-          onchange="onHideTalentChange(value, 'talent4_4');"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+      </box>
+
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent3_3"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent3_3"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector4_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector4_3"
+              variant="default"
+              size="md"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              disablediflocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide4_3"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent4_3');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
                       {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector3_4">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector3_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector3_4"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent3_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent3_4"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+        <!-- Connection Vertical -->
+        <div style="display: flex; gap: 4px; align-items: center">
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector4_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector4_4"
+              variant="default"
+              size="md"
+              onchange="showHideDividers();"
+              hideonlocked="true"
+              disablediflocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <!-- Hide button -->
+          <iconbutton
+            field="hide4_4"
+            hideonlocked="true"
+            onchange="onHideTalentChange(value, 'talent4_4');"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            options='[{"label": "Hide", "value": "No", "icon": "IconEye"}, 
+                      {"label": "Show", "value": "Yes", "icon": "IconEyeOff"}]'
+          ></iconbutton>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent4_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector4_2">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector4_2_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector4_2"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent4_2"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent4_2"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector4_3">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector4_3_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector4_3"
+            variant="default"
+            size="md"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            disablediflocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent4_3"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent4_3"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <box field="h_connector4_4">
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector4_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector4_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers();"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
+          ></iconbutton>
+        </div>
+      </box>
+
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent4_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="150px"
+          listtype="force_power_talent_list"
+        ></list>
+        <box
+          field="no_talent4_4"
+          width="284px"
+          height="150px"
+          variant="card"
+          hidden="true"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+            "
+          >
+            <label
+              textalign="center"
+              label="(Same as the Left Upgrade)"
+            ></label>
+          </div>
+        </box>
       </div>
     </div>
   </div>
-
-  <!-- Row 4 -->
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <!-- Talent 1 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent4_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector4_2">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector4_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector4_2"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent4_2"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent4_2"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector4_3">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector4_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector4_3"
-          variant="default"
-          size="md"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          disablediflocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent4_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent4_3"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <box field="h_connector4_4">
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector4_4_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector4_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-    </box>
-
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent4_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="150px"
-        listtype="force_power_talent_list"
-      ></list>
-      <box
-        field="no_talent4_4"
-        width="284px"
-        height="150px"
-        variant="card"
-        hidden="true"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-          "
-        >
-          <label textalign="center" label="(Same as the Left Upgrade)"></label>
-        </div>
-      </box>
-    </div>
-  </div>
+  <!-- End Force Power Tree Wrapper -->
 </div>
