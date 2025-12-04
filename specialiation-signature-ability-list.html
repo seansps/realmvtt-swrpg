@@ -67,460 +67,448 @@
     margin-bottom: 4px;
   "
 >
-  <!-- Connectors to Spec Tree -->
+  <!-- Signature Ability Tree Wrapper - uses margin auto for centering while allowing full scroll -->
   <div
     style="
       display: flex;
-      gap: 36px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      min-width: fit-content;
+      margin: 0 auto;
     "
   >
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-        width: 250px;
-      "
-    >
-      <iconbutton
-        field="connector0_1"
-        onload="onLoad();"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+    <!-- Connectors to Spec Tree -->
+    <div style="display: flex; gap: 36px; align-items: center">
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+          width: 250px;
+        "
+      >
+        <iconbutton
+          field="connector0_1"
+          onload="onLoad();"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-      ></iconbutton>
-    </div>
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-        width: 250px;
-      "
-    >
-      <iconbutton
-        field="connector0_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+        ></iconbutton>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+          width: 250px;
+        "
+      >
+        <iconbutton
+          field="connector0_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-      ></iconbutton>
-    </div>
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-        width: 250px;
-      "
-    >
-      <iconbutton
-        field="connector0_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+        ></iconbutton>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+          width: 250px;
+        "
+      >
+        <iconbutton
+          field="connector0_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-      ></iconbutton>
-    </div>
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-        width: 250px;
-      "
-    >
-      <iconbutton
-        field="connector0_4"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+        ></iconbutton>
+      </div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+          width: 250px;
+        "
+      >
+        <iconbutton
+          field="connector0_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-      ></iconbutton>
+        ></iconbutton>
+      </div>
     </div>
-  </div>
 
-  <!-- Portrait and Description-->
-  <div style="display: flex; gap: 4px">
-    <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
-      <portrait width="34px" height="34px" field="portrait"></portrait>
+    <!-- Portrait and Description-->
+    <div style="display: flex; gap: 4px">
+      <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
+        <portrait width="34px" height="34px" field="portrait"></portrait>
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px; width: 100%">
+        <namefield
+          width="100%"
+          field="namefield"
+          variant="tooltip-underline"
+          label="Name"
+          placeholder="Enter Name..."
+        ></namefield>
+      </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 4px; width: 100%">
-      <namefield
-        width="100%"
-        field="namefield"
-        variant="tooltip-underline"
-        label="Name"
-        placeholder="Enter Name..."
-      ></namefield>
-    </div>
-  </div>
-  <accordion
-    width="100%"
-    field="talentAccordion"
-    label="Description"
-    size="xs"
-    variant="separated"
-  >
-    <richtextfield
+    <accordion
       width="100%"
-      field="description"
+      field="talentAccordion"
       label="Description"
-      placeholder="Enter Description..."
-      disablecontrols="true"
-    ></richtextfield>
-  </accordion>
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      justify-content: center;
-      margin-top: 4px;
-    "
-  >
-    <numberfield
-      width="100px"
-      textalign="center"
-      field="cost"
-      label="Cost"
-      variant="tooltip"
-      hidecontrols="true"
-      placeholder="Enter Cost..."
-    ></numberfield>
-  </div>
-
-  <!-- Row 1 - Talents -->
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <!-- Talent 1 -->
+      size="xs"
+      variant="separated"
+    >
+      <richtextfield
+        width="100%"
+        field="description"
+        label="Description"
+        placeholder="Enter Description..."
+        disablecontrols="true"
+      ></richtextfield>
+    </accordion>
     <div
       style="
         display: flex;
-        flex-direction: column;
         gap: 4px;
+        width: 100%;
         justify-content: center;
-        align-items: center;
+        margin-top: 4px;
       "
     >
-      <iconbutton
-        field="connector1_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
-      <list
-        field="talent1_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-      <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_1"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
+      <numberfield
+        width="100px"
+        textalign="center"
+        field="cost"
+        label="Cost"
+        variant="tooltip"
+        hidecontrols="true"
+        placeholder="Enter Cost..."
+      ></numberfield>
     </div>
 
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+    <!-- Row 1 - Talents -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <iconbutton
+          field="connector1_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+        <list
+          field="talent1_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+        <!-- Connection Vertical -->
+        <iconbutton
+          field="connector2_1"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+      </div>
+
+      <!-- Connection Horizontal -->
+      <iconbutton
+        field="h_connector1_2"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+      ></iconbutton>
 
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <iconbutton
+          field="connector1_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+        <list
+          field="talent1_2"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+        <!-- Connection Vertical -->
+        <iconbutton
+          field="connector2_2"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+      </div>
+
+      <!-- Connection Horizontal -->
       <iconbutton
-        field="connector1_2"
+        field="h_connector1_3"
         variant="default"
         size="md"
         disablediflocked="true"
         options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
-      <list
-        field="talent1_2"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-      <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_2"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+      ></iconbutton>
 
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <iconbutton
+          field="connector1_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+        <list
+          field="talent1_3"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+        <!-- Connection Vertical -->
+        <iconbutton
+          field="connector2_3"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+      </div>
+
+      <!-- Connection Horizontal -->
       <iconbutton
-        field="connector1_3"
+        field="h_connector1_4"
         variant="default"
         size="md"
         disablediflocked="true"
         options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
-      <list
-        field="talent1_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-      <!-- Connection Vertical -->
-      <iconbutton
-        field="connector2_3"
-        variant="default"
-        size="md"
-        disablediflocked="true"
-        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-      ></iconbutton>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector1_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+      ></iconbutton>
 
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <iconbutton
+          field="connector1_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+        <list
+          field="talent1_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+        <!-- Connection Vertical -->
+        <iconbutton
+          field="connector2_4"
+          variant="default"
+          size="md"
+          disablediflocked="true"
+          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+        ></iconbutton>
+      </div>
+    </div>
+
+    <!-- Row 2 - Talents -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_1"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+      </div>
+
+      <!-- Connection Horizontal -->
       <iconbutton
-        field="connector1_4"
+        field="h_connector2_2"
         variant="default"
         size="md"
         disablediflocked="true"
         options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
       ></iconbutton>
-      <list
-        field="talent1_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-      <!-- Connection Vertical -->
+
+      <!-- Talent 2 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_2"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+      </div>
+
+      <!-- Connection Horizontal -->
       <iconbutton
-        field="connector2_4"
+        field="h_connector2_3"
         variant="default"
         size="md"
         disablediflocked="true"
         options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
       ></iconbutton>
-    </div>
-  </div>
 
-  <!-- Row 2 - Talents -->
-  <div
-    style="
-      display: flex;
-      gap: 4px;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <!-- Talent 1 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_1"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-    </div>
+      <!-- Talent 3 -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_3"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+      </div>
 
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_2"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+      <!-- Connection Horizontal -->
+      <iconbutton
+        field="h_connector2_4"
+        variant="default"
+        size="md"
+        disablediflocked="true"
+        options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
+      ></iconbutton>
 
-    <!-- Talent 2 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_2"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_3"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
-
-    <!-- Talent 3 -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_3"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
-    </div>
-
-    <!-- Connection Horizontal -->
-    <iconbutton
-      field="h_connector2_4"
-      variant="default"
-      size="md"
-      disablediflocked="true"
-      options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-    ></iconbutton>
-
-    <!-- Talent 4 (no horizontal connector after this) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        justify-content: center;
-        align-items: center;
-      "
-    >
-      <list
-        field="talent2_4"
-        size="xs"
-        variant="outline"
-        width="250px"
-        height="200px"
-        listtype="signature_ability_talent_list"
-        onchange="onTalentChange();"
-      ></list>
+      <!-- Talent 4 (no horizontal connector after this) -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <list
+          field="talent2_4"
+          size="xs"
+          variant="outline"
+          width="250px"
+          height="200px"
+          listtype="signature_ability_talent_list"
+          onchange="onTalentChange();"
+        ></list>
+      </div>
     </div>
   </div>
+  <!-- End Signature Ability Tree Wrapper -->
 </div>
