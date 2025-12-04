@@ -143,26 +143,29 @@
 
   function onTalentChange() {
     // Dynamically set initial cost
-    const talents = api.getValue(dataPath);
+    // Requery the talent list to get the latest values
+    api.getRecord(record.recordType, record._id, (recordUpdated) => {
+      const talents = api.getValueOnRecord(recordUpdated, dataPath);
 
-    if (talents && talents.length > 0) {
-      let cost = 5;
-      if (dataPath.includes("talent1")) {
-        cost = 5;
-      } else if (dataPath.includes("talent2")) {
-        cost = 10;
-      } else if (dataPath.includes("talent3")) {
-        cost = 15;
-      } else if (dataPath.includes("talent4")) {
-        cost = 20;
-      } else if (dataPath.includes("talent5")) {
-        cost = 25;
+      if (talents && talents.length > 0) {
+        let cost = 5;
+        if (dataPath.includes("talent1")) {
+          cost = 5;
+        } else if (dataPath.includes("talent2")) {
+          cost = 10;
+        } else if (dataPath.includes("talent3")) {
+          cost = 15;
+        } else if (dataPath.includes("talent4")) {
+          cost = 20;
+        } else if (dataPath.includes("talent5")) {
+          cost = 25;
+        }
+
+        api.setValues({
+          [`${dataPath}.0.data.cost`]: cost,
+        });
       }
-
-      api.setValues({
-        [`${dataPath}.0.data.cost`]: cost,
-      });
-    }
+    });
   }
 
   function onDrop(type, recordLink) {
