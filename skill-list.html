@@ -1,6 +1,6 @@
 <script>
   function onRollSkill() {
-    let skillDataPath = dataPath.replace(".data.stat", "");
+    let skillDataPath = dataPath.replace(".data.rollBtn", "");
     let skill = api.getValue(skillDataPath);
     rollSkill(record, skill);
   }
@@ -126,7 +126,7 @@
 
   <button
     size="xs"
-    field="stat"
+    field="rollBtn"
     width="80px"
     variant="light"
     color="primary"
