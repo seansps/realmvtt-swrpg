@@ -2422,6 +2422,8 @@ function rollAttack(
       abilityOverride = weapon.data?.guided || 0;
     }
 
+    const additionalDamage = getDamageModifiersForAttack({ record, weapon });
+
     rollSkill(
       record,
       skillObj,
@@ -2438,6 +2440,7 @@ function rollAttack(
         targetId: targetId,
         animation: animation,
         dataPathToWeapon: dataPathToWeapon,
+        additionalDamage: additionalDamage,
         attackType: attackType,
         abilityOverride: abilityOverride,
         scale: scale,
@@ -2458,6 +2461,51 @@ function rollAttack(
   }
 }
 
+function getDamageModifiersForAttack({ record, weapon }) {
+  const isMelee = weapon.data?.type === "melee weapon";
+
+  let additionalDamage = 0;
+  // Get any bonuses or penalties to the damage
+  const seenDamageRecords = new Set();
+  const damageModifiers = getEffectsAndModifiersForToken(
+    record,
+    ["damageBonus", "damagePenalty"],
+    isMelee ? "melee" : "ranged",
+    weapon._id,
+    undefined,
+    weapon
+  );
+  damageModifiers.forEach((mod) => {
+    if (mod.active === true) {
+      seenDamageRecords.add(`${mod.type}-${mod.value}-${mod.name}`);
+      additionalDamage += mod.value;
+    }
+  });
+
+  // Get Damage Macros per skill used
+  const weaponSkill = weapon.data?.weaponSkill || "";
+  if (weaponSkill) {
+    const weaponSkillModifiers = getEffectsAndModifiersForToken(
+      record,
+      ["damageBonus", "damagePenalty"],
+      weaponSkill.toLowerCase(),
+      weapon._id,
+      undefined,
+      weapon
+    );
+    weaponSkillModifiers.forEach((mod) => {
+      if (
+        mod.active === true &&
+        !seenDamageRecords.has(`${mod.type}-${mod.value}-${mod.name}`)
+      ) {
+        seenDamageRecords.add(`${mod.type}-${mod.value}-${mod.name}`);
+        additionalDamage += mod.value;
+      }
+    });
+  }
+  return additionalDamage;
+}
+
 function getDamageForMacroForAttack({
   record,
   weapon,
@@ -2469,23 +2517,8 @@ function getDamageForMacroForAttack({
   pierce = 0,
 }) {
   // Get the weapon's type
-  const isMelee = weapon.data?.type === "melee weapon";
-
-  // Get any bonuses or penalties to the damage
-  const damageModifiers = getEffectsAndModifiersForToken(
-    record,
-    ["damageBonus", "damagePenalty"],
-    isMelee ? "melee" : "ranged",
-    weapon._id,
-    undefined,
-    weapon
-  );
-  damageModifiers.forEach((mod) => {
-    if (mod.active === true) {
-      damage += mod.value;
-    }
-  });
-
+  const additionalDamage = getDamageModifiersForAttack({ record, weapon });
+  damage += additionalDamage;
   return getDamageMacro({ damage, damageType, scale, breach, pierce });
 }
 

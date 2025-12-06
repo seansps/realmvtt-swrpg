@@ -350,8 +350,8 @@
     // The attack list will hide this field there, if there are none.
     // But we need to show it here for editing, always
     const valuesToSet = {};
-    const dataPathToItem = dataPath.replace(/[.]?data.attachments/, "");
-    const item = api.getValue(dataPathToItem);
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(nearestParentDataPath) || record;
 
     const subType = item?.data?.subtype || "";
 
@@ -363,15 +363,17 @@
     const showingAttachments = item?.fields?.attachments?.hidden !== true;
     const hardpoints = item?.data?.hardpoints || 0;
 
-    const dot = dataPathToItem !== "" ? "." : "";
+    const dot = nearestParentDataPath !== "" ? "." : "";
 
     if (isWeaponOrArmor && !showingAttachments && hardpoints > 0) {
-      valuesToSet[`${dataPathToItem}${dot}fields.attachments.hidden`] = false;
+      valuesToSet[
+        `${nearestParentDataPath}${dot}fields.attachments.hidden`
+      ] = false;
     }
 
     // Determine if we need to show other fields
     const type = item?.data?.type || "general";
-    const pathToFields = `${dataPathToItem}${dot}fields`;
+    const pathToFields = `${nearestParentDataPath}${dot}fields`;
 
     // Noadd brawn if needed to unhide
     if (type === "melee weapon") {
@@ -385,9 +387,13 @@
     }
 
     if (type === "melee weapon" || type === "ranged weapon") {
-      if (item?.fields?.weaponProperties?.hidden === undefined) {
+      if (
+        item?.fields?.weaponProperties?.hidden !== false ||
+        item?.fields?.generalWeaponProperties?.hidden !== false ||
+        item?.fields?.itemQualities?.hidden !== false
+      ) {
         valuesToSet[
-          `${dataPathToItem}${dot}fields.weaponProperties.hidden`
+          `${nearestParentDataPath}${dot}fields.weaponProperties.hidden`
         ] = false;
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
@@ -399,7 +405,10 @@
         valuesToSet[`${pathToFields}.animationProps.hidden`] = false;
       }
     } else if (type === "armor") {
-      if (item?.fields?.armorProperties?.hidden === undefined) {
+      if (
+        item?.fields?.armorProperties?.hidden !== false ||
+        item?.fields?.itemQualities?.hidden !== false
+      ) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
         valuesToSet[`${pathToFields}.hardpoints.hidden`] = false;
@@ -407,12 +416,12 @@
         valuesToSet[`${pathToFields}.itemQualities.hidden`] = false;
       }
     } else if (type === "general") {
-      if (item?.fields?.hasUseBtn?.hidden === undefined) {
+      if (item?.fields?.hasUseBtn?.hidden !== false) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = false;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
       }
     } else if (type === "weapon attachment") {
-      if (item?.fields?.weaponAttachmentProperties?.hidden === undefined) {
+      if (item?.fields?.weaponAttachmentProperties?.hidden !== false) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
         valuesToSet[
@@ -422,13 +431,13 @@
       }
       if (
         item?.data?.attachmentType === "weapon" &&
-        item?.fields?.weaponAttached?.hidden === undefined
+        item?.fields?.weaponAttached?.hidden !== false
       ) {
         valuesToSet[`${pathToFields}.weaponAttached.hidden`] = false;
         valuesToSet[`${pathToFields}.weaponAttachedLabel.hidden`] = false;
       }
     } else if (type === "armor attachment" || type === "vehicle attachment") {
-      if (item?.fields?.armorAttachmentProperties?.hidden === undefined) {
+      if (item?.fields?.armorAttachmentProperties?.hidden !== false) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = false;
         // We use armorAttachmentPropertie box for vehicle attachments too
@@ -436,7 +445,7 @@
         valuesToSet[`${pathToFields}.slots.hidden`] = false;
       }
     } else if (type === "pack") {
-      if (item?.fields?.packProperties?.hidden === undefined) {
+      if (item?.fields?.packProperties?.hidden !== false) {
         valuesToSet[`${pathToFields}.consumable.hidden`] = true;
         valuesToSet[`${pathToFields}.hasUseBtn.hidden`] = true;
         valuesToSet[`${pathToFields}.packProperties.hidden`] = false;
@@ -493,6 +502,7 @@
         multiselect="1"
         placeholder="Select Type"
         onchange="showHideValues(value);"
+        onload="showHideFields();"
         s
         field="type"
         label="Type"
@@ -1021,7 +1031,6 @@
         variant="outline-striped"
         allowadd="return isAttachment(value);"
         onchange="onAttachmentsChange(value);"
-        onload="showHideFields();"
       ></list>
     </div>
   </box>

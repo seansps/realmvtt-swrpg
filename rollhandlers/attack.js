@@ -1,6 +1,7 @@
 const roll = data.roll;
 const metadata = roll?.metadata || {};
 const dataPathToWeapon = metadata?.dataPathToWeapon;
+const additionalDamage = metadata?.additionalDamage || 0;
 
 const animation = metadata?.animation;
 const recordId = metadata?.recordId;
@@ -74,9 +75,16 @@ if (weapon) {
     damage += record?.data?.brawn || 0;
   }
 
+  // Add any additional damage from modifiers
+  if (additionalDamage > 0) {
+    damage += additionalDamage;
+  }
+
   if (results.successes > 0) {
     const superiorMessage = isSuperior ? " (Superior +1)" : "";
-    message += `\n\n**[center]Total Damage: ${damage}${superiorMessage}[/center]**`;
+    const additionalDamageMessage =
+      additionalDamage > 0 ? ` (+${additionalDamage} from Modifiers)` : "";
+    message += `\n\n**[center]Total Damage: ${damage}${superiorMessage}${additionalDamageMessage}[/center]**`;
   }
 
   // Check for auto-fire trigger if this was an auto-fire attack
