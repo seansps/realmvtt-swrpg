@@ -1793,6 +1793,15 @@ function useAbility(record, ability) {
     }
   }
 
+  // Add tags on action to tags
+  const actionTags = ability.data?.tags || [];
+  actionTags.forEach((tag) => {
+    tags.push({
+      name: tag,
+      tooltip: tag,
+    });
+  });
+
   api.sendMessage(abilityText, undefined, [], tags);
 
   // If skillRoll, roll
