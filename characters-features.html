@@ -4,6 +4,8 @@
       onDropSpecialization(type, recordLink);
     } else if (type === "force_powers") {
       onDropForcePower(type, recordLink);
+    } else if (type === "talents") {
+      onDropTalent(type, recordLink);
     }
   }
 
@@ -49,6 +51,71 @@
 
       api.setValues(valuesToSet);
     });
+  }
+
+  function onDropTalent(type, recordLink) {
+    const talent = recordLink?.value;
+    if (!talent) return;
+
+    const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
+
+    const talents = record?.data?.talents || [];
+
+    const talentIdToUse = rankedTalent
+      ? talent._id
+      : `${talent._id}-${generateUuid()}`;
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
+    // Add talent to talents list and add cost to spent xp
+    if (existingTalentIndex !== -1) {
+      // Update the rank
+      api.setValues(
+        {
+          [`data.talents.${existingTalentIndex}.data.rank`]:
+            (existingTalent?.data?.rank || 0) + 1,
+        },
+        (recordUpdated) => {
+          const valuesToSet = {
+            [`data.spentXp`]:
+              (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+          };
+          updateAttributes(recordUpdated, valuesToSet);
+          api.setValues(valuesToSet);
+        }
+      );
+    } else {
+      // Add it to the talents list
+      const newTalents = [
+        ...talents,
+        {
+          ...talent,
+          _id: talentIdToUse,
+          data: {
+            ...talent.data,
+            rank: 1,
+          },
+          icon: "IconStar",
+        },
+      ];
+      api.setValues(
+        {
+          [`data.talents`]: newTalents,
+        },
+        (recordUpdated) => {
+          const valuesToSet = {
+            [`data.spentXp`]:
+              (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
+          };
+          updateAttributes(recordUpdated, valuesToSet);
+          api.setValues(valuesToSet);
+        }
+      );
+    }
   }
 </script>
 
