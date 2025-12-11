@@ -1,16 +1,22 @@
-<accordion field="descriptionAcc" label="Description" size="xs">
+<accordion
+  field="descriptionAcc"
+  label="Description"
+  size="xs"
+  variant="minimal"
+  icon="IconFlare"
+>
   <accordion.control>
-    <div style="display: flex; flex-direction: column; gap: 4px">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 30px;
+        justify-content: center;
+      "
+    >
       <div style="display: flex; flex-direction: row; gap: 4px">
-        <namefield
-          width="100%"
-          size="sm"
-          field="name"
-          variant="unstyled"
-          bold="true"
-          multiline="true"
-          placeholder="Enter feature name..."
-        ></namefield>
+        <label width="100%" size="sm" field="name" variant="bold"></label>
       </div>
     </div>
   </accordion.control>
