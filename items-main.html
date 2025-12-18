@@ -471,6 +471,19 @@
       valuesToSet[`${pathToFields}.consumableProperties.hidden`] = false;
     }
 
+    // Check for hardpoints and show/hide the attachmentsProperties box
+    if (
+      item?.data?.hardpoints > 0 &&
+      item?.fields?.attachmentsProperties?.hidden !== false
+    ) {
+      valuesToSet[`${pathToFields}.attachmentsProperties.hidden`] = false;
+    } else if (
+      item?.data?.hardpoints < 1 &&
+      item?.fields?.attachmentsProperties?.hidden !== true
+    ) {
+      valuesToSet[`${pathToFields}.attachmentsProperties.hidden`] = true;
+    }
+
     // Check qualities too - pass the valuesToSet object to merge into it
     onItemQualitiesChange(valuesToSet);
 
