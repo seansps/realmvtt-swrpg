@@ -1349,35 +1349,52 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   if (record.data?.type !== "vehicle") {
     valuesToSet["data.soakValue"] = brawn + bestArmor.soakBonus;
     soakBonuses.forEach((bonus) => {
-      valuesToSet["data.soakValue"] += bonus.value;
+      // Only if not from an effect
+      if (!bonus.isEffect) {
+        valuesToSet["data.soakValue"] += bonus.value;
+      }
     });
     soakPenalties.forEach((penalty) => {
-      valuesToSet["data.soakValue"] -= penalty.value;
+      if (!penalty.isEffect) {
+        valuesToSet["data.soakValue"] -= Math.abs(penalty.value);
+      }
     });
 
     // Set defense values to the best armor's defense
     valuesToSet["data.defenseRanged"] = bestArmor.defense;
     valuesToSet["data.defenseMelee"] = bestArmor.defense;
     defenseBonuses.forEach((bonus) => {
-      valuesToSet["data.defenseRanged"] += bonus.value;
-      valuesToSet["data.defenseMelee"] += bonus.value;
+      if (!bonus.isEffect) {
+        valuesToSet["data.defenseRanged"] += bonus.value;
+        valuesToSet["data.defenseMelee"] += bonus.value;
+      }
     });
     defensePenalties.forEach((penalty) => {
-      valuesToSet["data.defenseRanged"] -= penalty.value;
-      valuesToSet["data.defenseMelee"] -= penalty.value;
+      if (!penalty.isEffect) {
+        valuesToSet["data.defenseRanged"] -= Math.abs(penalty.value);
+        valuesToSet["data.defenseMelee"] -= Math.abs(penalty.value);
+      }
     });
     rangedDefenseBonuses.forEach((bonus) => {
-      valuesToSet["data.defenseRanged"] += bonus.value;
+      if (!bonus.isEffect) {
+        valuesToSet["data.defenseRanged"] += bonus.value;
+      }
     });
     rangedDefensePenalties.forEach((penalty) => {
-      valuesToSet["data.defenseRanged"] -= penalty.value;
+      if (!penalty.isEffect) {
+        valuesToSet["data.defenseRanged"] -= Math.abs(penalty.value);
+      }
     });
     meleeDefenseBonuses.forEach((bonus) => {
-      valuesToSet["data.defenseMelee"] += bonus.value;
+      if (!bonus.isEffect) {
+        valuesToSet["data.defenseMelee"] += bonus.value;
+      }
     });
     valuesToSet["data.defenseRanged"] += rangedDefenseBonus;
     meleeDefensePenalties.forEach((penalty) => {
-      valuesToSet["data.defenseMelee"] -= penalty.value;
+      if (!penalty.isEffect) {
+        valuesToSet["data.defenseMelee"] -= Math.abs(penalty.value);
+      }
     });
     valuesToSet["data.defenseMelee"] += meleeDefenseBonus;
   }
@@ -2329,6 +2346,42 @@ function rollAttack(
       });
     }
 
+    // Check for effect-based defense bonuses/penalties on target
+    // (non-effect bonuses are already included in the stored defense value)
+    const targetDefenseField = isMelee ? "melee" : "ranged";
+    const targetDefenseBonuses = getEffectsAndModifiersForToken(
+      token,
+      ["defenseBonus"],
+      targetDefenseField
+    );
+    const targetDefensePenalties = getEffectsAndModifiersForToken(
+      token,
+      ["defensePenalty"],
+      targetDefenseField
+    );
+
+    // Add effect-based defense bonuses as setback reduction (negative setback)
+    targetDefenseBonuses.forEach((bonus) => {
+      if (bonus.isEffect && bonus.value > 0) {
+        modifiers.push({
+          name: bonus.name,
+          value: `-${bonus.value} setback`,
+          active: true,
+        });
+      }
+    });
+
+    // Add effect-based defense penalties as additional setback
+    targetDefensePenalties.forEach((penalty) => {
+      if (penalty.isEffect && penalty.value > 0) {
+        modifiers.push({
+          name: penalty.name,
+          value: `${Math.abs(penalty.value)} setback`,
+          active: true,
+        });
+      }
+    });
+
     // For vehicles, we don't know the firing arc, so we
     // set each shield defense as an optional setback modifier
     if (token.data?.type === "vehicle") {
@@ -2616,6 +2669,25 @@ function getDamageMacro({
     const valuesToSet = {};
     // Damage is reduced by target's soak value
     let soakValue = target.data?.soakValue || 0;
+
+    // Check for effect-based soak bonuses/penalties
+    // (non-effect bonuses are already included in the stored soak value)
+    const soakBonuses = getEffectsAndModifiersForToken(target, ["soakBonus"]);
+    const soakPenalties = getEffectsAndModifiersForToken(target, ["soakPenalty"]);
+    
+    // Apply effect-based soak bonuses
+    soakBonuses.forEach((bonus) => {
+      if (bonus.isEffect) {
+        soakValue += bonus.value;
+      }
+    });
+    
+    // Apply effect-based soak penalties
+    soakPenalties.forEach((penalty) => {
+      if (penalty.isEffect) {
+        soakValue -= Math.abs(penalty.value);
+      }
+    });
 
     // If the scale is personal, and the target is a vehicle,
     // we multiply the soakValue by 10 (because armor is technically 10x soak)
