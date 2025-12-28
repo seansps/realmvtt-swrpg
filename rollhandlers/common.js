@@ -467,6 +467,24 @@ function getEffectsAndModifiersForToken(
   const equippedItems = items.filter(
     (item) => item.data?.carried === "equipped"
   );
+
+  // Get attachments from equipped armor items
+  const activeEquippedArmorAttachments = equippedItems
+    .filter((item) => item.data?.type === "armor")
+    .flatMap((armorItem) =>
+      (armorItem.data?.attachments || [])
+        .filter(
+          (attachment) =>
+            attachment.data?.active === true ||
+            attachment.data?.active === undefined ||
+            attachment.data?.active === null
+        )
+        .map((attachment) => ({
+          ...attachment,
+          itemId: armorItem?._id,
+        }))
+    );
+
   [
     ...speciesFeatures,
     ...talents,
@@ -474,6 +492,7 @@ function getEffectsAndModifiersForToken(
     ...equippedItems,
     ...npcFeatures,
     ...activeAttachments,
+    ...activeEquippedArmorAttachments,
     ...abilityTalents,
     ...criticalInjuries,
     ...(weapon ? [weapon] : []),
@@ -1492,15 +1511,31 @@ function rollCheck(attribute) {
   );
 
   // Count unique "upgrade" modifiers and filter them out
-  const upgradeModifierIds = new Set();
+  // Supports both "upgrade" and "# upgrade" (e.g., "2 upgrade")
+  const upgradeModifierIds = new Map();
   const filteredModifiers = modifiers.filter((mod) => {
-    if (mod.value === "upgrade") {
-      upgradeModifierIds.add(mod._id || mod.name);
+    const modValue = typeof mod.value === "string" ? mod.value.trim() : "";
+    if (modValue === "upgrade") {
+      const modId = mod._id || mod.name;
+      upgradeModifierIds.set(modId, (upgradeModifierIds.get(modId) || 0) + 1);
+      return false;
+    }
+    const upgradeMatch = modValue.match(/^(\d+)\s*upgrade$/i);
+    if (upgradeMatch) {
+      const modId = mod._id || mod.name;
+      const count = parseInt(upgradeMatch[1], 10);
+      upgradeModifierIds.set(
+        modId,
+        (upgradeModifierIds.get(modId) || 0) + count
+      );
       return false;
     }
     return true;
   });
-  const upgradeCount = upgradeModifierIds.size;
+  const upgradeCount = Array.from(upgradeModifierIds.values()).reduce(
+    (sum, val) => sum + val,
+    0
+  );
 
   // Calculate dice pool with upgrades (similar to skill roll logic)
   let abilityDice = characteristicValue;
@@ -1598,15 +1633,31 @@ function rollSkill(
   }
 
   // Count unique "upgrade" modifiers and filter them out
-  const upgradeModifierIds = new Set();
+  // Supports both "upgrade" and "# upgrade" (e.g., "2 upgrade")
+  const upgradeModifierIds = new Map();
   const filteredModifiers = modifiers.filter((mod) => {
-    if (mod.value === "upgrade") {
-      upgradeModifierIds.add(mod._id || mod.name);
+    const modValue = typeof mod.value === "string" ? mod.value.trim() : "";
+    if (modValue === "upgrade") {
+      const modId = mod._id || mod.name;
+      upgradeModifierIds.set(modId, (upgradeModifierIds.get(modId) || 0) + 1);
+      return false;
+    }
+    const upgradeMatch = modValue.match(/^(\d+)\s*upgrade$/i);
+    if (upgradeMatch) {
+      const modId = mod._id || mod.name;
+      const count = parseInt(upgradeMatch[1], 10);
+      upgradeModifierIds.set(
+        modId,
+        (upgradeModifierIds.get(modId) || 0) + count
+      );
       return false;
     }
     return true;
   });
-  const upgradeCount = upgradeModifierIds.size;
+  const upgradeCount = Array.from(upgradeModifierIds.values()).reduce(
+    (sum, val) => sum + val,
+    0
+  );
 
   // Star Wars RPG skill dice mechanics:
   // Start with Ability dice equal to the characteristic
