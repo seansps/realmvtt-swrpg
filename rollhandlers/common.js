@@ -1200,12 +1200,33 @@ function getBestArmor(record) {
     (item) => item.data?.carried === "equipped" && item.data?.type === "armor"
   );
 
+  // Get any items with the defense related qualities equipped
+  // This needs to run regardless of whether armor is equipped
+  let meleeDefenseBonus = 0;
+  let rangedDefenseBonus = 0;
+  const itemsEquipped = inventory.filter(
+    (item) =>
+      item.data?.carried === "equipped" &&
+      (item.data?.type === "melee weapon" ||
+        item.data?.type === "ranged weapon" ||
+        item.data?.type === "armor")
+  );
+  itemsEquipped.forEach((item) => {
+    const qualities = item.data?.special || [];
+    if (qualities.includes("defensive")) {
+      meleeDefenseBonus += item.data?.defensive || 0;
+    }
+    if (qualities.includes("deflection")) {
+      rangedDefenseBonus += item.data?.deflection || 0;
+    }
+  });
+
   if (equippedArmor.length === 0) {
     return {
       defense: 0,
       soakBonus: 0,
-      meleeDefenseBonus: 0,
-      rangedDefenseBonus: 0,
+      meleeDefenseBonus: meleeDefenseBonus,
+      rangedDefenseBonus: rangedDefenseBonus,
       armor: null,
     };
   }
@@ -1226,26 +1247,6 @@ function getBestArmor(record) {
       bestArmor = armor;
     }
   }
-
-  // Get any items with the defense related qualities equipped
-  let meleeDefenseBonus = 0;
-  let rangedDefenseBonus = 0;
-  const itemsEquipped = record?.data?.inventory?.filter(
-    (item) =>
-      item.data?.carried === "equipped" &&
-      (item.data?.type === "melee weapon" ||
-        item.data?.type === "ranged weapon" ||
-        item.data?.type === "armor")
-  );
-  itemsEquipped.forEach((item) => {
-    const qualities = item.data?.special || [];
-    if (qualities.includes("defensive")) {
-      meleeDefenseBonus += item.data?.defensive || 0;
-    }
-    if (qualities.includes("deflection")) {
-      rangedDefenseBonus += item.data?.deflection || 0;
-    }
-  });
 
   return {
     defense: getArmorDefense(bestArmor).defense,
