@@ -2475,7 +2475,7 @@ function rollAttack(
       if (bonus.isEffect && bonus.value > 0) {
         modifiers.push({
           name: bonus.name,
-          value: `-${bonus.value} setback`,
+          value: `${bonus.value} setback`,
           active: true,
         });
       }
