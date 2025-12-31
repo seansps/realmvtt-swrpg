@@ -2707,12 +2707,18 @@ function getHealingMacro(healing, deduct = false) {
     let message = '';
     let deductMessage = '.';
     if (${deduct}) {
-      healingToApply -= usedStims;
+      // Only if not a droid 
+      if (!(target.data?.speciesName || '').toLowerCase().includes('droid')) {
+        healingToApply -= usedStims;
+        deductMessage = \` (Deducted \${usedStims} due to stims used today.)\`;
+      }
+      else {
+        deductMessage = \` Used \${usedStims+1} repair patches today.\`;
+      }
       oldValues["data.healingUsed"] = usedStims;
       valuesToSet["data.healingUsed"] = usedStims + 1;
-      deductMessage = \` (Deducted \${usedStims} stims used today.)\`;
     }
-    message += \`Healed \${healingToApply} wounds\${deductMessage}.\\n\`;
+    message += \`Healed \${healingToApply} wounds\${deductMessage}\\n\`;
     if (healingToApply > 0) {
       // Get healingBonus and penalties for target
       const healingBonus = getEffectsAndModifiersForToken(target, ["healingBonus"]);
