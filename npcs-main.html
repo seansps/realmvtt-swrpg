@@ -137,6 +137,9 @@
       if (record.fields?.speciesName?.hidden !== false) {
         fieldsToSet["fields.speciesName.hidden"] = false;
       }
+      if (record.tabs?.Skills?.hidden !== false) {
+        fieldsToSet["tabs.Skills.hidden"] = false;
+      }
 
       // Show/hide fields specific to creature types (minions, rivals, nemeses)
       const showStrain = record.data?.type === "nemesis"; // Only nemeses have strain
@@ -163,6 +166,9 @@
       }
     } else {
       // Show/hide vehicle properties
+      if (record.tabs?.Skills?.hidden !== true) {
+        fieldsToSet["tabs.Skills.hidden"] = true;
+      }
       if (record.fields?.creatureProperties?.hidden !== true) {
         fieldsToSet["fields.creatureProperties.hidden"] = true;
       }
@@ -498,6 +504,7 @@
           placeholder="Select Type..."
           defaultvalue="minion"
           onchange="onTypeChange();"
+          onload="onLoadNPC();"
           options='[{"value": "minion", "label": "Minion"}, {"value": "rival", "label": "Rival"},
           {"value": "nemesis", "label": "Nemesis"}, {"value": "vehicle", "label": "Vehicle"}]'
         ></dropdown>
@@ -580,7 +587,6 @@
           label="Brawn"
           onchange="updateAttribute({ record, attribute: 'brawn', value })"
           onclick="rollCheck('brawn');"
-          onload="onLoadNPC();"
         ></numberfield>
         <button
           field="Brawn Check"
