@@ -172,6 +172,49 @@
       })),
     ];
   }
+
+  function addCurrency() {
+    // Delay to ensure field values are updated before processing
+    api.delay(() => {
+      api.getRecord(record.recordType, record._id, (record2) => {
+        const addAmount = parseInt(record2?.data?.addCash || "0") || 0;
+        const newCash = (record2?.data?.cash || 0) + addAmount;
+
+        api.setValues({
+          "data.cash": newCash,
+          "data.addCash": "",
+        });
+        api.closeOpenedPopovers();
+      });
+    }, 300);
+  }
+
+  function deductCurrency() {
+    // Delay to ensure field values are updated before processing
+    api.delay(() => {
+      api.getRecord(record.recordType, record._id, (record2) => {
+        const deductAmount = parseInt(record2?.data?.deductCash || "0") || 0;
+        const currentCash = record2?.data?.cash || 0;
+
+        if (deductAmount > currentCash) {
+          api.showNotification(
+            "Not enough credits!",
+            "red",
+            "Not Enough Credits"
+          );
+          return;
+        }
+
+        const newCash = currentCash - deductAmount;
+
+        api.setValues({
+          "data.cash": newCash,
+          "data.deductCash": "",
+        });
+        api.closeOpenedPopovers();
+      });
+    }, 300);
+  }
 </script>
 
 <div>
@@ -213,6 +256,66 @@
       field="cash"
       label="Credits"
     ></numberfield>
+    <popover position="bottom" offset="4" witharrow="true">
+      <popover.target>
+        <iconbutton
+          size="md"
+          variant="default"
+          hideonlocked="true"
+          options='[{"icon": "IconPlus", "label": "Add Credits", "value": "add"}]'
+          field="addCurrencyBtn"
+        ></iconbutton>
+      </popover.target>
+      <popover.dropdown>
+        <div
+          style="display: flex; flex-direction: column; gap: 4px; width: 150px"
+        >
+          <label size="xs" variant="bold" label="Add Credits"></label>
+          <numberfield
+            placeholder="0"
+            field="addCash"
+            width="100%"
+            disablediflocked="false"
+          ></numberfield>
+          <button
+            size="xs"
+            variant="outline"
+            label="Add"
+            onclick="addCurrency();"
+          ></button>
+        </div>
+      </popover.dropdown>
+    </popover>
+    <popover position="bottom" offset="4" witharrow="true">
+      <popover.target>
+        <iconbutton
+          size="md"
+          variant="default"
+          hideonlocked="true"
+          options='[{"icon": "IconMinus", "label": "Deduct Credits", "value": "deduct"}]'
+          field="deductCurrencyBtn"
+        ></iconbutton>
+      </popover.target>
+      <popover.dropdown>
+        <div
+          style="display: flex; flex-direction: column; gap: 4px; width: 150px"
+        >
+          <label size="xs" variant="bold" label="Deduct Credits"></label>
+          <numberfield
+            placeholder="0"
+            field="deductCash"
+            width="100%"
+            disablediflocked="false"
+          ></numberfield>
+          <button
+            size="xs"
+            variant="outline"
+            label="Deduct"
+            onclick="deductCurrency();"
+          ></button>
+        </div>
+      </popover.dropdown>
+    </popover>
   </div>
 </div>
 
