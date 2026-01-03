@@ -1,0 +1,81 @@
+<script>
+  // Helper to parse cost values - handles strings like "1,000", "500", numbers, etc.
+  function parseCost(cost) {
+    if (typeof cost === "number") return cost;
+    if (typeof cost === "string") {
+      // Remove commas and any non-numeric characters except digits
+      return parseInt(cost.replace(/,/g, "").replace(/[^0-9]/g, ""), 10) || 0;
+    }
+    return 0;
+  }
+
+  function removeWizardItem() {
+    const itemDataPath = getNearestParentDataPath(dataPath);
+    const item = api.getValue(itemDataPath);
+
+    if (!item) return;
+
+    const items = [...(record.data?.wizard?.items || [])];
+    const itemIndex = items.findIndex((i) => i._id === item._id);
+
+    if (itemIndex >= 0) {
+      items.splice(itemIndex, 1);
+
+      // Recalculate credits - items use data.price for cost
+      const totalCredits = record.data?.wizard?.totalStartingCredits || 500;
+      let spentCredits = 0;
+      items.forEach((i) => {
+        const cost = parseCost(i.data?.price);
+        const count = i.data?.count || 1;
+        spentCredits += cost * count;
+      });
+      const availableCredits = totalCredits - spentCredits;
+
+      api.setValues({
+        "data.wizard.items": items,
+        "data.wizard.availableCredits": availableCredits,
+        "data.wizard.spentCredits": spentCredits,
+      });
+    }
+  }
+</script>
+
+<div style="height: 30px; display: flex; gap: 4px; align-items: center">
+  <div style="width: 30px; min-width: 30px">
+    <portrait width="30px" height="30px" name="portrait"></portrait>
+  </div>
+  <div style="width: 50px">
+    <numberfield
+      size="xs"
+      variant="tooltip"
+      label="Count"
+      field="count"
+      placeholder="1"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+  </div>
+  <div style="flex-grow: 1">
+    <label field="name" size="xs"></label>
+  </div>
+  <div style="width: 80px">
+    <numberfield
+      size="xs"
+      variant="tooltip"
+      label="Price"
+      field="price"
+      placeholder="0"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+  </div>
+  <button
+    size="xs"
+    variant="subtle"
+    field="removeWizardItemBtn"
+    label="Remove"
+    color="red"
+    icon="IconTrash"
+    onclick="removeWizardItem();"
+  ></button>
+</div>

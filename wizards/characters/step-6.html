@@ -1,0 +1,264 @@
+<script>
+  // Step 6: Starting Gear & Credits
+  // Players start with 500 credits + any bonus credits from obligation
+  // They can purchase starting equipment
+
+  // Helper to parse cost values - handles strings like "1,000", "500", numbers, etc.
+  function parseCost(cost) {
+    if (typeof cost === "number") return cost;
+    if (typeof cost === "string") {
+      // Remove commas and any non-numeric characters except digits
+      return parseInt(cost.replace(/,/g, "").replace(/[^0-9]/g, ""), 10) || 0;
+    }
+    return 0;
+  }
+
+  function onStepEnd(stepIndex) {
+    // No strict requirements - they can have any amount of credits left
+    return true;
+  }
+
+  function onStep6Load() {
+    // Calculate starting credits
+    // F&D uses moralityBonusCredits, others use bonusCredits
+    const gameType = record.data?.wizard?.gameType;
+    const bonusCredits =
+      gameType === "fad"
+        ? record.data?.wizard?.moralityBonusCredits || 0
+        : record.data?.wizard?.bonusCredits || 0;
+    const baseCredits = 500;
+    const totalCredits = baseCredits + bonusCredits;
+
+    // Get current available credits (subtract what they've spent)
+    const items = record.data?.wizard?.items || [];
+    let spentCredits = 0;
+    items.forEach((item) => {
+      // Items use data.price for cost
+      const itemCost = parseCost(item.data?.price);
+      const count = item.data?.count || 1;
+      spentCredits += itemCost * count;
+    });
+
+    const availableCredits = totalCredits - spentCredits;
+
+    api.setValues({
+      "data.wizard.totalStartingCredits": totalCredits,
+      "data.wizard.availableCredits": availableCredits,
+      "data.wizard.spentCredits": spentCredits,
+    });
+  }
+
+  function onChangeGearSelection(value) {
+    let totalCost = 0;
+    const selectedItems = value || [];
+    if (selectedItems) {
+      selectedItems.forEach((item) => {
+        // Items use data.price for cost
+        totalCost += parseCost(item.data?.price);
+      });
+    }
+    api.setValues({
+      "data.wizard.previewItemCost": totalCost,
+      "data.wizard.selectedItems": selectedItems,
+    });
+  }
+
+  function buyItem() {
+    api.getRecord("characters", record._id, (currentRecord) => {
+      const valuesToSet = {};
+      const items = [...(currentRecord.data?.wizard?.items || [])];
+
+      const selectedItems = currentRecord.data?.wizard?.selectedItems || [];
+
+      if (selectedItems.length === 0) {
+        api.showNotification(
+          "Please select an item to buy",
+          "yellow",
+          "No Selection"
+        );
+        return;
+      }
+
+      let availableCredits = currentRecord.data?.wizard?.availableCredits || 0;
+      let itemsAdded = false;
+
+      selectedItems.forEach((item) => {
+        // Items use data.price for cost
+        const itemCost = parseCost(item.data?.price);
+
+        if (itemCost > availableCredits) {
+          api.showNotification(
+            `Not enough credits for ${item.name}. You need ${itemCost} but only have ${availableCredits}.`,
+            "red",
+            "Insufficient Credits"
+          );
+          return;
+        }
+
+        availableCredits -= itemCost;
+
+        // Check if item already exists
+        const existingIndex = items.findIndex((i) => i._id === item._id);
+        if (existingIndex >= 0) {
+          items[existingIndex].data.count =
+            (items[existingIndex].data.count || 1) + 1;
+        } else {
+          // Store the item with count
+          items.push({
+            ...item,
+            data: { ...item.data, count: 1 },
+          });
+        }
+
+        itemsAdded = true;
+      });
+
+      if (itemsAdded) {
+        const spentCredits =
+          currentRecord.data?.wizard?.totalStartingCredits - availableCredits;
+        valuesToSet["data.wizard.items"] = items;
+        valuesToSet["data.wizard.availableCredits"] = availableCredits;
+        valuesToSet["data.wizard.spentCredits"] = spentCredits;
+        // Don't clear selectedItems - the UI selection can't be cleared programmatically,
+        // so we keep the selection to allow buying the same items again
+
+        api.setValues(valuesToSet);
+      }
+    });
+  }
+
+  function onItemDelete() {
+    // Recalculate credits after item removal
+    api.getRecord("characters", record._id, (currentRecord) => {
+      const items = currentRecord.data?.wizard?.items || [];
+      const totalCredits =
+        currentRecord.data?.wizard?.totalStartingCredits || 500;
+
+      let spentCredits = 0;
+      items.forEach((item) => {
+        // Items use data.price for cost
+        const itemCost = parseCost(item.data?.price);
+        const count = item.data?.count || 1;
+        spentCredits += itemCost * count;
+      });
+
+      const availableCredits = totalCredits - spentCredits;
+
+      api.setValues({
+        "data.wizard.availableCredits": availableCredits,
+        "data.wizard.spentCredits": spentCredits,
+      });
+    });
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Starting Gear"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Spend your starting credits on weapons, armor, and equipment. You start with 500 credits plus any bonus from taking extra obligation."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- Credits Summary -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: var(--mantine-color-dark-6);
+      border-radius: 8px;
+    "
+  >
+    <numberfield
+      field="availableCredits"
+      label="Credits Available"
+      width="140px"
+      editable="false"
+      hidecontrols="true"
+      color="green"
+      size="lg"
+      onload="onStep6Load();"
+    ></numberfield>
+
+    <numberfield
+      field="spentCredits"
+      label="Spent"
+      width="100px"
+      editable="false"
+      hidecontrols="true"
+      size="sm"
+    ></numberfield>
+
+    <numberfield
+      field="totalStartingCredits"
+      label="Total"
+      width="100px"
+      editable="false"
+      hidecontrols="true"
+      size="sm"
+    ></numberfield>
+  </div>
+
+  <!-- Equipment Selection -->
+  <divider label="Purchase Equipment"></divider>
+
+  <recordselectlist
+    width="100%"
+    height="300px"
+    size="sm"
+    field="itemSelector"
+    label="Select Equipment to Purchase"
+    onchange="onChangeGearSelection(value);"
+    query='{"type": "items", "query": {}}'
+    filters='[{"label": "Type", "field": "type", "options": [{"label": "General", "value": "general"}, {"label": "Melee Weapon", "value": "melee weapon"}, {"label": "Ranged Weapon", "value": "ranged weapon"}, {"label": "Armor", "value": "armor"}, {"label": "Weapon Attachment", "value": "weapon attachment"}, {"label": "Armor Attachment", "value": "armor attachment"}, {"label": "Starship/Vehicle Mod", "value": "vehicle attachment"}, {"label": "Item Pack", "value": "pack"}]}]'
+    searchable="true"
+    selectable="true"
+  ></recordselectlist>
+
+  <div style="display: flex; gap: 8px; width: 100%; align-items: center">
+    <button
+      field="buyItemBtn"
+      color="primary"
+      label="Buy Selected Items"
+      icon="IconShoppingCart"
+      variant="light"
+      onclick="buyItem()"
+    ></button>
+
+    <label label="Selected Cost:" size="sm"></label>
+    <numberfield
+      field="previewItemCost"
+      size="sm"
+      width="80px"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+  </div>
+
+  <!-- Purchased Items -->
+  <divider label="Your Equipment"></divider>
+
+  <list
+    listtype="wizard_item_list"
+    field="items"
+    variant="outline-striped"
+    onchange="onItemDelete()"
+  ></list>
+
+  <label
+    label="You can purchase additional equipment after character creation. Unspent credits will be added to your character."
+    size="xs"
+    color="dimmed"
+  ></label>
+</div>

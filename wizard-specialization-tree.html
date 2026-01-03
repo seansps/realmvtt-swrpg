@@ -1,0 +1,310 @@
+<script>
+  // Wizard-specific specialization tree view
+  // This is a simplified version of specialization-main.html for use in the character wizard
+  // It displays the talent tree and allows purchasing talents with XP tracking
+  // Uses wizard_specialization_talent_list which has the purchase button visible by default
+
+  function onWizardTreeLoad() {
+    // Initialize the talent tree display
+    showHideDividers();
+  }
+
+  function showHideDividers() {
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const specialization = api.getValue(nearestParentDataPath) || record;
+    const valuesToSet = {};
+
+    const dividersToCheck = [
+      "connector2_1", "connector2_2", "connector2_3", "connector2_4",
+      "h_connector1_2", "h_connector1_3", "h_connector1_4",
+      "connector3_1", "connector3_2", "connector3_3", "connector3_4",
+      "h_connector2_2", "h_connector2_3", "h_connector2_4",
+      "connector4_1", "connector4_2", "connector4_3", "connector4_4",
+      "h_connector3_2", "h_connector3_3", "h_connector3_4",
+      "connector5_1", "connector5_2", "connector5_3", "connector5_4",
+      "h_connector4_2", "h_connector4_3", "h_connector4_4",
+      "h_connector5_2", "h_connector5_3", "h_connector5_4",
+    ];
+
+    dividersToCheck.forEach((divider) => {
+      if (specialization?.data?.[divider] === "Yes") {
+        valuesToSet[`${nearestParentDataPath}.fields.${divider}_divider.hidden`] = false;
+      } else {
+        valuesToSet[`${nearestParentDataPath}.fields.${divider}_divider.hidden`] = true;
+      }
+    });
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
+</script>
+
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    width: 100%;
+  "
+>
+  <div style="display: flex; gap: 4px; width: 100%; align-items: center">
+    <div style="width: 40px; height: 40px; min-height: 40px; min-width: 40px">
+      <portrait width="40px" height="40px" field="portrait" onload="onWizardTreeLoad();"></portrait>
+    </div>
+    <label field="name" size="md" variant="bold"></label>
+  </div>
+
+  <!-- Talent Tree Wrapper -->
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: fit-content;
+      margin: 0 auto;
+    "
+  >
+    <!-- Row 1 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <!-- Talent 1 -->
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent1_1" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_1_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <!-- H Connector -->
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_2_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <!-- Talent 2 -->
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent1_2" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_2_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <!-- H Connector -->
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_3_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <!-- Talent 3 -->
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent1_3" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_3_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <!-- H Connector -->
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector1_4_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <!-- Talent 4 -->
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent1_4" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector2_4_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent2_1" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_1_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_2_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent2_2" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_2_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_3_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent2_3" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_3_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector2_4_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent2_4" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector3_4_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent3_1" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_1_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_2_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent3_2" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_2_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_3_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent3_3" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_3_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector3_4_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent3_4" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector4_4_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4 -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent4_1" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector5_1_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_2_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent4_2" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector5_2_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_3_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent4_3" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector5_3_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector4_4_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent4_4" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="connector5_4_divider" hidden="true">
+            <div style="position: absolute; top: -4px; left: 10px; right: 10px; bottom: 0; height: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+          </box>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5 (no vertical connectors) -->
+    <div style="display: flex; gap: 4px; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent5_1" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector5_2_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent5_2" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector5_3_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent5_3" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+      </div>
+      <div style="position: relative; min-width: 27px; min-height: 27px">
+        <box field="h_connector5_4_divider" hidden="true">
+          <div style="position: absolute; top: 10px; left: -4px; right: 0; bottom: 10px; width: 36px; background: var(--mantine-color-primary-filled); opacity: 0.75;"></div>
+        </box>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center;">
+        <list field="talent5_4" size="xs" variant="outline" width="250px" height="200px" listtype="wizard_specialization_talent_list"></list>
+      </div>
+    </div>
+  </div>
+</div>

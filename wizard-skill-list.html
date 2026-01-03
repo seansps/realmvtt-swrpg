@@ -1,0 +1,303 @@
+<script>
+  // Wizard skill list item for step 4
+  // Displays a skill with +/- buttons to adjust rank
+  // Self-contained - does not rely on functions from step-4.html
+
+  // Helper to normalize skill names - handles "Knowledge (Underworld)" -> "Underworld"
+  function normalizeSkillName(skillName) {
+    const knowledgeMatch = skillName.match(/^Knowledge\s*\(([^)]+)\)$/i);
+    if (knowledgeMatch) {
+      return knowledgeMatch[1].trim();
+    }
+    return skillName;
+  }
+
+  // Helper to get all career skills as normalized array
+  function getCareerSkillsArray() {
+    return [
+      ...(record.data?.wizard?.careerSkills || "")
+        .replace(/, and /gi, ", ")
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+      ...(record.data?.wizard?.specSkills || "")
+        .replace(/, and /gi, ", ")
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+    ].filter((s) => s !== "");
+  }
+
+  function recalculateWizardXp(currentRecord) {
+    // Get base values
+    const startingXp = currentRecord.data?.wizard?.startingXp || 0;
+    const gameType = currentRecord.data?.wizard?.gameType;
+
+    // Get bonus XP based on game type
+    let bonusXp = 0;
+    if (gameType === "fad") {
+      bonusXp = currentRecord.data?.wizard?.moralityBonusXp || 0;
+    } else {
+      bonusXp = currentRecord.data?.wizard?.bonusXp || 0;
+    }
+    const totalXp = startingXp + bonusXp;
+
+    // Calculate characteristic costs
+    const speciesData = currentRecord.data?.wizard?.selectedSpecies?.[0];
+    const characteristics = [
+      "brawn",
+      "agility",
+      "intellect",
+      "cunning",
+      "willpower",
+      "presence",
+    ];
+
+    let charXpSpent = 0;
+    characteristics.forEach((char) => {
+      const baseValue = speciesData?.data?.[char] || 2;
+      const currentValue = currentRecord.data?.wizard?.[char] || baseValue;
+
+      for (let i = baseValue + 1; i <= currentValue; i++) {
+        charXpSpent += i * 10;
+      }
+    });
+
+    // Calculate skill costs
+    let skillXpSpent = 0;
+    const skills = currentRecord.data?.wizard?.skills || [];
+    const allCareerSkills = getCareerSkillsArray();
+
+    const skillsArray = Array.isArray(skills) ? skills : Object.values(skills);
+
+    skillsArray.forEach((skill) => {
+      const purchasedRanks = skill.data?.purchasedRanks || 0;
+      const freeRanks = skill.data?.freeRanks || 0;
+      const isCareer = allCareerSkills.some(
+        (cs) => cs.toLowerCase() === skill.name.toLowerCase()
+      );
+
+      for (let i = 1; i <= purchasedRanks; i++) {
+        const rankBeingPurchased = freeRanks + i;
+        if (isCareer) {
+          skillXpSpent += rankBeingPurchased * 5;
+        } else {
+          skillXpSpent += rankBeingPurchased * 5 + 5;
+        }
+      }
+    });
+
+    const totalSpent = charXpSpent + skillXpSpent;
+    const xpRemaining = totalXp - totalSpent;
+
+    api.setValues({
+      "data.wizard.xpSpent": totalSpent,
+      "data.wizard.charXpSpent": charXpSpent,
+      "data.wizard.skillXpSpent": skillXpSpent,
+      "data.wizard.xpRemaining": xpRemaining,
+    });
+  }
+
+  function onIncreaseRank() {
+    const skillDataPath = getNearestParentDataPath(dataPath);
+    const skill = api.getValue(skillDataPath);
+
+    if (!skill) return;
+
+    const skillName = skill.name;
+    const currentRank = skill.data?.rank || 0;
+    const maxRank = 2; // Max rank during creation is 2
+
+    if (currentRank >= maxRank) {
+      api.showNotification(
+        "Maximum rank during character creation is 2.",
+        "yellow",
+        "Max Rank"
+      );
+      return;
+    }
+
+    // Check if we have enough XP
+    const xpRemaining = record.data?.wizard?.xpRemaining || 0;
+    const nextRank = currentRank + 1;
+
+    const allCareerSkills = getCareerSkillsArray();
+    const isCareer = allCareerSkills.some(
+      (cs) => cs.toLowerCase() === skillName.toLowerCase()
+    );
+
+    const cost = isCareer ? nextRank * 5 : nextRank * 5 + 5;
+
+    if (xpRemaining < cost) {
+      api.showNotification(
+        `Not enough XP. Need ${cost} XP, have ${xpRemaining} XP.`,
+        "red",
+        "Insufficient XP"
+      );
+      return;
+    }
+
+    // Calculate new values
+    const freeRanks = skill.data?.freeRanks || 0;
+    const purchasedRanks = nextRank - freeRanks;
+    const nextRankValue = nextRank + 1;
+
+    let nextCost = "";
+    if (nextRankValue > 2) {
+      nextCost = "MAX";
+    } else {
+      const futureCost = isCareer ? nextRankValue * 5 : nextRankValue * 5 + 5;
+      nextCost = `${futureCost} XP`;
+    }
+
+    // Update the skill in the skills array
+    const skills = [...(record.data?.wizard?.skills || [])];
+    const skillIndex = skills.findIndex(
+      (s) => s.name.toLowerCase() === skillName.toLowerCase()
+    );
+
+    if (skillIndex === -1) return;
+
+    skills[skillIndex] = {
+      ...skill,
+      data: {
+        ...skill.data,
+        rank: nextRank,
+        purchasedRanks: purchasedRanks,
+        nextCost: nextCost,
+      },
+    };
+
+    api.setValues(
+      {
+        "data.wizard.skills": skills,
+      },
+      (recordUpdated) => {
+        recalculateWizardXp(recordUpdated);
+      }
+    );
+  }
+
+  function onDecreaseRank() {
+    const skillDataPath = getNearestParentDataPath(dataPath);
+    const skill = api.getValue(skillDataPath);
+
+    if (!skill) return;
+
+    const skillName = skill.name;
+    const currentRank = skill.data?.rank || 0;
+    const freeRanks = skill.data?.freeRanks || 0;
+
+    if (currentRank <= freeRanks) {
+      api.showNotification(
+        "Cannot reduce below free ranks.",
+        "yellow",
+        "Minimum Rank"
+      );
+      return;
+    }
+
+    const newRank = currentRank - 1;
+    const purchasedRanks = newRank - freeRanks;
+
+    const allCareerSkills = getCareerSkillsArray();
+    const isCareer = allCareerSkills.some(
+      (cs) => cs.toLowerCase() === skillName.toLowerCase()
+    );
+
+    const nextRankValue = newRank + 1;
+    let nextCost = "";
+    if (nextRankValue > 2) {
+      nextCost = "MAX";
+    } else {
+      const futureCost = isCareer ? nextRankValue * 5 : nextRankValue * 5 + 5;
+      nextCost = `${futureCost} XP`;
+    }
+
+    // Update the skill in the skills array
+    const skills = [...(record.data?.wizard?.skills || [])];
+    const skillIndex = skills.findIndex(
+      (s) => s.name.toLowerCase() === skillName.toLowerCase()
+    );
+
+    if (skillIndex === -1) return;
+
+    skills[skillIndex] = {
+      ...skill,
+      data: {
+        ...skill.data,
+        rank: newRank,
+        purchasedRanks: purchasedRanks,
+        nextCost: nextCost,
+      },
+    };
+
+    api.setValues(
+      {
+        "data.wizard.skills": skills,
+      },
+      (recordUpdated) => {
+        recalculateWizardXp(recordUpdated);
+      }
+    );
+  }
+</script>
+
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--mantine-color-dark-7);
+  "
+>
+  <!-- Skill Name and Career indicator -->
+  <div style="flex: 1; display: flex; align-items: center; gap: 4px">
+    <label field="name" size="sm"></label>
+    <label
+      field="careerIndicator"
+      label="(Career)"
+      size="xs"
+      color="green"
+    ></label>
+  </div>
+
+  <!-- Stat -->
+  <label field="stat" size="xs" color="dimmed" width="60px"></label>
+
+  <!-- Rank display and controls -->
+  <div style="display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      size="xs"
+      variant="subtle"
+      field="decreaseRankBtn"
+      onclick="onDecreaseRank();"
+      options='[{"icon": "IconMinus", "label": "-", "value": "decreaseRank"}]'
+    ></iconbutton>
+    <numberfield
+      field="rank"
+      width="40px"
+      size="sm"
+      textalign="center"
+      editable="false"
+      hidecontrols="true"
+    ></numberfield>
+    <iconbutton
+      size="xs"
+      variant="subtle"
+      field="increaseRankBtn"
+      options='[{"icon": "IconPlus", "label": "+", "value": "increaseRank"}]'
+      onclick="onIncreaseRank();"
+    ></iconbutton>
+  </div>
+
+  <!-- Next rank cost -->
+  <label
+    field="nextCost"
+    size="xs"
+    color="yellow"
+    width="50px"
+    textalign="right"
+  ></label>
+</div>

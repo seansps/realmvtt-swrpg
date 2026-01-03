@@ -1,0 +1,445 @@
+<script>
+  // Step 2: Career & Specialization Selection
+  // The player selects their career and starting specialization:
+  // - Career provides 8 career skills (choose 4 for free ranks)
+  // - Starting specialization provides 4 more career skills (choose 2 for free ranks)
+  // - May provide Force Rating if applicable
+
+  function onStepEnd(stepIndex) {
+    // Validate career and specialization selected
+    const careerId = record.data?.wizard?.selectedCareerId;
+    const specId = record.data?.wizard?.selectedSpecializationId;
+
+    if (!careerId) {
+      api.showNotification(
+        "Please select a career before continuing.",
+        "yellow",
+        "Career Required"
+      );
+      return false;
+    }
+
+    if (!specId) {
+      api.showNotification(
+        "Please select a specialization before continuing.",
+        "yellow",
+        "Specialization Required"
+      );
+      return false;
+    }
+
+    // Validate career skill choices (need 4)
+    const careerSkillChoices = record.data?.wizard?.careerSkillChoices || [];
+    if (careerSkillChoices.length < 4) {
+      api.showNotification(
+        `Please select 4 career skills for free ranks. You have selected ${careerSkillChoices.length}.`,
+        "yellow",
+        "Career Skills Required"
+      );
+      return false;
+    }
+
+    // Validate specialization skill choices (need 2)
+    const specSkillChoices = record.data?.wizard?.specSkillChoices || [];
+    if (specSkillChoices.length < 2) {
+      api.showNotification(
+        `Please select 2 specialization skills for free ranks. You have selected ${specSkillChoices.length}.`,
+        "yellow",
+        "Specialization Skills Required"
+      );
+      return false;
+    }
+
+    // Add the specialization to data.wizard.specializations so step 5 can display the talent tree
+    const spec = record.data?.wizard?.selectedSpecialization?.[0];
+    if (spec) {
+      const existingSpecs = record.data?.wizard?.specializations || [];
+      // Check if already added (in case user went back and forth)
+      const alreadyAdded = existingSpecs.some((s) => s._id === spec._id);
+      if (!alreadyAdded) {
+        api.setValues({
+          "data.wizard.specializations": [...existingSpecs, spec],
+        });
+      }
+    }
+
+    return true;
+  }
+
+  function onStep2Load() {
+    // Check if career already selected (returning to step)
+    const careerId = record.data?.wizard?.selectedCareerId;
+    if (careerId) {
+      api.setHidden(
+        ["careerDetails", "specSection", "selectCareerFirstMsg"],
+        false
+      );
+    }
+
+    const specId = record.data?.wizard?.selectedSpecializationId;
+    if (specId) {
+      api.setHidden("specDetails", false);
+    }
+  }
+
+  function onCareerSelected(value) {
+    if (!value) {
+      // Career was cleared
+      onDeleteCareer();
+      return;
+    }
+
+    let careerId = "";
+    try {
+      const careerObject = JSON.parse(value);
+      careerId = careerObject._id;
+    } catch (e) {
+      api.showNotification("Invalid career selection.", "red", "Error");
+      return;
+    }
+
+    // Look up the full career record
+    api.getRecord("careers", careerId, (careerRecord) => {
+      if (!careerRecord) {
+        api.showNotification("Could not find career record.", "red", "Error");
+        return;
+      }
+
+      const careerObj = { ...careerRecord, icon: "IconBadge" };
+      const careerName = careerRecord.name;
+
+      const valuesToSet = {
+        "data.wizard.selectedCareer": [careerObj],
+        "data.wizard.selectedCareerId": value,
+        "data.wizard.careerName": careerName,
+        "data.wizard.careerSkills": careerRecord?.data?.skills || "",
+        "data.wizard.careerSpecializations":
+          careerRecord?.data?.specializations || "",
+        "data.wizard.careerForceRating": careerRecord?.data?.forceRating || 0,
+        "data.wizard.careerSkillChoices": [],
+        "fields.careerDetails.hidden": false,
+        // Show specialization section now that career is selected
+        "fields.specSection.hidden": false,
+        "fields.selectCareerFirstMsg.hidden": true,
+        // Reset specialization when career changes
+        "data.wizard.selectedSpecialization": [],
+        "data.wizard.selectedSpecializationId": null,
+        "data.wizard.specName": "",
+        "data.wizard.specSkills": "",
+        "data.wizard.specSkillChoices": [],
+        "fields.specDetails.hidden": true,
+      };
+
+      api.setValues(valuesToSet);
+    });
+  }
+
+  function onDeleteCareer() {
+    const valuesToSet = {
+      "data.wizard.selectedCareer": [],
+      "data.wizard.selectedCareerId": null,
+      "data.wizard.careerName": "",
+      "data.wizard.careerSkills": "",
+      "data.wizard.careerSpecializations": "",
+      "data.wizard.careerForceRating": 0,
+      "data.wizard.careerSkillChoices": [],
+      "data.wizard.careerSkillOptions": [],
+      "fields.careerDetails.hidden": true,
+      // Hide specialization section and show "select career first" message
+      "fields.specSection.hidden": true,
+      "fields.selectCareerFirstMsg.hidden": false,
+      // Also reset specialization
+      "data.wizard.selectedSpecialization": [],
+      "data.wizard.selectedSpecializationId": null,
+      "data.wizard.specName": "",
+      "data.wizard.specSkills": "",
+      "data.wizard.specSkillChoices": [],
+      "data.wizard.specSkillOptions": [],
+      "fields.specDetails.hidden": true,
+    };
+
+    api.setValues(valuesToSet);
+  }
+
+  function onCareerSkillsChange(value) {
+    // Limit to 4 selections
+    if (value && value.length > 4) {
+      api.showNotification(
+        "You can only select 4 career skills for free ranks.",
+        "yellow",
+        "Too Many Skills"
+      );
+      // Keep only first 4
+      api.setValues({
+        "data.wizard.careerSkillChoices": value.slice(0, 4),
+      });
+      return;
+    }
+
+    api.setValues({
+      "data.wizard.careerSkillChoices": value || [],
+    });
+  }
+
+  // Function that returns career skill options for the dropdown
+  function getCareerSkillOptions() {
+    const careerSkills = record.data?.wizard?.careerSkills || "";
+    // Handle both ", and " and plain "," separators
+    const normalizedSkills = careerSkills.replace(/, and /gi, ", ");
+    const skillsArray = normalizedSkills
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "")
+      .filter((s, i, arr) => arr.indexOf(s) === i); // Remove duplicates
+
+    return skillsArray.map((skill) => ({
+      label: skill,
+      value: skill,
+    }));
+  }
+
+  // Function that returns specialization options filtered by career
+  function getSpecializationOptions() {
+    const careerSpecs = record.data?.wizard?.careerSpecializations || "";
+    const validSpecs = careerSpecs
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+
+    // Return options based on the career's specialization list
+    return validSpecs.map((spec) => ({
+      label: spec,
+      value: spec,
+    }));
+  }
+
+  function onSpecializationSelected(value) {
+    if (!value) {
+      // Specialization was cleared
+      onDeleteSpecialization();
+      return;
+    }
+
+    // value is the specialization name from the filtered options
+    const specName = value;
+
+    // Look up the specialization record by name
+    api.getRecordByTypeAndName("specializations", specName, (specRecord) => {
+      if (!specRecord) {
+        api.showNotification(
+          `Could not find specialization "${specName}" in the campaign. Please ensure it exists.`,
+          "red",
+          "Specialization Not Found"
+        );
+        return;
+      }
+
+      const specObj = { ...specRecord, icon: "IconTargetArrow" };
+
+      const valuesToSet = {
+        "data.wizard.selectedSpecialization": [specObj],
+        "data.wizard.selectedSpecializationId": specRecord._id,
+        "data.wizard.specName": specName,
+        "data.wizard.specSkills": specRecord?.data?.skills || "",
+        "data.wizard.specIsInCareer": true,
+        "data.wizard.specSkillChoices": [],
+        "fields.specDetails.hidden": false,
+      };
+
+      api.setValues(valuesToSet);
+    });
+  }
+
+  function onDeleteSpecialization() {
+    const valuesToSet = {
+      "data.wizard.selectedSpecialization": [],
+      "data.wizard.selectedSpecializationId": null,
+      "data.wizard.specName": "",
+      "data.wizard.specSkills": "",
+      "data.wizard.specIsInCareer": true,
+      "data.wizard.specSkillChoices": [],
+      "data.wizard.specSkillOptions": [],
+      "fields.specDetails.hidden": true,
+    };
+
+    api.setValues(valuesToSet);
+  }
+
+  function onSpecSkillsChange(value) {
+    // Limit to 2 selections
+    if (value && value.length > 2) {
+      api.showNotification(
+        "You can only select 2 specialization skills for free ranks.",
+        "yellow",
+        "Too Many Skills"
+      );
+      // Keep only first 2
+      api.setValues({
+        "data.wizard.specSkillChoices": value.slice(0, 2),
+      });
+      return;
+    }
+
+    api.setValues({
+      "data.wizard.specSkillChoices": value || [],
+    });
+  }
+
+  // Function that returns specialization skill options for the dropdown
+  function getSpecSkillOptions() {
+    const specSkills = record.data?.wizard?.specSkills || "";
+    // Handle both ", and " and plain "," separators
+    const normalizedSkills = specSkills.replace(/, and /gi, ", ");
+    const skillsArray = normalizedSkills
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "")
+      .filter((s, i, arr) => arr.indexOf(s) === i); // Remove duplicates
+
+    return skillsArray.map((skill) => ({
+      label: skill,
+      value: skill,
+    }));
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Choose Your Career & Specialization"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Your career defines your character's profession and provides career skills. Your starting specialization gives you access to a talent tree and additional career skills."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- Career Section -->
+  <divider label="Career"></divider>
+
+  <dropdown
+    field="selectedCareerId"
+    label="Career"
+    placeholder="Select a career..."
+    width="100%"
+    searchable="true"
+    optionsquery='{"type": "careers", "query": {}}'
+    onchange="onCareerSelected(value);"
+  ></dropdown>
+
+  <!-- Career Details -->
+  <box field="careerDetails" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <!-- Career Skills Selection -->
+      <label
+        label="Select 4 Career Skills for free ranks:"
+        size="sm"
+        variant="bold"
+      ></label>
+      <label
+        label="These skills become career skills and you gain 1 free rank in each."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="careerSkillChoices"
+        placeholder="Select 4 skills..."
+        multiselect="4"
+        width="100%"
+        optionsfield="careerSkillOptions"
+        optionsfunction="return getCareerSkillOptions();"
+        onchange="onCareerSkillsChange(value);"
+      ></dropdown>
+
+      <!-- Force Rating indicator (only shown if > 0) -->
+      <box field="forceRatingBox">
+        <div
+          style="
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            align-items: center;
+          "
+        >
+          <label label="Force Rating:" size="sm" variant="bold"></label>
+          <label field="careerForceRating" size="sm"></label>
+        </div>
+      </box>
+    </div>
+  </box>
+
+  <!-- Specialization Section (hidden until career is selected) -->
+  <box field="specSection" hidden="true">
+    <divider label="Starting Specialization"></divider>
+
+    <label
+      label="Your first specialization is free. Choose one from your career's available specializations."
+      size="xs"
+      color="dimmed"
+      textalign="center"
+    ></label>
+
+    <dropdown
+      field="specName"
+      label="Specialization"
+      placeholder="Select a specialization..."
+      width="100%"
+      searchable="true"
+      optionsfunction="return getSpecializationOptions();"
+      onchange="onSpecializationSelected(value);"
+    ></dropdown>
+  </box>
+
+  <!-- Message to select career first -->
+  <box field="selectCareerFirstMsg">
+    <divider label="Starting Specialization"></divider>
+    <label
+      label="Please select a career first to see specialization options."
+      size="sm"
+      color="dimmed"
+      textalign="center"
+    ></label>
+  </box>
+
+  <!-- Specialization Details -->
+  <box field="specDetails" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <!-- Specialization Skills Selection -->
+      <label
+        label="Select 2 Specialization Skills for free ranks:"
+        size="sm"
+        variant="bold"
+      ></label>
+      <label
+        label="These skills become career skills and you gain 1 free rank in each."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="specSkillChoices"
+        placeholder="Select 2 skills..."
+        multiselect="2"
+        width="100%"
+        optionsfield="specSkillOptions"
+        optionsfunction="return getSpecSkillOptions();"
+        onchange="onSpecSkillsChange(value);"
+        onload="onStep2Load();"
+      ></dropdown>
+    </div>
+  </box>
+
+  <!-- Summary of free skill ranks -->
+  <divider label="Summary"></divider>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <label
+      label="You will receive 1 free rank in each of your 6 chosen skills (4 career + 2 specialization). Skills that overlap will stack up to rank 2."
+      size="xs"
+      color="dimmed"
+    ></label>
+  </div>
+</div>

@@ -1,0 +1,335 @@
+<script>
+  // Step 1: Species Selection
+  // The player selects their species which determines:
+  // - Starting characteristics (Brawn, Agility, Intellect, Cunning, Willpower, Presence)
+  // - Starting XP
+  // - Wound Threshold base (+ Brawn)
+  // - Strain Threshold base (+ Willpower)
+  // - Special abilities and free skill ranks
+
+  function onStepEnd(stepIndex) {
+    // Validate that a species has been selected
+    const speciesId = record.data?.wizard?.selectedSpeciesId;
+    if (!speciesId) {
+      api.showNotification(
+        "Please select a species before continuing.",
+        "yellow",
+        "Species Required"
+      );
+      return false;
+    }
+    return true;
+  }
+
+  function onSpeciesSelected(value) {
+    if (!value) {
+      // Species was cleared
+      onDeleteSpecies();
+      return;
+    }
+
+    let speciesId = "";
+    try {
+      const speciesObject = JSON.parse(value);
+      speciesId = speciesObject._id;
+    } catch (e) {
+      api.showNotification("Invalid species selection.", "red", "Error");
+      return;
+    }
+
+    // value is the _id of the selected species record
+    // We need to look up the full record
+    api.getRecord("species", speciesId, (speciesRecord) => {
+      if (!speciesRecord) {
+        api.showNotification("Could not find species record.", "red", "Error");
+        return;
+      }
+
+      const speciesObj = { ...speciesRecord, icon: "IconAlien" };
+      const speciesName = speciesRecord.name;
+
+      // Calculate derived values
+      const brawn = speciesRecord?.data?.brawn || 2;
+      const willpower = speciesRecord?.data?.willpower || 2;
+      const woundBase = speciesRecord?.data?.woundThreshold || 10;
+      const strainBase = speciesRecord?.data?.strainThreshold || 10;
+
+      const valuesToSet = {
+        "data.wizard.selectedSpecies": [speciesObj],
+        "data.wizard.selectedSpeciesId": value,
+        "data.wizard.speciesName": speciesName,
+        "data.wizard.brawn": brawn,
+        "data.wizard.agility": speciesRecord?.data?.agility || 2,
+        "data.wizard.intellect": speciesRecord?.data?.intellect || 2,
+        "data.wizard.cunning": speciesRecord?.data?.cunning || 2,
+        "data.wizard.willpower": willpower,
+        "data.wizard.presence": speciesRecord?.data?.presence || 2,
+        "data.wizard.startingXp": speciesRecord?.data?.startingXp || 100,
+        "data.wizard.xpRemaining": speciesRecord?.data?.startingXp || 100,
+        "data.wizard.xpSpent": 0,
+        "data.wizard.woundThresholdBase": woundBase,
+        "data.wizard.strainThresholdBase": strainBase,
+        "data.wizard.woundThreshold": woundBase + brawn,
+        "data.wizard.strainThreshold": strainBase + willpower,
+        "data.wizard.features": speciesRecord?.data?.features || "",
+        "fields.speciesDetails.hidden": false,
+      };
+
+      api.setValues(valuesToSet);
+    });
+  }
+
+  function onDeleteSpecies() {
+    const valuesToSet = {
+      "data.wizard.selectedSpecies": [],
+      "data.wizard.selectedSpeciesId": null,
+      "data.wizard.speciesName": "",
+      "data.wizard.brawn": 2,
+      "data.wizard.agility": 2,
+      "data.wizard.intellect": 2,
+      "data.wizard.cunning": 2,
+      "data.wizard.willpower": 2,
+      "data.wizard.presence": 2,
+      "data.wizard.startingXp": 0,
+      "data.wizard.xpRemaining": 0,
+      "data.wizard.woundThresholdBase": 10,
+      "data.wizard.strainThresholdBase": 10,
+      "data.wizard.woundThreshold": 12,
+      "data.wizard.strainThreshold": 12,
+      "data.wizard.startingSkills": "",
+      "fields.speciesDetails.hidden": true,
+    };
+
+    api.setValues(valuesToSet);
+  }
+
+  function onStep1Load() {
+    // Check if species already selected (returning to step)
+    const speciesId = record.data?.wizard?.selectedSpeciesId;
+    if (speciesId) {
+      api.setHidden("speciesDetails", false);
+    }
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Choose Your Species"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Your species determines your starting characteristics, XP, and special abilities. Select a species from the list below."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- Species Selection Dropdown -->
+  <dropdown
+    field="selectedSpeciesId"
+    label="Species"
+    placeholder="Select a species..."
+    width="100%"
+    searchable="true"
+    optionsquery='{"type": "species", "query": {}}'
+    onchange="onSpeciesSelected(value);"
+    onload="onStep1Load();"
+  ></dropdown>
+
+  <!-- Species Details (shown when species selected) -->
+  <box field="speciesDetails" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <!-- Characteristics Display -->
+      <divider label="Starting Characteristics"></divider>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            textalign="center"
+            field="brawn"
+            label="Brawn"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            field="agility"
+            label="Agility"
+            textalign="center"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            field="intellect"
+            textalign="center"
+            label="Intellect"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            textalign="center"
+            field="cunning"
+            label="Cunning"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            textalign="center"
+            field="willpower"
+            label="Willpower"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+          "
+        >
+          <numberfield
+            placeholder="2"
+            size="sm"
+            width="70px"
+            textalign="center"
+            field="presence"
+            label="Presence"
+            editable="false"
+            hidecontrols="true"
+          ></numberfield>
+        </div>
+      </div>
+
+      <!-- Thresholds and XP -->
+      <divider label="Derived Stats"></divider>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <numberfield
+          placeholder="12"
+          size="sm"
+          width="130px"
+          icon="IconHeartFilled"
+          field="woundThreshold"
+          label="Wound Threshold"
+          color="pink"
+          editable="false"
+          hidecontrols="true"
+        ></numberfield>
+
+        <numberfield
+          placeholder="12"
+          size="sm"
+          width="130px"
+          icon="IconHeartbeat"
+          field="strainThreshold"
+          label="Strain Threshold"
+          color="blue"
+          editable="false"
+          hidecontrols="true"
+        ></numberfield>
+
+        <numberfield
+          placeholder="100"
+          size="sm"
+          width="120px"
+          icon="IconSparkles"
+          field="startingXp"
+          label="Starting XP"
+          color="yellow"
+          editable="false"
+          hidecontrols="true"
+        ></numberfield>
+      </div>
+
+      <!-- Starting Skills/Abilities -->
+      <box field="startingSkillsBox">
+        <divider label="Special Abilities"></divider>
+        <list listtype="wizard_feature_list" field="features"></list>
+      </box>
+    </div>
+  </box>
+</div>

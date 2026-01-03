@@ -1,0 +1,646 @@
+<script>
+  // Step 4: Spend Starting XP on Characteristics and Skills
+  // This is the most important step - characteristics can ONLY be raised during creation
+  // XP costs:
+  // - Characteristics: 10 × new rating (e.g., 2→3 costs 30 XP)
+  // - Career Skills: 5 × new rank
+  // - Non-Career Skills: 5 × new rank + 5
+
+  // Use the shared skill list from common.js
+  const allSkills = getAllStarWarsSkills();
+
+  // Helper to normalize skill names - handles "Knowledge (Underworld)" -> "Underworld"
+  function normalizeSkillName(skillName) {
+    const knowledgeMatch = skillName.match(/^Knowledge\s*\(([^)]+)\)$/i);
+    if (knowledgeMatch) {
+      return knowledgeMatch[1].trim();
+    }
+    return skillName;
+  }
+
+  // Helper to get all career skills as normalized array
+  function getAllCareerSkillsArray() {
+    return [
+      ...(record.data?.wizard?.careerSkills || "")
+        .replace(/, and /gi, ", ")
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+      ...(record.data?.wizard?.specSkills || "")
+        .replace(/, and /gi, ", ")
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+    ].filter((s) => s !== "");
+  }
+
+  function onStepEnd(stepIndex) {
+    // Validate that XP has been spent wisely
+    const xpRemaining = record.data?.wizard?.xpRemaining || 0;
+
+    if (xpRemaining < 0) {
+      api.showNotification(
+        "You have spent more XP than available. Please reduce your purchases.",
+        "red",
+        "Over Budget"
+      );
+      return false;
+    }
+
+    // Warn if lots of XP remaining but allow proceeding
+    if (xpRemaining > 20) {
+      api.showNotification(
+        `You have ${xpRemaining} XP remaining. Consider spending more on characteristics - they can only be increased during character creation!`,
+        "yellow",
+        "XP Remaining"
+      );
+    }
+
+    return true;
+  }
+
+  function onStep4Load() {
+    // Initialize skills if not already done
+    if (!record.data?.wizard?.skillsInitialized) {
+      initializeSkills();
+    } else {
+      // Skills already initialized, just update display values
+      updateSkillsDisplay();
+    }
+
+    // Build career skills summary
+    const allCareerSkillsArray = getAllCareerSkillsArray().filter(
+      (s, i, arr) => arr.indexOf(s) === i
+    ); // Remove duplicates
+
+    // Build free skill ranks summary
+    // Normalize choices to handle "Knowledge (X)" -> "X"
+    const careerSkillChoices = (
+      record.data?.wizard?.careerSkillChoices || []
+    ).map(normalizeSkillName);
+    const specSkillChoices = (record.data?.wizard?.specSkillChoices || []).map(
+      normalizeSkillName
+    );
+
+    // Count ranks per skill (can stack if chosen in both)
+    const freeRanks = {};
+    careerSkillChoices.forEach((skill) => {
+      freeRanks[skill] = (freeRanks[skill] || 0) + 1;
+    });
+    specSkillChoices.forEach((skill) => {
+      freeRanks[skill] = (freeRanks[skill] || 0) + 1;
+    });
+
+    const freeSkillsList = Object.entries(freeRanks)
+      .map(([skill, ranks]) => `${skill} (Rank ${ranks})`)
+      .join(", ");
+
+    api.setValues(
+      {
+        "data.wizard.allCareerSkillsList": allCareerSkillsArray.join(", "),
+        "data.wizard.freeSkillRanksList": freeSkillsList || "None selected",
+      },
+      () => {
+        // Recalculate XP to ensure accuracy
+        recalculateXp();
+      }
+    );
+  }
+
+  function initializeSkills() {
+    // Get career and specialization skills
+    // Normalize the choices to handle "Knowledge (X)" -> "X"
+    const careerSkillChoices = (
+      record.data?.wizard?.careerSkillChoices || []
+    ).map(normalizeSkillName);
+    const specSkillChoices = (record.data?.wizard?.specSkillChoices || []).map(
+      normalizeSkillName
+    );
+    const allCareerSkills = getAllCareerSkillsArray();
+
+    // Build skills as an array (single source of truth)
+    const skills = allSkills.map((skill) => {
+      const isCareerSkill = allCareerSkills.some(
+        (cs) => cs.toLowerCase() === skill.name.toLowerCase()
+      );
+
+      // Count free ranks (can stack if both career and spec chose same skill)
+      let freeRanks = 0;
+      if (
+        careerSkillChoices.some(
+          (cs) => cs.toLowerCase() === skill.name.toLowerCase()
+        )
+      ) {
+        freeRanks++;
+      }
+      if (
+        specSkillChoices.some(
+          (ss) => ss.toLowerCase() === skill.name.toLowerCase()
+        )
+      ) {
+        freeRanks++;
+      }
+
+      // Calculate next cost
+      const nextRank = freeRanks + 1;
+      let nextCost = "";
+      if (nextRank > 2) {
+        nextCost = "MAX";
+      } else {
+        const cost = isCareerSkill ? nextRank * 5 : nextRank * 5 + 5;
+        nextCost = `${cost} XP`;
+      }
+
+      return {
+        _id: skill.name,
+        name: skill.name,
+        data: {
+          stat: skill.stat,
+          group: skill.group,
+          isCareer: isCareerSkill,
+          freeRanks: freeRanks,
+          rank: freeRanks, // Start with free ranks
+          purchasedRanks: 0,
+          nextCost: nextCost,
+        },
+        fields: {
+          careerIndicator: {
+            hidden: !isCareerSkill,
+          },
+        },
+      };
+    });
+
+    api.setValues({
+      "data.wizard.skills": skills,
+      "data.wizard.skillsInitialized": true,
+    });
+  }
+
+  function updateSkillsDisplay() {
+    // Update nextCost for all skills (called when skills already initialized)
+    const skills = record.data?.wizard?.skills || [];
+    if (!Array.isArray(skills)) return;
+
+    const allCareerSkills = getAllCareerSkillsArray();
+
+    const updatedSkills = skills.map((skill) => {
+      const currentRank = skill.data?.rank || 0;
+      const nextRank = currentRank + 1;
+      const isCareer = allCareerSkills.some(
+        (cs) => cs.toLowerCase() === skill.name.toLowerCase()
+      );
+
+      let nextCost = "";
+      if (nextRank > 2) {
+        nextCost = "MAX";
+      } else {
+        const cost = isCareer ? nextRank * 5 : nextRank * 5 + 5;
+        nextCost = `${cost} XP`;
+      }
+
+      return {
+        ...skill,
+        data: {
+          ...skill.data,
+          nextCost: nextCost,
+        },
+      };
+    });
+
+    api.setValues({
+      "data.wizard.skills": updatedSkills,
+    });
+  }
+
+  function recalculateXp() {
+    // Get base values
+    const startingXp = record.data?.wizard?.startingXp || 0;
+    const gameType = record.data?.wizard?.gameType;
+
+    // Get bonus XP based on game type
+    // Obligation/Duty use bonusXp, Morality uses moralityBonusXp
+    let bonusXp = 0;
+    if (gameType === "fad") {
+      bonusXp = record.data?.wizard?.moralityBonusXp || 0;
+    } else {
+      bonusXp = record.data?.wizard?.bonusXp || 0;
+    }
+    const totalXp = startingXp + bonusXp;
+
+    // Calculate characteristic costs
+    const speciesData = record.data?.wizard?.selectedSpecies?.[0];
+    const characteristics = [
+      "brawn",
+      "agility",
+      "intellect",
+      "cunning",
+      "willpower",
+      "presence",
+    ];
+
+    let charXpSpent = 0;
+    characteristics.forEach((char) => {
+      const baseValue = speciesData?.data?.[char] || 2;
+      const currentValue = record.data?.wizard?.[char] || baseValue;
+
+      // Cost is 10 × each level from base to current
+      for (let i = baseValue + 1; i <= currentValue; i++) {
+        charXpSpent += i * 10;
+      }
+    });
+
+    // Calculate skill costs
+    let skillXpSpent = 0;
+    const skills = record.data?.wizard?.skills || [];
+    const allCareerSkills = getAllCareerSkillsArray();
+
+    // Handle both array and object formats for backwards compatibility
+    const skillsArray = Array.isArray(skills) ? skills : Object.values(skills);
+
+    skillsArray.forEach((skill) => {
+      const purchasedRanks = skill.data?.purchasedRanks || 0;
+      const freeRanks = skill.data?.freeRanks || 0;
+      const isCareer = allCareerSkills.some(
+        (cs) => cs.toLowerCase() === skill.name.toLowerCase()
+      );
+
+      // Cost for each purchased rank (on top of free ranks)
+      for (let i = 1; i <= purchasedRanks; i++) {
+        const rankBeingPurchased = freeRanks + i;
+        if (isCareer) {
+          skillXpSpent += rankBeingPurchased * 5;
+        } else {
+          skillXpSpent += rankBeingPurchased * 5 + 5;
+        }
+      }
+    });
+
+    const totalSpent = charXpSpent + skillXpSpent;
+    const xpRemaining = totalXp - totalSpent;
+
+    api.setValues({
+      "data.wizard.xpSpent": totalSpent,
+      "data.wizard.charXpSpent": charXpSpent,
+      "data.wizard.skillXpSpent": skillXpSpent,
+      "data.wizard.xpRemaining": xpRemaining,
+    });
+  }
+
+  function onCharacteristicChange(char, value) {
+    const speciesData = record.data?.wizard?.selectedSpecies?.[0];
+    const baseValue = speciesData?.data?.[char] || 2;
+    const maxValue = 5; // Max during creation is 5
+
+    // Clamp value
+    let newValue = Math.max(baseValue, Math.min(maxValue, value));
+
+    // Update wound/strain thresholds if brawn or willpower changed
+    const valuesToSet = {
+      [`data.wizard.${char}`]: newValue,
+    };
+
+    if (char === "brawn") {
+      const woundBase = record.data?.wizard?.woundThresholdBase || 10;
+      valuesToSet["data.wizard.woundThreshold"] = woundBase + newValue;
+    } else if (char === "willpower") {
+      const strainBase = record.data?.wizard?.strainThresholdBase || 10;
+      valuesToSet["data.wizard.strainThreshold"] = strainBase + newValue;
+    }
+
+    api.setValues(valuesToSet, () => {
+      recalculateXp();
+    });
+  }
+
+  function getCharacteristicCost(char) {
+    const speciesData = record.data?.wizard?.selectedSpecies?.[0];
+    const baseValue = speciesData?.data?.[char] || 2;
+    const currentValue = record.data?.wizard?.[char] || baseValue;
+    const nextValue = currentValue + 1;
+
+    if (nextValue > 5) return "MAX";
+    return `${nextValue * 10} XP`;
+  }
+
+  function getSkillFilters(groupType) {
+    return [{ field: "group", operator: "equals", value: groupType }];
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Spend Starting XP"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Spend your XP on characteristics and skills. IMPORTANT: Characteristics can ONLY be increased during character creation - prioritize them!"
+    size="sm"
+    textalign="center"
+    color="yellow"
+  ></label>
+
+  <!-- XP Summary -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 8px;
+      background: var(--mantine-color-dark-6);
+      border-radius: 8px;
+    "
+  >
+    <numberfield
+      field="xpRemaining"
+      label="XP Remaining"
+      width="120px"
+      editable="false"
+      hidecontrols="true"
+      color="yellow"
+      size="lg"
+    ></numberfield>
+
+    <numberfield
+      field="charXpSpent"
+      label="Char XP"
+      width="100px"
+      editable="false"
+      hidecontrols="true"
+      size="sm"
+    ></numberfield>
+
+    <numberfield
+      field="skillXpSpent"
+      label="Skill XP"
+      width="100px"
+      editable="false"
+      hidecontrols="true"
+      size="sm"
+    ></numberfield>
+  </div>
+
+  <!-- Characteristics Section -->
+  <divider label="Characteristics (10 x new rating)"></divider>
+  <label
+    label="Characteristics can only be raised during character creation! Maximum of 5 during creation."
+    size="xs"
+    color="red"
+  ></label>
+
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        textalign="center"
+        field="brawn"
+        label="Brawn"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('brawn', value);"
+        onload="onStep4Load();"
+      ></numberfield>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        field="agility"
+        label="Agility"
+        textalign="center"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('agility', value);"
+      ></numberfield>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        field="intellect"
+        textalign="center"
+        label="Intellect"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('intellect', value);"
+      ></numberfield>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        textalign="center"
+        field="cunning"
+        label="Cunning"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('cunning', value);"
+      ></numberfield>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        textalign="center"
+        field="willpower"
+        label="Willpower"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('willpower', value);"
+      ></numberfield>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      "
+    >
+      <numberfield
+        size="sm"
+        width="70px"
+        textalign="center"
+        field="presence"
+        label="Presence"
+        minvalue="1"
+        maxvalue="5"
+        onchange="onCharacteristicChange('presence', value);"
+      ></numberfield>
+    </div>
+  </div>
+
+  <!-- Updated Thresholds -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+    <numberfield
+      field="woundThreshold"
+      label="Wound Threshold"
+      width="130px"
+      editable="false"
+      hidecontrols="true"
+      icon="IconHeartFilled"
+      color="pink"
+    ></numberfield>
+
+    <numberfield
+      field="strainThreshold"
+      label="Strain Threshold"
+      width="130px"
+      editable="false"
+      hidecontrols="true"
+      icon="IconHeartbeat"
+      color="blue"
+    ></numberfield>
+  </div>
+
+  <!-- Skills Section -->
+  <divider label="Skills"></divider>
+  <label
+    label="Career skills cost 5 x new rank. Non-career skills cost 5 x new rank + 5. Maximum rank 2 during creation."
+    size="xs"
+    color="dimmed"
+  ></label>
+
+  <label
+    label="Note: You can purchase skill ranks in the next step or after character creation. Focus on characteristics here since they can only be raised during creation!"
+    size="xs"
+    color="yellow"
+  ></label>
+
+  <!-- Career Skills Summary -->
+  <box field="careerSkillsSummary">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <label label="Your Career Skills:" size="sm" variant="bold"></label>
+      <label field="allCareerSkillsList" size="xs" color="green"></label>
+    </div>
+  </box>
+
+  <!-- Free Skill Ranks Summary -->
+  <box field="freeSkillsSummary">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <label label="Free Skill Ranks:" size="sm" variant="bold"></label>
+      <label
+        label="From career skill choices and specialization skill choices, you receive free ranks in:"
+        size="xs"
+        color="dimmed"
+      ></label>
+      <label field="freeSkillRanksList" size="xs" color="blue"></label>
+    </div>
+  </box>
+
+  <!-- Skills Purchase Section -->
+  <divider label="Purchase Skill Ranks"></divider>
+  <label
+    label="Use the +/- buttons to purchase additional skill ranks. Career skills (green) cost 5 x new rank. Non-career skills cost 5 x new rank + 5."
+    size="xs"
+    color="dimmed"
+  ></label>
+
+  <!-- General Skills -->
+  <accordion
+    field="generalSkillsAccordion"
+    label="General Skills"
+    size="sm"
+    variant="separated"
+    defaultopen="true"
+  >
+    <list
+      field="skills"
+      listtype="wizard_skill_list"
+      getfilters="return getSkillFilters('General');"
+    ></list>
+  </accordion>
+
+  <!-- Combat Skills -->
+  <accordion
+    field="combatSkillsAccordion"
+    label="Combat Skills"
+    size="sm"
+    variant="separated"
+  >
+    <list
+      field="skills"
+      listtype="wizard_skill_list"
+      getfilters="return getSkillFilters('Combat');"
+    ></list>
+  </accordion>
+
+  <!-- Knowledge Skills -->
+  <accordion
+    field="knowledgeSkillsAccordion"
+    label="Knowledge Skills"
+    size="sm"
+    variant="separated"
+  >
+    <list
+      field="skills"
+      listtype="wizard_skill_list"
+      getfilters="return getSkillFilters('Knowledge');"
+    ></list>
+  </accordion>
+</div>

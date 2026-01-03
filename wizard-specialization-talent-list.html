@@ -1,0 +1,201 @@
+<script>
+  // Wizard-specific version of specialization-talent-list
+  // The "chosen" button is visible by default and handles XP tracking for the wizard
+
+  function toggleChosen(value) {
+    toggleChosenWizardTalent(value);
+  }
+
+  function toggleChosenWizardTalent(value) {
+    const talents = record.data?.wizard?.talents || [];
+    const dataPathToTalent = dataPath.replace("data.chosen", "");
+    const talent = api.getValue(dataPathToTalent);
+
+    const rankedTalent = talent?.data?.ranked === "yes" ? true : false;
+
+    const talentIdToUse = rankedTalent
+      ? talent._id
+      : `${talent._id}-${dataPathToTalent}`;
+
+    // If it is ranked, check if it already exists in the talents list
+    const existingTalent = talents.find((t) => t._id === talentIdToUse);
+    const existingTalentIndex = talents.findIndex(
+      (t) => t._id === talentIdToUse
+    );
+
+    if (value === "yes") {
+      // Add talent to talents list and add cost to spent xp
+      if (existingTalentIndex !== -1) {
+        // Update the rank
+        api.setValues(
+          {
+            [`data.wizard.talents.${existingTalentIndex}.data.rank`]:
+              (existingTalent?.data?.rank || 0) + 1,
+          },
+          (recordUpdated) => {
+            updateWizardXp(recordUpdated, talent.data?.cost || 0);
+          }
+        );
+      } else {
+        // Add it to the talents list
+        const newTalents = [
+          ...talents,
+          {
+            ...talent,
+            _id: talentIdToUse,
+            data: {
+              ...talent.data,
+              rank: 1,
+            },
+            icon: "IconStar",
+          },
+        ];
+        api.setValues(
+          {
+            [`data.wizard.talents`]: newTalents,
+          },
+          (recordUpdated) => {
+            updateWizardXp(recordUpdated, talent.data?.cost || 0);
+          }
+        );
+      }
+    } else {
+      // Remove talent from talents list and subtract cost from spent xp
+      if (
+        existingTalentIndex !== -1 &&
+        existingTalent?.data?.rank &&
+        existingTalent?.data?.rank > 1
+      ) {
+        // We are deducting a rank
+        api.setValues(
+          {
+            [`data.wizard.talents.${existingTalentIndex}.data.rank`]:
+              existingTalent?.data?.rank - 1,
+          },
+          (recordUpdated) => {
+            updateWizardXp(recordUpdated, -(talent.data?.cost || 0));
+          }
+        );
+      } else if (existingTalentIndex !== -1) {
+        // We are removing the talent
+        api.removeValue(
+          "data.wizard.talents",
+          existingTalentIndex,
+          (recordUpdated) => {
+            // Requery the record on remove value
+            api.getRecord(record.recordType, record._id, (recordUpdated2) => {
+              updateWizardXp(recordUpdated2, -(talent.data?.cost || 0));
+            });
+          }
+        );
+      }
+    }
+  }
+
+  function updateWizardXp(currentRecord, xpChange) {
+    // Update the wizard XP tracking
+    const startingXp = currentRecord.data?.wizard?.startingXp || 0;
+    // F&D uses moralityBonusXp, others use bonusXp
+    const gameType = currentRecord.data?.wizard?.gameType;
+    const bonusXp =
+      gameType === "fad"
+        ? currentRecord.data?.wizard?.moralityBonusXp || 0
+        : currentRecord.data?.wizard?.bonusXp || 0;
+    const charXpSpent = currentRecord.data?.wizard?.charXpSpent || 0;
+    const skillXpSpent = currentRecord.data?.wizard?.skillXpSpent || 0;
+    const currentTalentXpSpent = currentRecord.data?.wizard?.talentXpSpent || 0;
+
+    const newTalentXpSpent = currentTalentXpSpent + xpChange;
+    const totalXp = startingXp + bonusXp;
+    const totalSpent = charXpSpent + skillXpSpent + newTalentXpSpent;
+    const xpRemaining = totalXp - totalSpent;
+
+    api.setValues({
+      "data.wizard.xpRemaining": xpRemaining,
+      "data.wizard.xpSpent": totalSpent,
+      "data.wizard.talentXpSpent": newTalentXpSpent,
+    });
+  }
+</script>
+
+<!-- This 'list' represents one talent slot in a Wizard Spec Tree -->
+<div style="display: flex; gap: 4px">
+  <div style="width: 34px; height: 34px; min-height: 34px; min-width: 34px">
+    <portrait width="34px" height="34px" field="portrait"></portrait>
+  </div>
+  <div style="display: flex; align-items: center; gap: 4px; width: 100%">
+    <namefield
+      width="100%"
+      field="namefield"
+      variant="tooltip-underline"
+      label="Name"
+      placeholder="Enter Name..."
+      editable="false"
+    ></namefield>
+  </div>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+    <iconbutton
+      field="ranked"
+      variant="default"
+      size="sm"
+      editable="false"
+      options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"},
+  {"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
+    ></iconbutton>
+    <iconbutton
+      field="chosen"
+      variant="outline"
+      color="primary"
+      onchange="toggleChosen(value);"
+      size="sm"
+      options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"},
+{"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'
+    ></iconbutton>
+  </div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+  <stringfield
+    width="100%"
+    field="activation"
+    label="Activation"
+    variant="tooltip-underline"
+    placeholder="Activation..."
+    editable="false"
+  ></stringfield>
+</div>
+<accordion
+  width="100%"
+  field="talentAccordion"
+  label="Description"
+  size="xs"
+  variant="separated"
+>
+  <richtextfield
+    width="100%"
+    field="description"
+    label="Description"
+    placeholder="Enter Description..."
+    disablecontrols="true"
+    editable="false"
+  ></richtextfield>
+</accordion>
+<div
+  style="
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  "
+>
+  <numberfield
+    width="100px"
+    textalign="center"
+    field="cost"
+    label="Cost"
+    variant="tooltip"
+    hidecontrols="true"
+    placeholder="Enter Cost..."
+    editable="false"
+  ></numberfield>
+</div>

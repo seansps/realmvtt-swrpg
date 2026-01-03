@@ -1,0 +1,546 @@
+<script>
+  // Step 3: Obligation/Duty/Morality
+  // Based on game type (EotE/AoR/F&D), the player selects their:
+  // - Obligation type and value (Edge of the Empire)
+  // - Duty type and value (Age of Rebellion)
+  // - Morality (Force and Destiny)
+  // Players can take extra obligation/duty for bonus XP or credits
+
+  function onStepEnd(stepIndex) {
+    const gameType = record.data?.wizard?.gameType;
+
+    if (!gameType) {
+      api.showNotification(
+        "Please select a game type before continuing.",
+        "yellow",
+        "Game Type Required"
+      );
+      return false;
+    }
+
+    if (gameType === "eote") {
+      const obligationType = record.data?.wizard?.obligationType;
+      if (!obligationType) {
+        api.showNotification(
+          "Please select an obligation type before continuing.",
+          "yellow",
+          "Obligation Required"
+        );
+        return false;
+      }
+    } else if (gameType === "aor") {
+      const dutyType = record.data?.wizard?.dutyType;
+      if (!dutyType) {
+        api.showNotification(
+          "Please select a duty type before continuing.",
+          "yellow",
+          "Duty Required"
+        );
+        return false;
+      }
+    } else if (gameType === "fad") {
+      const moralityStrength = record.data?.wizard?.moralityStrength;
+      const moralityWeakness = record.data?.wizard?.moralityWeakness;
+      if (!moralityStrength || !moralityWeakness) {
+        api.showNotification(
+          "Please select both a strength and weakness for your morality.",
+          "yellow",
+          "Morality Required"
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function getBaseObligationDuty() {
+    const setting = api.getSetting("startingObligationDuty");
+    return parseInt(setting, 10) || 10;
+  }
+
+  function onStep3Load() {
+    // Set initial obligation/duty values from campaign setting
+    const baseObDuty = getBaseObligationDuty();
+    api.setValues({
+      "data.wizard.baseObligationDuty": baseObDuty,
+      "data.wizard.totalObligation": baseObDuty,
+      "data.wizard.startingDuty": baseObDuty,
+      "data.wizard.startingMorality": 50,
+    });
+
+    // Check existing game type and show appropriate section
+    const gameType = record.data?.wizard?.gameType;
+    if (gameType) {
+      showGameTypeSection(gameType);
+    }
+  }
+
+  function onGameTypeChange(value) {
+    api.setValues(
+      {
+        "data.wizard.gameType": value,
+      },
+      () => {
+        showGameTypeSection(value);
+      }
+    );
+  }
+
+  function showGameTypeSection(gameType) {
+    const valuesToSet = {
+      "fields.eoteSection.hidden": gameType !== "eote",
+      "fields.aorSection.hidden": gameType !== "aor",
+      "fields.fadSection.hidden": gameType !== "fad",
+    };
+    api.setValues(valuesToSet);
+  }
+
+  function onBonusChange(value) {
+    // Calculate bonus XP and credits based on selection
+    let bonusXp = 0;
+    let bonusCredits = 0;
+    let extraObligation = 0;
+
+    if (value === "xp5") {
+      bonusXp = 5;
+      extraObligation = 5;
+    } else if (value === "xp10") {
+      bonusXp = 10;
+      extraObligation = 10;
+    } else if (value === "credits5") {
+      bonusCredits = 1000;
+      extraObligation = 5;
+    } else if (value === "credits10") {
+      bonusCredits = 2500;
+      extraObligation = 10;
+    }
+
+    // Update the wizard data
+    const startingXp = record.data?.wizard?.startingXp || 0;
+    const baseObDuty =
+      record.data?.wizard?.baseObligationDuty || getBaseObligationDuty();
+
+    api.setValues({
+      "data.wizard.bonusChoice": value,
+      "data.wizard.bonusXp": bonusXp,
+      "data.wizard.bonusCredits": bonusCredits,
+      "data.wizard.extraObligation": extraObligation,
+      "data.wizard.totalObligation": baseObDuty + extraObligation,
+      "data.wizard.startingDuty": baseObDuty - extraObligation, // Duty decreases with bonuses
+      "data.wizard.xpRemaining": startingXp + bonusXp,
+    });
+  }
+
+  function onObligationDescriptionChange(value) {
+    api.setValues({
+      "data.wizard.obligationDescription": value,
+    });
+  }
+
+  function onDutyDescriptionChange(value) {
+    api.setValues({
+      "data.wizard.dutyDescription": value,
+    });
+  }
+
+  function onMoralityBonusChange(value) {
+    // Morality bonuses require choosing Light Side (71) or Dark Side (29)
+    // You cannot take a bonus and remain at 50
+    let bonusXp = 0;
+    let bonusCredits = 0;
+    let startingMorality = 50;
+
+    if (value === "light_xp10") {
+      bonusXp = 10;
+      startingMorality = 71;
+    } else if (value === "dark_xp10") {
+      bonusXp = 10;
+      startingMorality = 29;
+    } else if (value === "light_credits2500") {
+      bonusCredits = 2500;
+      startingMorality = 71;
+    } else if (value === "dark_credits2500") {
+      bonusCredits = 2500;
+      startingMorality = 29;
+    } else if (value === "light_xp5credits1000") {
+      bonusXp = 5;
+      bonusCredits = 1000;
+      startingMorality = 71;
+    } else if (value === "dark_xp5credits1000") {
+      bonusXp = 5;
+      bonusCredits = 1000;
+      startingMorality = 29;
+    }
+    // value === "none" keeps defaults (0 XP, 0 credits, morality 50)
+
+    const startingXp = record.data?.wizard?.startingXp || 0;
+
+    api.setValues({
+      "data.wizard.moralityBonusChoice": value,
+      "data.wizard.moralityBonusXp": bonusXp,
+      "data.wizard.moralityBonusCredits": bonusCredits,
+      "data.wizard.startingMorality": startingMorality,
+      "data.wizard.xpRemaining": startingXp + bonusXp,
+    });
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Obligation, Duty, or Morality"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Select your game type to determine what system your character uses. Edge of the Empire uses Obligation, Age of Rebellion uses Duty, and Force and Destiny uses Morality."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- Game Type Selection -->
+  <divider label="Game Type"></divider>
+  <dropdown
+    field="gameType"
+    placeholder="Select game type..."
+    width="100%"
+    onchange="onGameTypeChange(value);"
+    onload="onStep3Load();"
+    options='[
+      {"label": "Edge of the Empire (Obligation)", "value": "eote"},
+      {"label": "Age of Rebellion (Duty)", "value": "aor"},
+      {"label": "Force and Destiny (Morality)", "value": "fad"}
+    ]'
+  ></dropdown>
+
+  <!-- Edge of the Empire: Obligation -->
+  <box field="eoteSection" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <divider label="Obligation"></divider>
+      <label
+        label="Obligation represents debts, duties, or problems that follow your character. Higher obligation means more complications but can provide starting bonuses."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="obligationType"
+        label="Obligation Type"
+        placeholder="Select obligation type..."
+        width="100%"
+        options='[
+          {"label": "Addiction", "value": "Addiction"},
+          {"label": "Betrayal", "value": "Betrayal"},
+          {"label": "Blackmail", "value": "Blackmail"},
+          {"label": "Bounty", "value": "Bounty"},
+          {"label": "Criminal", "value": "Criminal"},
+          {"label": "Debt", "value": "Debt"},
+          {"label": "Dutybound", "value": "Dutybound"},
+          {"label": "Family", "value": "Family"},
+          {"label": "Favor", "value": "Favor"},
+          {"label": "Oath", "value": "Oath"},
+          {"label": "Obsession", "value": "Obsession"},
+          {"label": "Responsibility", "value": "Responsibility"}
+        ]'
+      ></dropdown>
+
+      <stringfield
+        field="obligationDescription"
+        label="Obligation Description"
+        placeholder="Describe the details of your obligation..."
+        multiline="true"
+        width="100%"
+        onchange="onObligationDescriptionChange(value);"
+      ></stringfield>
+
+      <divider label="Starting Bonus"></divider>
+      <label
+        label="You can take on additional obligation in exchange for extra XP or starting credits. This increases the chance your obligation will be triggered during play."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="bonusChoice"
+        label="Extra Obligation Bonus"
+        placeholder="Select bonus (optional)..."
+        width="100%"
+        options='[
+          {"label": "No Bonus", "value": "none"},
+          {"label": "+5 XP", "value": "xp5"},
+          {"label": "+10 XP", "value": "xp10"},
+          {"label": "+1,000 Credits", "value": "credits5"},
+          {"label": "+2,500 Credits", "value": "credits10"}
+        ]'
+        onchange="onBonusChange(value);"
+      ></dropdown>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <numberfield
+          field="totalObligation"
+          label="Total Obligation"
+          width="120px"
+          editable="false"
+          hidecontrols="true"
+          defaultvalue="10"
+        ></numberfield>
+
+        <numberfield
+          field="bonusXp"
+          label="Bonus XP"
+          width="100px"
+          editable="false"
+          hidecontrols="true"
+          color="yellow"
+          defaultvalue="0"
+        ></numberfield>
+
+        <numberfield
+          field="bonusCredits"
+          label="Bonus Credits"
+          width="120px"
+          editable="false"
+          hidecontrols="true"
+          color="green"
+          defaultvalue="0"
+        ></numberfield>
+      </div>
+    </div>
+  </box>
+
+  <!-- Age of Rebellion: Duty -->
+  <box field="aorSection" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <divider label="Duty"></divider>
+      <label
+        label="Duty represents your commitment to the Rebel Alliance. As you complete missions and serve the cause, your Duty increases and can lead to promotions and recognition."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="dutyType"
+        label="Duty Type"
+        placeholder="Select duty type..."
+        width="100%"
+        options='[
+          {"label": "Combat Victory", "value": "Combat Victory"},
+          {"label": "Counter-Intelligence", "value": "Counter-Intelligence"},
+          {"label": "Intelligence", "value": "Intelligence"},
+          {"label": "Internal Security", "value": "Internal Security"},
+          {"label": "Personnel", "value": "Personnel"},
+          {"label": "Political Support", "value": "Political Support"},
+          {"label": "Recruiting", "value": "Recruiting"},
+          {"label": "Resource Acquisition", "value": "Resource Acquisition"},
+          {"label": "Sabotage", "value": "Sabotage"},
+          {"label": "Space Superiority", "value": "Space Superiority"},
+          {"label": "Support", "value": "Support"},
+          {"label": "Tech Procurement", "value": "Tech Procurement"}
+        ]'
+      ></dropdown>
+
+      <stringfield
+        field="dutyDescription"
+        label="Duty Description"
+        placeholder="Describe how you serve the Alliance..."
+        multiline="true"
+        width="100%"
+        onchange="onDutyDescriptionChange(value);"
+      ></stringfield>
+
+      <divider label="Starting Bonus"></divider>
+      <label
+        label="You can start with less Duty in exchange for extra XP or starting credits. This means starting with a lower rank but more personal resources."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="bonusChoice"
+        label="Duty Trade-Off"
+        placeholder="Select bonus (optional)..."
+        width="100%"
+        options='[
+          {"label": "No Bonus", "value": "none"},
+          {"label": "+5 XP", "value": "xp5"},
+          {"label": "+10 XP", "value": "xp10"},
+          {"label": "+1,000 Credits", "value": "credits5"},
+          {"label": "+2,500 Credits", "value": "credits10"}
+        ]'
+        onchange="onBonusChange(value);"
+      ></dropdown>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <numberfield
+          field="startingDuty"
+          label="Starting Duty"
+          width="120px"
+          editable="false"
+          hidecontrols="true"
+          defaultvalue="10"
+        ></numberfield>
+
+        <numberfield
+          field="bonusXp"
+          label="Bonus XP"
+          width="100px"
+          editable="false"
+          hidecontrols="true"
+          color="yellow"
+          defaultvalue="0"
+        ></numberfield>
+
+        <numberfield
+          field="bonusCredits"
+          label="Bonus Credits"
+          width="120px"
+          editable="false"
+          hidecontrols="true"
+          color="green"
+          defaultvalue="0"
+        ></numberfield>
+      </div>
+    </div>
+  </box>
+
+  <!-- Force and Destiny: Morality -->
+  <box field="fadSection" hidden="true">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <divider label="Morality"></divider>
+      <label
+        label="Morality represents your character's internal struggle between the light and dark sides of the Force. Your emotional strength and weakness guide your path."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="moralityStrength"
+        label="Emotional Strength"
+        placeholder="Select your emotional strength..."
+        width="100%"
+        options='[
+          {"label": "Ambition", "value": "Ambition"},
+          {"label": "Bravery", "value": "Bravery"},
+          {"label": "Caution", "value": "Caution"},
+          {"label": "Compassion", "value": "Compassion"},
+          {"label": "Curiosity", "value": "Curiosity"},
+          {"label": "Discipline", "value": "Discipline"},
+          {"label": "Enthusiasm", "value": "Enthusiasm"},
+          {"label": "Independence", "value": "Independence"},
+          {"label": "Justice", "value": "Justice"},
+          {"label": "Love", "value": "Love"},
+          {"label": "Mercy", "value": "Mercy"},
+          {"label": "Pride", "value": "Pride"}
+        ]'
+      ></dropdown>
+
+      <dropdown
+        field="moralityWeakness"
+        label="Emotional Weakness"
+        placeholder="Select your emotional weakness..."
+        width="100%"
+        options='[
+          {"label": "Anger", "value": "Anger"},
+          {"label": "Arrogance", "value": "Arrogance"},
+          {"label": "Coldness", "value": "Coldness"},
+          {"label": "Cruelty", "value": "Cruelty"},
+          {"label": "Fear", "value": "Fear"},
+          {"label": "Greed", "value": "Greed"},
+          {"label": "Hatred", "value": "Hatred"},
+          {"label": "Jealousy", "value": "Jealousy"},
+          {"label": "Obsession", "value": "Obsession"},
+          {"label": "Obstinance", "value": "Obstinance"},
+          {"label": "Recklessness", "value": "Recklessness"},
+          {"label": "Weakness", "value": "Weakness"}
+        ]'
+      ></dropdown>
+
+      <divider label="Starting Bonus"></divider>
+      <label
+        label="You may select one bonus option. To receive any bonus, you must choose to begin as either a Light Side Paragon (71) or Dark Side User (29). You cannot take a bonus and start at 50."
+        size="xs"
+        color="dimmed"
+      ></label>
+
+      <dropdown
+        field="moralityBonusChoice"
+        label="Morality Bonus"
+        placeholder="Select bonus (optional)..."
+        width="100%"
+        options='[
+          {"label": "No Bonus (Start at 50)", "value": "none"},
+          {"label": "Light Side: +10 XP (Start at 71)", "value": "light_xp10"},
+          {"label": "Light Side: +2,500 Credits (Start at 71)", "value": "light_credits2500"},
+          {"label": "Light Side: +5 XP and +1,000 Credits (Start at 71)", "value": "light_xp5credits1000"},
+          {"label": "Dark Side: +10 XP (Start at 29)", "value": "dark_xp10"},
+          {"label": "Dark Side: +2,500 Credits (Start at 29)", "value": "dark_credits2500"},
+          {"label": "Dark Side: +5 XP and +1,000 Credits (Start at 29)", "value": "dark_xp5credits1000"}
+        ]'
+        onchange="onMoralityBonusChange(value);"
+      ></dropdown>
+
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        "
+      >
+        <numberfield
+          field="startingMorality"
+          label="Starting Morality"
+          width="130px"
+          editable="false"
+          hidecontrols="true"
+          defaultvalue="50"
+        ></numberfield>
+
+        <numberfield
+          field="moralityBonusXp"
+          label="Bonus XP"
+          width="100px"
+          editable="false"
+          hidecontrols="true"
+          color="yellow"
+          defaultvalue="0"
+        ></numberfield>
+
+        <numberfield
+          field="moralityBonusCredits"
+          label="Bonus Credits"
+          width="120px"
+          editable="false"
+          hidecontrols="true"
+          color="green"
+          defaultvalue="0"
+        ></numberfield>
+      </div>
+    </div>
+  </box>
+</div>

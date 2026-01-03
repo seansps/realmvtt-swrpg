@@ -1,0 +1,660 @@
+<script>
+  // Step 7: Motivations & Background (Finalization Step)
+  // Players define their character's motivations and background
+  // This step also handles finalizing the character
+
+  // Motivation types and their specific options
+  // Core motivations available to all characters
+  const motivationTypes = {
+    Ambition: [
+      "Friendship",
+      "Love",
+      "Freedom",
+      "Fame",
+      "Greed",
+      "Status",
+      "Expertise",
+      "Wanderlust/Novelty",
+      "Power",
+      "Religion/Spirituality",
+    ],
+    Cause: [
+      "Religion/Spirituality",
+      "The Weak/Charity",
+      "Non-Human Rights",
+      "Local Politics",
+      "Overthrow the Empire",
+      "Crime",
+      "Emancipation",
+      "Droid Rights",
+      "Capitalism",
+      "Support the Empire",
+    ],
+    Relationship: [
+      "Place of Origin",
+      "Pet",
+      "Childhood Friend",
+      "Comrades",
+      "Sibling(s)",
+      "Mentor",
+      "Parents",
+      "Extended Family/Clan",
+      "Droid Companion",
+      "Former Nemesis",
+    ],
+    Other: [], // For career-specific or custom motivations - user types in specific
+  };
+
+  function onStepEnd(stepIndex) {
+    // Finalize the character
+    finalizeCharacter();
+    return true;
+  }
+
+  function onStep7Load() {
+    // Build summary
+    buildCharacterSummary();
+    // Update motivation options based on selected types
+    updateMotivationOptions(1);
+    updateMotivationOptions(2);
+    // Build motivation string preview
+    updateMotivationPreview();
+  }
+
+  function buildCharacterSummary() {
+    const speciesName = record.data?.wizard?.speciesName || "Unknown";
+    const careerName = record.data?.wizard?.careerName || "Unknown";
+    const specName = record.data?.wizard?.specName || "Unknown";
+    const xpRemaining = record.data?.wizard?.xpRemaining || 0;
+
+    const summary = `${speciesName} ${careerName} (${specName}) - ${xpRemaining} XP remaining`;
+
+    api.setValues({
+      "data.wizard.characterSummary": summary,
+    });
+  }
+
+  function onMotivationTypeChange(index, value) {
+    // Clear the specific motivation when type changes
+    api.setValues(
+      {
+        [`data.wizard.motivation${index}Type`]: value,
+        [`data.wizard.motivation${index}Specific`]: "",
+      },
+      () => {
+        updateMotivationOptions(index);
+        updateMotivationPreview();
+      }
+    );
+  }
+
+  function onMotivationSpecificChange(index, value) {
+    api.setValues(
+      {
+        [`data.wizard.motivation${index}Specific`]: value,
+      },
+      () => {
+        updateMotivationPreview();
+      }
+    );
+  }
+
+  function updateMotivationOptions(index) {
+    const type = record.data?.wizard?.[`motivation${index}Type`];
+    const options = type && motivationTypes[type] ? motivationTypes[type] : [];
+
+    const optionsForDropdown = options.map((opt) => ({
+      label: opt,
+      value: opt,
+    }));
+
+    api.setValues({
+      [`data.wizard.motivation${index}Options`]: optionsForDropdown,
+    });
+  }
+
+  function getMotivationSpecificOptions(index) {
+    const type = record.data?.wizard?.[`motivation${index}Type`];
+    const options = type && motivationTypes[type] ? motivationTypes[type] : [];
+    return options.map((opt) => ({ label: opt, value: opt }));
+  }
+
+  // Get motivation type options
+  function getMotivationTypeOptions() {
+    return Object.keys(motivationTypes).map((type) => ({
+      label: type === "Other" ? "Other (Career/Custom)" : type,
+      value: type,
+    }));
+  }
+
+  function updateMotivationPreview() {
+    const type1 = record.data?.wizard?.motivation1Type || "";
+    const specific1 = record.data?.wizard?.motivation1Specific || "";
+    const type2 = record.data?.wizard?.motivation2Type || "";
+    const specific2 = record.data?.wizard?.motivation2Specific || "";
+
+    let preview = "";
+    if (type1 && specific1) {
+      preview = `${type1}: ${specific1}`;
+    }
+    if (type2 && specific2) {
+      if (preview) {
+        preview += `; ${type2}: ${specific2}`;
+      } else {
+        preview = `${type2}: ${specific2}`;
+      }
+    }
+
+    api.setValues({
+      "data.wizard.motivationPreview": preview || "None selected",
+    });
+  }
+
+  function randomizeMotivation(index) {
+    // Pick a random type from types that have options (not "Other")
+    const typesWithOptions = Object.keys(motivationTypes).filter(
+      (type) => motivationTypes[type].length > 0
+    );
+    const randomType =
+      typesWithOptions[Math.floor(Math.random() * typesWithOptions.length)];
+
+    // Pick a random specific from that type
+    const specifics = motivationTypes[randomType];
+    const randomSpecific =
+      specifics[Math.floor(Math.random() * specifics.length)];
+
+    api.setValues(
+      {
+        [`data.wizard.motivation${index}Type`]: randomType,
+        [`data.wizard.motivation${index}Specific`]: randomSpecific,
+      },
+      () => {
+        updateMotivationOptions(index);
+        updateMotivationPreview();
+      }
+    );
+
+    api.showNotification(
+      `Randomly selected: ${randomType} - ${randomSpecific}`,
+      "blue",
+      "Random Selection"
+    );
+  }
+
+  function finalizeCharacter() {
+    // This function copies all wizard data to the main character fields
+    const valuesToSet = {};
+
+    // Species data - add to species list with proper structure
+    const species = record.data?.wizard?.selectedSpecies?.[0];
+    if (species) {
+      valuesToSet["data.species"] = [
+        {
+          ...species,
+          _id: species._id || generateUuid(),
+          icon: "IconAlien",
+        },
+      ];
+      valuesToSet["data.speciesName"] = species.name;
+      valuesToSet["fields.species.hidden"] = false;
+    }
+
+    // Characteristics
+    const characteristics = [
+      "brawn",
+      "agility",
+      "intellect",
+      "cunning",
+      "willpower",
+      "presence",
+    ];
+    characteristics.forEach((char) => {
+      const value = record.data?.wizard?.[char];
+      if (value !== undefined) {
+        valuesToSet[`data.${char}`] = value;
+      }
+    });
+
+    // Initialize wounds and strain to 0
+    valuesToSet["data.wounds"] = 0;
+    valuesToSet["data.strain"] = 0;
+
+    // Calculate derived attributes (soak, thresholds, defense)
+    // These must be set explicitly since updateAttributes won't trigger UI updates after wizard closes
+    const brawn = record.data?.wizard?.brawn || 2;
+    const willpower = record.data?.wizard?.willpower || 2;
+    const speciesWoundThreshold = species?.data?.woundThreshold || 10;
+    const speciesStrainThreshold = species?.data?.strainThreshold || 10;
+
+    valuesToSet["data.woundThreshold"] = speciesWoundThreshold + brawn;
+    valuesToSet["data.strainThreshold"] = speciesStrainThreshold + willpower;
+    valuesToSet["data.woundsRemaining"] = speciesWoundThreshold + brawn;
+    valuesToSet["data.strainRemaining"] = speciesStrainThreshold + willpower;
+    valuesToSet["data.soakValue"] = brawn;
+    valuesToSet["data.defenseRanged"] = 0;
+    valuesToSet["data.defenseMelee"] = 0;
+
+    // Career - add to careers list with proper structure
+    const career = record.data?.wizard?.selectedCareer?.[0];
+    if (career) {
+      valuesToSet["data.careers"] = [
+        {
+          ...career,
+          _id: career._id || generateUuid(),
+          icon: "IconBriefcase",
+        },
+      ];
+      valuesToSet["data.careerName"] = career.name;
+      valuesToSet["fields.careers.hidden"] = false;
+    }
+
+    // Specialization - update with chosen talents marked
+    const spec = record.data?.wizard?.selectedSpecialization?.[0];
+    const wizardTalents = record.data?.wizard?.talents || [];
+
+    if (spec) {
+      // Create a deep copy of the specialization to modify
+      const finalSpec = JSON.parse(JSON.stringify(spec));
+
+      // Mark talents as chosen in the specialization tree
+      // The spec has data.talentTree with rows, each row has talents
+      if (finalSpec.data?.talentTree) {
+        finalSpec.data.talentTree.forEach((row) => {
+          if (row.talents) {
+            row.talents.forEach((talent) => {
+              // Check if this talent was chosen
+              const chosenTalent = wizardTalents.find((wt) => {
+                // Match by base ID (ranked talents) or full ID path
+                return (
+                  wt._id === talent._id || wt._id.startsWith(talent._id + "-")
+                );
+              });
+
+              if (chosenTalent) {
+                talent.data = talent.data || {};
+                talent.data.chosen = "yes";
+                // If ranked, store the rank
+                if (chosenTalent.data?.rank) {
+                  talent.data.rank = chosenTalent.data.rank;
+                }
+              }
+            });
+          }
+        });
+      }
+
+      valuesToSet["data.specializations"] = [
+        {
+          ...finalSpec,
+          _id: finalSpec._id || generateUuid(),
+        },
+      ];
+    }
+
+    // Copy wizard talents to character talents list
+    if (wizardTalents.length > 0) {
+      const finalTalents = wizardTalents.map((talent) => ({
+        ...talent,
+        _id: talent._id || generateUuid(),
+        icon: talent.icon || "IconStar",
+      }));
+      valuesToSet["data.talents"] = finalTalents;
+    }
+
+    // Game type needed for XP and obligation/duty/morality
+    const gameType = record.data?.wizard?.gameType;
+
+    // XP - Total XP is starting + bonus, spent is sum of all XP categories
+    const startingXp = record.data?.wizard?.startingXp || 0;
+    const bonusXp =
+      gameType === "fad"
+        ? record.data?.wizard?.moralityBonusXp || 0
+        : record.data?.wizard?.bonusXp || 0;
+    const totalXp = startingXp + bonusXp;
+
+    // Calculate total spent XP from all sources
+    // charXpSpent = characteristics, skillXpSpent = skills, talentXpSpent = talents (all from wizard)
+    const charXpSpent = record.data?.wizard?.charXpSpent || 0;
+    const skillXpSpent = record.data?.wizard?.skillXpSpent || 0;
+    const talentXpSpent = record.data?.wizard?.talentXpSpent || 0;
+    const xpSpent = charXpSpent + skillXpSpent + talentXpSpent;
+
+    valuesToSet["data.xp"] = totalXp;
+    valuesToSet["data.spentXp"] = xpSpent;
+
+    // Force Rating (from career if applicable)
+    valuesToSet["data.forceRating"] =
+      record.data?.wizard?.careerForceRating || 0;
+
+    // Obligation/Duty/Morality
+    if (gameType === "eote") {
+      const obligationType = record.data?.wizard?.obligationType;
+      const obligationValue = record.data?.wizard?.totalObligation || 10;
+      const obligationDesc = record.data?.wizard?.obligationDescription || "";
+
+      if (obligationType) {
+        valuesToSet["data.obligations"] = [
+          {
+            _id: generateUuid(),
+            name: obligationType,
+            data: {
+              value: obligationValue,
+              description: obligationDesc,
+            },
+          },
+        ];
+      }
+    } else if (gameType === "aor") {
+      const dutyType = record.data?.wizard?.dutyType;
+      const dutyValue = record.data?.wizard?.startingDuty || 10;
+      const dutyDesc = record.data?.wizard?.dutyDescription || "";
+
+      if (dutyType) {
+        valuesToSet["data.duties"] = [
+          {
+            _id: generateUuid(),
+            name: dutyType,
+            data: {
+              value: dutyValue,
+              description: dutyDesc,
+            },
+          },
+        ];
+      }
+    } else if (gameType === "fad") {
+      valuesToSet["data.morality"] =
+        record.data?.wizard?.startingMorality || 50;
+      valuesToSet["data.moralityStrength"] =
+        record.data?.wizard?.moralityStrength || "";
+      valuesToSet["data.moralityWeakness"] =
+        record.data?.wizard?.moralityWeakness || "";
+    }
+
+    // Motivations - build as single string
+    const type1 = record.data?.wizard?.motivation1Type || "";
+    const specific1 = record.data?.wizard?.motivation1Specific || "";
+    const type2 = record.data?.wizard?.motivation2Type || "";
+    const specific2 = record.data?.wizard?.motivation2Specific || "";
+
+    let motivationStr = "";
+    if (type1 && specific1) {
+      motivationStr = `${type1}: ${specific1}`;
+    }
+    if (type2 && specific2) {
+      if (motivationStr) {
+        motivationStr += `; ${type2}: ${specific2}`;
+      } else {
+        motivationStr = `${type2}: ${specific2}`;
+      }
+    }
+    valuesToSet["data.motivation"] = motivationStr;
+    // Background goes to notes field
+    valuesToSet["data.notes"] = record.data?.wizard?.background || "";
+
+    // Credits (cash) - use 0 as default, not 500 (they may have spent all credits)
+    valuesToSet["data.cash"] =
+      record.data?.wizard?.availableCredits !== undefined
+        ? record.data?.wizard?.availableCredits
+        : 0;
+
+    // Inventory
+    const items = record.data?.wizard?.items || [];
+    if (items.length > 0) {
+      valuesToSet["data.inventory"] = items;
+    }
+
+    // Update existing data.skills array with career marking and ranks
+    const wizardSkills = record.data?.wizard?.skills || [];
+    const careerSkillsStr = record.data?.wizard?.careerSkills || "";
+    const specSkillsStr = record.data?.wizard?.specSkills || "";
+    const existingSkills = record.data?.skills || [];
+
+    // Helper to normalize skill names - handles "Knowledge (Underworld)" -> "Underworld"
+    function normalizeSkillName(skillName) {
+      const knowledgeMatch = skillName.match(/^Knowledge\s*\(([^)]+)\)$/i);
+      if (knowledgeMatch) {
+        return knowledgeMatch[1].trim();
+      }
+      return skillName;
+    }
+
+    // Build list of all career skills (from both career and specialization)
+    // Handle ", and " separator in skill lists and normalize Knowledge skills
+    const normalizedCareerSkills = careerSkillsStr.replace(/, and /gi, ", ");
+    const normalizedSpecSkills = specSkillsStr.replace(/, and /gi, ", ");
+    const allCareerSkills = [
+      ...normalizedCareerSkills
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+      ...normalizedSpecSkills
+        .split(",")
+        .map((s) => normalizeSkillName(s.trim())),
+    ].filter((s, i, arr) => s !== "" && arr.indexOf(s) === i);
+
+    // Process wizard skills data (handle both array and object formats)
+    const wizardSkillsArray = Array.isArray(wizardSkills)
+      ? wizardSkills
+      : Object.values(wizardSkills);
+
+    // Update each existing skill with career marking and ranks from wizard
+    existingSkills.forEach((skill, index) => {
+      const skillNameLower = skill.name.toLowerCase().trim();
+      const normalizedSkillName = normalizeSkillName(skill.name)
+        .toLowerCase()
+        .trim();
+
+      // Check if this is a career skill
+      const isCareer = allCareerSkills.some(
+        (cs) =>
+          cs.toLowerCase() === skillNameLower ||
+          cs.toLowerCase() === normalizedSkillName
+      );
+
+      if (isCareer) {
+        valuesToSet[`data.skills.${index}.data.careerOrMinionSkill`] = true;
+      }
+
+      // Find matching wizard skill to get rank
+      const wizardSkill = wizardSkillsArray.find(
+        (ws) =>
+          ws.name.toLowerCase().trim() === skillNameLower ||
+          normalizeSkillName(ws.name).toLowerCase().trim() ===
+            normalizedSkillName
+      );
+
+      if (wizardSkill && wizardSkill.data?.rank > 0) {
+        valuesToSet[`data.skills.${index}.data.rank`] = wizardSkill.data.rank;
+      }
+    });
+
+    // Clear wizard data
+    valuesToSet["data.wizard"] = {};
+
+    api.setValues(valuesToSet, () => {
+      // Trigger attribute recalculation on the character
+      api.getRecord("characters", record._id, (updatedRecord) => {
+        updateAttributes(updatedRecord, {});
+      });
+    });
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Motivations & Background"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Define what drives your character. You may have one or two motivations - these help guide roleplay and can be used by the GM for story hooks."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- Character Summary -->
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      background: var(--mantine-color-dark-6);
+      border-radius: 8px;
+    "
+  >
+    <label label="Character Summary:" size="xs" variant="bold"></label>
+    <label field="characterSummary" size="sm" color="green"></label>
+  </div>
+
+  <!-- Motivations -->
+  <divider label="Motivations"></divider>
+
+  <label
+    label="Choose one or two motivations for your character. Each motivation has a type (Ambition, Cause, Relationship, or Other for career-specific) and a specific focus. You may roll randomly or choose."
+    size="xs"
+    color="dimmed"
+  ></label>
+
+  <!-- Motivation Preview -->
+  <box field="motivationPreviewBox">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <label label="Current Motivation:" size="xs" variant="bold"></label>
+      <label field="motivationPreview" size="sm" color="yellow"></label>
+    </div>
+  </box>
+
+  <!-- Primary Motivation -->
+  <label label="Primary Motivation" size="sm" variant="bold"></label>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    "
+  >
+    <div style="flex: 1; min-width: 150px">
+      <dropdown
+        field="motivation1Type"
+        label="Type"
+        placeholder="Select type..."
+        width="100%"
+        onload="onStep7Load();"
+        onchange="onMotivationTypeChange(1, value);"
+        options='[
+          {"label": "Ambition", "value": "Ambition"},
+          {"label": "Cause", "value": "Cause"},
+          {"label": "Relationship", "value": "Relationship"},
+          {"label": "Other (Career/Custom)", "value": "Other"}
+        ]'
+      ></dropdown>
+    </div>
+    <div style="flex: 1; min-width: 150px">
+      <dropdown
+        field="motivation1Specific"
+        label="Specific"
+        placeholder="Select specific..."
+        width="100%"
+        onchange="onMotivationSpecificChange(1, value);"
+        optionsfunction="return getMotivationSpecificOptions(1);"
+        visiblefunction="return record.data?.wizard?.motivation1Type && record.data?.wizard?.motivation1Type !== 'Other';"
+      ></dropdown>
+      <stringfield
+        field="motivation1Specific"
+        label="Specific"
+        placeholder="Enter motivation..."
+        width="100%"
+        onchange="onMotivationSpecificChange(1, value);"
+        visiblefunction="return record.data?.wizard?.motivation1Type === 'Other';"
+      ></stringfield>
+    </div>
+    <button
+      size="xs"
+      variant="subtle"
+      label="Random"
+      onclick="randomizeMotivation(1);"
+    ></button>
+  </div>
+
+  <!-- Secondary Motivation (Optional) -->
+  <label
+    label="Secondary Motivation (Optional)"
+    size="sm"
+    variant="bold"
+  ></label>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    "
+  >
+    <div style="flex: 1; min-width: 150px">
+      <dropdown
+        field="motivation2Type"
+        label="Type"
+        placeholder="Select type..."
+        width="100%"
+        onchange="onMotivationTypeChange(2, value);"
+        options='[
+          {"label": "Ambition", "value": "Ambition"},
+          {"label": "Cause", "value": "Cause"},
+          {"label": "Relationship", "value": "Relationship"},
+          {"label": "Other (Career/Custom)", "value": "Other"}
+        ]'
+      ></dropdown>
+    </div>
+    <div style="flex: 1; min-width: 150px">
+      <dropdown
+        field="motivation2Specific"
+        label="Specific"
+        placeholder="Select specific..."
+        width="100%"
+        onchange="onMotivationSpecificChange(2, value);"
+        optionsfunction="return getMotivationSpecificOptions(2);"
+        visiblefunction="return record.data?.wizard?.motivation2Type && record.data?.wizard?.motivation2Type !== 'Other';"
+      ></dropdown>
+      <stringfield
+        field="motivation2Specific"
+        label="Specific"
+        placeholder="Enter motivation..."
+        width="100%"
+        onchange="onMotivationSpecificChange(2, value);"
+        visiblefunction="return record.data?.wizard?.motivation2Type === 'Other';"
+      ></stringfield>
+    </div>
+    <button
+      size="xs"
+      variant="subtle"
+      label="Random"
+      onclick="randomizeMotivation(2);"
+    ></button>
+  </div>
+
+  <!-- Background -->
+  <divider label="Background"></divider>
+
+  <stringfield
+    field="background"
+    label="Character Background"
+    placeholder="Describe your character's history, how they got into their career, and what brought them to the present day..."
+    multiline="true"
+    width="100%"
+    height="150px"
+  ></stringfield>
+
+  <!-- Final Summary -->
+  <divider label="Ready to Create"></divider>
+
+  <label
+    label="Click 'Finish' to complete character creation. Your character will be created with all the choices you've made. You can continue to customize your character after creation."
+    size="sm"
+    color="dimmed"
+    textalign="center"
+  ></label>
+</div>

@@ -1,0 +1,157 @@
+<script>
+  // Step 5: Talent Tree Purchase
+  // Players can spend remaining XP on talents from their specialization tree
+  // The specialization was added to data.specializations in step 2's onStepEnd
+  // We display it using the wizard_specialization_tree list type
+  // Talent purchases update data.spentXp which we sync with wizard.xpRemaining
+
+  function onStepEnd(stepIndex) {
+    // Sync the spent XP back to wizard XP remaining
+    syncXpFromSpent();
+
+    const xpRemaining = record.data?.wizard?.xpRemaining || 0;
+
+    if (xpRemaining < 0) {
+      api.showNotification(
+        "You have spent more XP than available. Please remove some talents.",
+        "red",
+        "Over Budget"
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  function onStep5Load() {
+    // Initialize talentXpSpent if not set
+    if (record.data?.wizard?.talentXpSpent === undefined) {
+      api.setValues({
+        "data.wizard.talentXpSpent": 0,
+      });
+    }
+
+    // Ensure the specialization is in wizard.specializations for the talent tree list
+    const spec = record.data?.wizard?.selectedSpecialization?.[0];
+    const existingSpecs = record.data?.wizard?.specializations || [];
+    if (spec && !existingSpecs.some((s) => s._id === spec._id)) {
+      api.setValues({
+        "data.wizard.specializations": [spec],
+      });
+    }
+
+    // Display remaining XP
+    syncXpFromSpent();
+  }
+
+  function syncXpFromSpent() {
+    // Calculate remaining XP: starting + bonus - characteristic spending - skill spending - talent spending
+    const startingXp = record.data?.wizard?.startingXp || 0;
+    // F&D uses moralityBonusXp, others use bonusXp
+    const gameType = record.data?.wizard?.gameType;
+    const bonusXp =
+      gameType === "fad"
+        ? record.data?.wizard?.moralityBonusXp || 0
+        : record.data?.wizard?.bonusXp || 0;
+    const charXpSpent = record.data?.wizard?.charXpSpent || 0;
+    const skillXpSpent = record.data?.wizard?.skillXpSpent || 0;
+    // Use wizard.talentXpSpent as source of truth (set by wizard-specialization-talent-list)
+    const talentXpSpent = record.data?.wizard?.talentXpSpent || 0;
+
+    const totalXp = startingXp + bonusXp;
+    const totalSpent = charXpSpent + skillXpSpent + talentXpSpent;
+    const xpRemaining = totalXp - totalSpent;
+
+    api.setValues({
+      "data.wizard.xpRemaining": xpRemaining,
+      "data.wizard.xpSpent": totalSpent,
+    });
+  }
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <label
+    label="Purchase Talents"
+    size="lg"
+    variant="bold"
+    textalign="center"
+  ></label>
+
+  <label
+    label="Spend your remaining XP on talents from your specialization tree. Click the checkbox next to a talent to purchase it. Talents in row 1 cost 5 XP, row 2 costs 10 XP, and so on."
+    size="sm"
+    textalign="center"
+  ></label>
+
+  <!-- XP Summary -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: var(--mantine-color-dark-6);
+      border-radius: 8px;
+    "
+  >
+    <numberfield
+      field="xpRemaining"
+      label="XP Remaining"
+      width="120px"
+      editable="false"
+      hidecontrols="true"
+      color="yellow"
+      size="lg"
+    ></numberfield>
+
+    <numberfield
+      field="talentXpSpent"
+      label="Talent XP"
+      width="100px"
+      editable="false"
+      hidecontrols="true"
+      size="sm"
+      onload="onStep5Load();"
+    ></numberfield>
+  </div>
+
+  <!-- Talent Cost Reference -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <label label="Row 1: 5 XP" size="xs" color="dimmed"></label>
+    <label label="Row 2: 10 XP" size="xs" color="dimmed"></label>
+    <label label="Row 3: 15 XP" size="xs" color="dimmed"></label>
+    <label label="Row 4: 20 XP" size="xs" color="dimmed"></label>
+    <label label="Row 5: 25 XP" size="xs" color="dimmed"></label>
+  </div>
+
+  <!-- Specialization Talent Tree -->
+  <divider label="Your Specialization Talent Tree"></divider>
+
+  <div style="width: 100%; overflow-x: auto; padding: 8px 0">
+    <list
+      field="specializations"
+      listtype="wizard_specialization_tree"
+      variant="none"
+    ></list>
+  </div>
+
+  <label
+    label="Scroll horizontally to see all talents. Click the checkbox icon on a talent to purchase it."
+    size="xs"
+    color="dimmed"
+    textalign="center"
+  ></label>
+</div>
