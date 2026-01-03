@@ -257,31 +257,50 @@
       const finalSpec = JSON.parse(JSON.stringify(spec));
 
       // Mark talents as chosen in the specialization tree
-      // The spec has data.talentTree with rows, each row has talents
-      if (finalSpec.data?.talentTree) {
-        finalSpec.data.talentTree.forEach((row) => {
-          if (row.talents) {
-            row.talents.forEach((talent) => {
-              // Check if this talent was chosen
-              const chosenTalent = wizardTalents.find((wt) => {
-                // Match by base ID (ranked talents) or full ID path
-                return (
-                  wt._id === talent._id || wt._id.startsWith(talent._id + "-")
-                );
-              });
+      // The spec uses talent1_1, talent1_2, etc. as data fields (each is an array with one talent)
+      const talentFields = [
+        "talent1_1",
+        "talent1_2",
+        "talent1_3",
+        "talent1_4",
+        "talent2_1",
+        "talent2_2",
+        "talent2_3",
+        "talent2_4",
+        "talent3_1",
+        "talent3_2",
+        "talent3_3",
+        "talent3_4",
+        "talent4_1",
+        "talent4_2",
+        "talent4_3",
+        "talent4_4",
+        "talent5_1",
+        "talent5_2",
+        "talent5_3",
+        "talent5_4",
+      ];
 
-              if (chosenTalent) {
-                talent.data = talent.data || {};
-                talent.data.chosen = "yes";
-                // If ranked, store the rank
-                if (chosenTalent.data?.rank) {
-                  talent.data.rank = chosenTalent.data.rank;
-                }
-              }
-            });
+      talentFields.forEach((fieldName) => {
+        const talentArray = finalSpec.data?.[fieldName];
+        if (talentArray && talentArray.length > 0) {
+          const talent = talentArray[0];
+          // Check if this talent was chosen by matching _id
+          const chosenTalent = wizardTalents.find((wt) => {
+            // Match by base ID or full ID path (for ranked talents)
+            return wt._id === talent._id || wt._id.startsWith(talent._id + "-");
+          });
+
+          if (chosenTalent) {
+            talent.data = talent.data || {};
+            talent.data.chosen = "yes";
+            // If ranked, store the rank
+            if (chosenTalent.data?.rank) {
+              talent.data.rank = chosenTalent.data.rank;
+            }
           }
-        });
-      }
+        }
+      });
 
       valuesToSet["data.specializations"] = [
         {
