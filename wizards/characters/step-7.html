@@ -381,12 +381,67 @@
         ];
       }
     } else if (gameType === "fad") {
-      valuesToSet["data.morality"] =
-        record.data?.wizard?.startingMorality || 50;
-      valuesToSet["data.moralityStrength"] =
-        record.data?.wizard?.moralityStrength || "";
-      valuesToSet["data.moralityWeakness"] =
-        record.data?.wizard?.moralityWeakness || "";
+      // Set morality value - use explicit check since 0 would be falsy
+      const startingMorality =
+        record.data?.wizard?.startingMorality !== undefined
+          ? record.data?.wizard?.startingMorality
+          : 50;
+      valuesToSet["data.morality"] = startingMorality;
+
+      const moralityStrength = record.data?.wizard?.moralityStrength || "";
+      const moralityWeakness = record.data?.wizard?.moralityWeakness || "";
+      const moralityBonusChoice =
+        record.data?.wizard?.moralityBonusChoice || "none";
+      const moralityBonusXp = record.data?.wizard?.moralityBonusXp || 0;
+      const moralityBonusCredits =
+        record.data?.wizard?.moralityBonusCredits || 0;
+
+      valuesToSet["data.moralityStrength"] = moralityStrength;
+      valuesToSet["data.moralityWeakness"] = moralityWeakness;
+
+      // Build formatted morality notes HTML
+      let moralityNotesHtml = "<div>";
+
+      // Emotional strength and weakness
+      if (moralityStrength || moralityWeakness) {
+        moralityNotesHtml += "<p><strong>Emotional Profile</strong></p>";
+        if (moralityStrength) {
+          moralityNotesHtml += `<p><em>Strength:</em> ${moralityStrength}</p>`;
+        }
+        if (moralityWeakness) {
+          moralityNotesHtml += `<p><em>Weakness:</em> ${moralityWeakness}</p>`;
+        }
+      }
+
+      // Starting morality and alignment
+      moralityNotesHtml += "<p><strong>Starting Morality</strong></p>";
+      if (startingMorality >= 71) {
+        moralityNotesHtml += `<p>Starting as a <em>Light Side Paragon</em> with Morality ${startingMorality}.</p>`;
+      } else if (startingMorality <= 29) {
+        moralityNotesHtml += `<p>Starting as a <em>Dark Side User</em> with Morality ${startingMorality}.</p>`;
+      } else {
+        moralityNotesHtml += `<p>Starting at Morality ${startingMorality} (balanced).</p>`;
+      }
+
+      // Bonus chosen
+      if (moralityBonusChoice && moralityBonusChoice !== "none") {
+        moralityNotesHtml += "<p><strong>Character Creation Bonus</strong></p>";
+        const bonusParts = [];
+        if (moralityBonusXp > 0) {
+          bonusParts.push(`+${moralityBonusXp} XP`);
+        }
+        if (moralityBonusCredits > 0) {
+          bonusParts.push(`+${moralityBonusCredits} credits`);
+        }
+        if (bonusParts.length > 0) {
+          moralityNotesHtml += `<p>Received ${bonusParts.join(
+            " and "
+          )} in exchange for starting morality adjustment.</p>`;
+        }
+      }
+
+      moralityNotesHtml += "</div>";
+      valuesToSet["data.moralityNotes"] = moralityNotesHtml;
     }
 
     // Motivations - build as single string

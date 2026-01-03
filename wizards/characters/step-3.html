@@ -62,12 +62,18 @@
   function onStep3Load() {
     // Set initial obligation/duty values from campaign setting
     const baseObDuty = getBaseObligationDuty();
-    api.setValues({
+    const valuesToSet = {
       "data.wizard.baseObligationDuty": baseObDuty,
       "data.wizard.totalObligation": baseObDuty,
       "data.wizard.startingDuty": baseObDuty,
-      "data.wizard.startingMorality": 50,
-    });
+    };
+
+    // Only initialize startingMorality if not already set (preserve user's choice)
+    if (record.data?.wizard?.startingMorality === undefined) {
+      valuesToSet["data.wizard.startingMorality"] = 50;
+    }
+
+    api.setValues(valuesToSet);
 
     // Check existing game type and show appropriate section
     const gameType = record.data?.wizard?.gameType;
