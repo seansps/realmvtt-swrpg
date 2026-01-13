@@ -1424,20 +1424,26 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   const currentStrain = parseInt(record?.data?.strain || "0", 10);
 
   // Only calculate woundsRemaining if it hasn't been set in valuesToSet
-  if (valuesToSet["data.woundsRemaining"] === undefined) {
-    valuesToSet["data.woundsRemaining"] = Math.max(
-      0,
-      valuesToSet["data.woundThreshold"] - currentWounds
-    );
-  }
+  // Else use the higher value
+  const calculatedWoundsRemaining = Math.max(
+    0,
+    valuesToSet["data.woundThreshold"] - currentWounds
+  );
+  valuesToSet["data.woundsRemaining"] = Math.max(
+    valuesToSet["data.woundsRemaining"] ?? 0,
+    calculatedWoundsRemaining
+  );
 
   // Only calculate strainRemaining if it hasn't been set in valuesToSet
-  if (valuesToSet["data.strainRemaining"] === undefined) {
-    valuesToSet["data.strainRemaining"] = Math.max(
-      0,
-      valuesToSet["data.strainThreshold"] - currentStrain
-    );
-  }
+  // Else use the higher value
+  const calculatedStrainRemaining = Math.max(
+    0,
+    valuesToSet["data.strainThreshold"] - currentStrain
+  );
+  valuesToSet["data.strainRemaining"] = Math.max(
+    valuesToSet["data.strainRemaining"] ?? 0,
+    calculatedStrainRemaining
+  );
 
   const isNPC = record?.recordType !== "characters";
   const isMinion =

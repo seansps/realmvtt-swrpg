@@ -248,64 +248,16 @@
       valuesToSet["fields.careers.hidden"] = false;
     }
 
-    // Specialization - update with chosen talents marked
-    const spec = record.data?.wizard?.selectedSpecialization?.[0];
+    // Specialization - copy the wizard's specialization tree which already has chosen states
+    const wizardSpec = record.data?.wizard?.specializations?.[0];
     const wizardTalents = record.data?.wizard?.talents || [];
 
-    if (spec) {
-      // Create a deep copy of the specialization to modify
-      const finalSpec = JSON.parse(JSON.stringify(spec));
-
-      // Mark talents as chosen in the specialization tree
-      // The spec uses talent1_1, talent1_2, etc. as data fields (each is an array with one talent)
-      const talentFields = [
-        "talent1_1",
-        "talent1_2",
-        "talent1_3",
-        "talent1_4",
-        "talent2_1",
-        "talent2_2",
-        "talent2_3",
-        "talent2_4",
-        "talent3_1",
-        "talent3_2",
-        "talent3_3",
-        "talent3_4",
-        "talent4_1",
-        "talent4_2",
-        "talent4_3",
-        "talent4_4",
-        "talent5_1",
-        "talent5_2",
-        "talent5_3",
-        "talent5_4",
-      ];
-
-      talentFields.forEach((fieldName) => {
-        const talentArray = finalSpec.data?.[fieldName];
-        if (talentArray && talentArray.length > 0) {
-          const talent = talentArray[0];
-          // Check if this talent was chosen by matching _id
-          const chosenTalent = wizardTalents.find((wt) => {
-            // Match by base ID or full ID path (for ranked talents)
-            return wt._id === talent._id || wt._id.startsWith(talent._id + "-");
-          });
-
-          if (chosenTalent) {
-            talent.data = talent.data || {};
-            talent.data.chosen = "yes";
-            // If ranked, store the rank
-            if (chosenTalent.data?.rank) {
-              talent.data.rank = chosenTalent.data.rank;
-            }
-          }
-        }
-      });
-
+    if (wizardSpec) {
+      // Copy the wizard's specialization tree directly - it already has the chosen states set
       valuesToSet["data.specializations"] = [
         {
-          ...finalSpec,
-          _id: finalSpec._id || generateUuid(),
+          ...wizardSpec,
+          _id: wizardSpec._id || generateUuid(),
         },
       ];
     }
@@ -314,7 +266,7 @@
     if (wizardTalents.length > 0) {
       const finalTalents = wizardTalents.map((talent) => ({
         ...talent,
-        _id: talent._id || generateUuid(),
+        // Keep the existing _id - it's already set correctly (either base ID for ranked, or ID+path for non-ranked)
         icon: talent.icon || "IconStar",
       }));
       valuesToSet["data.talents"] = finalTalents;
