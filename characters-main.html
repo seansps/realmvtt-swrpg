@@ -62,12 +62,15 @@
 
     // We allow multiple careers, so we just add it to the list
     api.addValue("data.careers", careerObj, () => {
+      const newForceRating =
+        (careerObj?.data?.forceRating || 0) + (record?.data?.forceRating || 0);
+      const committedForce = parseInt(record?.data?.committedForce || "0", 10);
       const valuesToSet = {
         "data.careerName": careerName,
         "fields.careers.hidden": false,
-        "data.forceRating":
-          (careerObj?.data?.forceRating || 0) +
-          (record?.data?.forceRating || 0),
+        "data.forceRating": newForceRating,
+        "data.totalForceRating": newForceRating,
+        "data.remainingForce": Math.max(0, newForceRating - committedForce),
       };
 
       // Mark all career skills
@@ -157,14 +160,14 @@
     // Use updateAttribute to properly recalculate remaining values
     updateAttribute(
       { record, attribute: "wounds", value: newWounds },
-      valuesToSet
+      valuesToSet,
     );
     updateAttribute({ record, attribute: "strain", value: 0 }, valuesToSet);
 
     api.setValues(valuesToSet);
 
     api.sendMessage(
-      `Resting for day. Recovered 1 wound (${currentWounds} → ${newWounds}) and all strain.`
+      `Resting for day. Recovered 1 wound (${currentWounds} → ${newWounds}) and all strain.`,
     );
   }
 
@@ -173,7 +176,7 @@
     api.getParty((party) => {
       if (party.length === 0) {
         api.sendMessage(
-          "No Party Members to show Obligation Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet."
+          "No Party Members to show Obligation Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet.",
         );
         return;
       }
@@ -251,7 +254,7 @@
       "1d100",
       [],
       { isNarrative: false },
-      "obligation"
+      "obligation",
     );
   }
 
@@ -260,7 +263,7 @@
     api.getParty((party) => {
       if (party.length === 0) {
         api.sendMessage(
-          "No Party Members to show Duty Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet."
+          "No Party Members to show Duty Table for. Open the Party Sheet from the View menu and drag a Character to the Party Sheet.",
         );
         return;
       }
@@ -342,7 +345,7 @@
       "1d10",
       [],
       { isNarrative: false, conflict: record?.data?.conflict || 0 },
-      "conflict"
+      "conflict",
     );
   }
 
@@ -397,7 +400,7 @@
           hidden="true"
           listtype="character_species_list"
           field="species"
-          onchange="onDeleteSpecies();"
+          onchange="onDeleteSpecies()"
         ></list>
       </div>
 
@@ -422,7 +425,7 @@
           hidden="true"
           listtype="character_career_list"
           field="careers"
-          onchange="onDeleteCareer();"
+          onchange="onDeleteCareer()"
         ></list>
       </div>
     </div>
@@ -456,8 +459,8 @@
         field="brawn"
         label="Brawn"
         onchange="updateAttribute({ record, attribute: 'brawn', value })"
-        onclick="rollCheck('brawn');"
-        onload="onLoadCharacter();"
+        onclick="rollCheck('brawn')"
+        onload="onLoadCharacter()"
       ></numberfield>
       <button
         field="Brawn Check"
@@ -465,7 +468,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('brawn');"
+        onclick="rollCheck('brawn')"
       ></button>
     </div>
 
@@ -485,7 +488,7 @@
         label="Agility"
         textalign="center"
         onchange="updateAttribute({ record, attribute: 'agility', value })"
-        onclick="rollCheck('agility');"
+        onclick="rollCheck('agility')"
       ></numberfield>
       <button
         field="Agility Check"
@@ -493,7 +496,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('agility');"
+        onclick="rollCheck('agility')"
       ></button>
     </div>
 
@@ -513,7 +516,7 @@
         textalign="center"
         label="Intellect"
         onchange="updateAttribute({ record, attribute: 'intellect', value })"
-        onclick="rollCheck('intellect');"
+        onclick="rollCheck('intellect')"
       ></numberfield>
       <button
         field="Intellect Check"
@@ -521,7 +524,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('intellect');"
+        onclick="rollCheck('intellect')"
       ></button>
     </div>
 
@@ -541,7 +544,7 @@
         field="cunning"
         label="Cunning"
         onchange="updateAttribute({ record, attribute: 'cunning', value })"
-        onclick="rollCheck('cunning');"
+        onclick="rollCheck('cunning')"
       ></numberfield>
       <button
         field="Cunning Check"
@@ -549,7 +552,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('cunning');"
+        onclick="rollCheck('cunning')"
       ></button>
     </div>
 
@@ -569,7 +572,7 @@
         field="willpower"
         label="Willpower"
         onchange="updateAttribute({ record, attribute: 'willpower', value })"
-        onclick="rollCheck('willpower');"
+        onclick="rollCheck('willpower')"
       ></numberfield>
       <button
         field="Willpower Check"
@@ -577,7 +580,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('willpower');"
+        onclick="rollCheck('willpower')"
       ></button>
     </div>
 
@@ -597,7 +600,7 @@
         field="presence"
         label="Presence"
         onchange="updateAttribute({ record, attribute: 'presence', value })"
-        onclick="rollCheck('presence');"
+        onclick="rollCheck('presence')"
       ></numberfield>
       <button
         field="Presence Check"
@@ -605,7 +608,7 @@
         width="80px"
         variant="outline"
         label="Roll"
-        onclick="rollCheck('presence');"
+        onclick="rollCheck('presence')"
       ></button>
     </div>
   </div>
@@ -660,7 +663,9 @@
       field="strainThreshold"
       label="Strain Threshold"
       color="blue"
-      onchange="updateAttribute({ record, attribute: 'strainThreshold', value })"
+      onchange="
+        updateAttribute({ record, attribute: 'strainThreshold', value })
+      "
     ></numberfield>
 
     <numberfield
@@ -728,7 +733,7 @@
       variant="default"
       options='[{"icon": "IconBed", "label": "Rest", "value": "rest"}]'
       onchange=""
-      onclick="rest();"
+      onclick="rest()"
     ></iconbutton>
   </div>
 
@@ -750,7 +755,7 @@
       variant="outline"
       color="primary"
       label="Roll for Critical Injury"
-      onclick="onRollCriticalInjury();"
+      onclick="onRollCriticalInjury()"
     ></button>
   </div>
   <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
@@ -759,7 +764,7 @@
       field="criticalInjuries"
       height="100%"
       variant="striped"
-      onchange="onChangeConditions();"
+      onchange="onChangeConditions()"
     ></list>
   </div>
 
@@ -797,7 +802,7 @@
         variant="outline"
         color="secondary"
         label="Show Party Table in Chat"
-        onclick="showObligationTable();"
+        onclick="showObligationTable()"
       ></button>
       <button
         field="rollObligationBtn"
@@ -805,7 +810,7 @@
         variant="outline"
         color="primary"
         label="Roll for Session"
-        onclick="rollObligation();"
+        onclick="rollObligation()"
       ></button>
     </div>
   </div>
@@ -852,7 +857,7 @@
         variant="outline"
         color="secondary"
         label="Show Party Table in Chat"
-        onclick="showDutyTable();"
+        onclick="showDutyTable()"
       ></button>
       <button
         field="rollDutyBtn"
@@ -860,7 +865,7 @@
         variant="outline"
         color="primary"
         label="Roll for Session"
-        onclick="rollDuty();"
+        onclick="rollDuty()"
       ></button>
     </div>
   </div>
@@ -927,7 +932,7 @@
       variant="outline"
       color="primary"
       label="Conflict Roll"
-      onclick="rollMorality();"
+      onclick="rollMorality()"
     ></button>
   </div>
   <accordion field="moralityAcc" label="Notes" size="xs" variant="filled">

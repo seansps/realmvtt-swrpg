@@ -16,6 +16,23 @@
     api.addValue("data.specializations", specializationObj, () => {
       const valuesToSet = {};
 
+      // Add force rating from specialization if applicable
+      const specForceRating = specializationObj?.data?.forceRating || 0;
+      if (specForceRating > 0) {
+        const newForceRating =
+          specForceRating + (record?.data?.forceRating || 0);
+        const committedForce = parseInt(
+          record?.data?.committedForce || "0",
+          10,
+        );
+        valuesToSet["data.forceRating"] = newForceRating;
+        valuesToSet["data.totalForceRating"] = newForceRating;
+        valuesToSet["data.remainingForce"] = Math.max(
+          0,
+          newForceRating - committedForce,
+        );
+      }
+
       // Mark all career skills
       const careerSkills = specializationObj?.data?.skills || "";
       const careerSkillsArray = careerSkills.toLowerCase().split(",");
@@ -68,7 +85,7 @@
     // If it is ranked, check if it already exists in the talents list
     const existingTalent = talents.find((t) => t._id === talentIdToUse);
     const existingTalentIndex = talents.findIndex(
-      (t) => t._id === talentIdToUse
+      (t) => t._id === talentIdToUse,
     );
 
     // Add talent to talents list and add cost to spent xp
@@ -86,7 +103,7 @@
           };
           updateAttributes(recordUpdated, valuesToSet);
           api.setValues(valuesToSet);
-        }
+        },
       );
     } else {
       // Add it to the talents list
@@ -113,7 +130,7 @@
           };
           updateAttributes(recordUpdated, valuesToSet);
           api.setValues(valuesToSet);
-        }
+        },
       );
     }
   }

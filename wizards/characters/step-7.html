@@ -293,9 +293,13 @@
     valuesToSet["data.xp"] = totalXp;
     valuesToSet["data.spentXp"] = xpSpent;
 
-    // Force Rating (from career if applicable)
-    valuesToSet["data.forceRating"] =
-      record.data?.wizard?.careerForceRating || 0;
+    // Force Rating (from career and specialization if applicable)
+    const careerForceRating = record.data?.wizard?.careerForceRating || 0;
+    const specForceRating = wizardSpec?.data?.forceRating || 0;
+    const totalForceRating = careerForceRating + specForceRating;
+    valuesToSet["data.forceRating"] = totalForceRating;
+    valuesToSet["data.totalForceRating"] = totalForceRating;
+    valuesToSet["data.remainingForce"] = totalForceRating;
 
     // Obligation/Duty/Morality
     if (gameType === "eote") {
