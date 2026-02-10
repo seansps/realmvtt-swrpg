@@ -1296,6 +1296,9 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   const strainThresholdBonuses = getEffectsAndModifiersForToken(record, [
     "strainThresholdBonus",
   ]);
+  const forceRatingBonuses = getEffectsAndModifiersForToken(record, [
+    "forceRatingBonus",
+  ]);
 
   // Get species data
   const species = record?.data?.species?.[0];
@@ -1359,6 +1362,33 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   // Store the current bonus values for future reference
   valuesToSet["data.woundThresholdBonus"] = totalWoundBonus;
   valuesToSet["data.strainThresholdBonus"] = totalStrainBonus;
+
+  // Calculate force rating bonus from modifiers
+  const totalForceRatingBonus = forceRatingBonuses.reduce(
+    (sum, bonus) => sum + bonus.value,
+    0
+  );
+  const previousForceRatingBonus = parseInt(
+    record?.data?.forceRatingBonus || "0",
+    10
+  );
+  const forceRatingBonusDifference =
+    totalForceRatingBonus - previousForceRatingBonus;
+
+  // Update force rating if there's a difference
+  if (forceRatingBonusDifference !== 0) {
+    const currentForceRating = parseInt(record?.data?.forceRating || "0", 10);
+    const newForceRating = currentForceRating + forceRatingBonusDifference;
+    const committedForce = parseInt(record?.data?.committedForce || "0", 10);
+
+    valuesToSet["data.forceRating"] = newForceRating;
+    valuesToSet["data.totalForceRating"] = newForceRating;
+    valuesToSet["data.remainingForce"] = Math.max(
+      0,
+      newForceRating - committedForce
+    );
+  }
+  valuesToSet["data.forceRatingBonus"] = totalForceRatingBonus;
 
   // Recalculate soak value
   const bestArmor = getBestArmor(record);
