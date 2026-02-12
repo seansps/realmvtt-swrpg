@@ -70,7 +70,7 @@
       variant="tooltip"
       label="Count"
       field="count"
-      onchange="onItemCountChange();"
+      onchange="onItemCountChange()"
       placeholder="0"
     ></numberfield>
   </div>
@@ -85,10 +85,10 @@
   </div>
   <button
     hidden="true"
-    size="xs"
+    size="xxs"
     field="useBtn"
-    variant="light"
-    onclick="useInvItem();"
+    width="40px"
+    onclick="useInvItem()"
     label="Use"
   ></button>
   <stringfield
@@ -109,6 +109,6 @@
     defaultvalue="carried"
     disablediflocked="false"
     options='[{"label": "Carried", "value": "carried"}, {"label": "Equipped", "value": "equipped"}, {"label": "Dropped", "value": "dropped"}]'
-    onchange="onItemEquipped();"
+    onchange="onItemEquipped()"
   ></dropdown>
 </div>
