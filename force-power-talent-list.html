@@ -10,7 +10,7 @@
     const forcePowerUpgrade = api.getValue(dataPathToForcePowerUpgrade);
 
     const forcePowerDataPath = getNearestParentDataPath(
-      dataPathToForcePowerUpgrade
+      dataPathToForcePowerUpgrade,
     );
     const forcePower = api.getValue(forcePowerDataPath);
 
@@ -26,7 +26,7 @@
     // If it is ranked, check if it already exists in the talents list
     const existingTalent = talents.find((t) => t._id === talentIdToUse);
     const existingTalentIndex = talents.findIndex(
-      (t) => t._id === talentIdToUse
+      (t) => t._id === talentIdToUse,
     );
 
     if (value === "yes") {
@@ -45,7 +45,7 @@
                 (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else {
         // Add it to the talents list
@@ -72,7 +72,7 @@
                 (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     } else {
@@ -95,7 +95,7 @@
                 (forcePowerUpgrade.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else if (existingTalentIndex !== -1) {
         // We are removing the talent
@@ -109,7 +109,7 @@
                 (forcePowerUpgrade.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     }
@@ -134,7 +134,7 @@
     <iconbutton
       field="ranked"
       variant="default"
-      disablediflocked="true"
+      disabled="true"
       size="sm"
       options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"}, 
 {"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
@@ -144,7 +144,7 @@
       field="chosen"
       variant="outline"
       color="primary"
-      onchange="toggleChosen(value);"
+      onchange="toggleChosen(value)"
       size="sm"
       options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"}, 
 {"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'

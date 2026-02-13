@@ -22,7 +22,7 @@
     // If it is ranked, check if it already exists in the talents list
     const existingTalent = talents.find((t) => t._id === talentIdToUse);
     const existingTalentIndex = talents.findIndex(
-      (t) => t._id === talentIdToUse
+      (t) => t._id === talentIdToUse,
     );
 
     if (value === "yes") {
@@ -40,7 +40,7 @@
                 (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else {
         // Add it to the talents list
@@ -66,7 +66,7 @@
                 (talent.data?.cost || 0) + (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     } else {
@@ -88,7 +88,7 @@
                 (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else if (existingTalentIndex !== -1) {
         // We are removing the talent
@@ -101,7 +101,7 @@
                 (recordUpdated.data.spentXp || 0) - (talent.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     }
@@ -112,14 +112,14 @@
     // talent list
     const dataPathToSignatureAbilityUpdate = dataPath.replace(
       "data.chosen",
-      ""
+      "",
     );
     const signatureAbilityUpgrade = api.getValue(
-      dataPathToSignatureAbilityUpdate
+      dataPathToSignatureAbilityUpdate,
     );
 
     const signatureAbilityDataPath = getNearestParentDataPath(
-      dataPathToSignatureAbilityUpdate
+      dataPathToSignatureAbilityUpdate,
     );
     const signatureAbility = api.getValue(signatureAbilityDataPath);
 
@@ -135,7 +135,7 @@
     // If it is ranked, check if it already exists in the talents list
     const existingTalent = talents.find((t) => t._id === talentIdToUse);
     const existingTalentIndex = talents.findIndex(
-      (t) => t._id === talentIdToUse
+      (t) => t._id === talentIdToUse,
     );
 
     if (value === "yes") {
@@ -154,7 +154,7 @@
                 (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else {
         // Add it to the talents list
@@ -181,7 +181,7 @@
                 (recordUpdated.data.spentXp || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     } else {
@@ -204,7 +204,7 @@
                 (signatureAbilityUpgrade.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       } else if (existingTalentIndex !== -1) {
         // We are removing the talent
@@ -218,7 +218,7 @@
                 (signatureAbilityUpgrade.data?.cost || 0),
             };
             api.setValues(valuesToSet);
-          }
+          },
         );
       }
     }
@@ -243,7 +243,7 @@
     <iconbutton
       field="ranked"
       variant="default"
-      disablediflocked="true"
+      disabled="true"
       size="sm"
       options='[{"label": "Ranked", "value": "yes", "icon": "IconBadges"}, 
   {"label": "Unranked", "value": "no", "icon": "IconArrowBadgeDown"}]'
@@ -253,7 +253,7 @@
       field="chosen"
       variant="outline"
       color="primary"
-      onchange="toggleChosen(value);"
+      onchange="toggleChosen(value)"
       size="sm"
       options='[{"label": "Not Chosen", "value": "no", "icon": "IconBlank"}, 
 {"label": "Chosen", "value": "yes", "icon": "IconCheck"}]'
