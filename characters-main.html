@@ -352,6 +352,172 @@
   function onRollCriticalInjury() {
     rollCriticalInjury(record, "injury", []);
   }
+
+  function triggerObligation() {
+    const options = [
+      { label: "Affected (x1)", value: "1" },
+      { label: "Triggered (x2)", value: "2" },
+      { label: "Affected Doubled (x2)", value: "affected2" },
+      { label: "Triggered Doubled (x4)", value: "4" },
+    ];
+    api.showPrompt(
+      "Trigger Obligation",
+      "Obligation Severity",
+      "Affected = party member, Triggered = the character whose obligation was rolled. Doubled = doubles were rolled.",
+      options,
+      null,
+      (value) => {
+        const selection = value[0];
+        let penalty = 0;
+        let label = "";
+        if (selection === "1") {
+          penalty = 1;
+          label = "Affected (−1)";
+        } else if (selection === "2") {
+          penalty = 2;
+          label = "Triggered (−2)";
+        } else if (selection === "affected2") {
+          penalty = 2;
+          label = "Affected Doubled (−2)";
+        } else if (selection === "4") {
+          penalty = 4;
+          label = "Triggered Doubled (−4)";
+        }
+        if (penalty === 0) return;
+
+        const currentThreshold = parseInt(
+          record?.data?.strainThreshold || "0",
+          10,
+        );
+        const currentStrain = parseInt(record?.data?.strain || "0", 10);
+        const newThreshold = Math.max(0, currentThreshold - penalty);
+        const newRemaining = Math.max(0, newThreshold - currentStrain);
+
+        api.setValues({
+          "data.strainThreshold": newThreshold,
+          "data.strainRemaining": newRemaining,
+          "data.obligationPenalty": penalty,
+        });
+
+        const charName = record?.name || "Unknown";
+        api.sendMessage(
+          `[center]**Obligation ${label}**: ${charName}'s Strain Threshold reduced by ${penalty} (${currentThreshold} → ${newThreshold})[/center]`,
+        );
+      },
+      "OK",
+      "Cancel",
+      1,
+    );
+  }
+
+  function revertObligation() {
+    const penalty = parseInt(record?.data?.obligationPenalty || "0", 10);
+    if (penalty === 0) {
+      api.showNotification(
+        "No obligation penalty to revert.",
+        "yellow",
+        "Obligation",
+      );
+      return;
+    }
+
+    const currentThreshold = parseInt(record?.data?.strainThreshold || "0", 10);
+    const currentStrain = parseInt(record?.data?.strain || "0", 10);
+    const newThreshold = currentThreshold + penalty;
+    const newRemaining = Math.max(0, newThreshold - currentStrain);
+
+    api.setValues({
+      "data.strainThreshold": newThreshold,
+      "data.strainRemaining": newRemaining,
+      "data.obligationPenalty": 0,
+    });
+
+    const charName = record?.name || "Unknown";
+    api.sendMessage(
+      `[center]**Obligation Reverted**: ${charName}'s Strain Threshold restored by ${penalty} (${currentThreshold} → ${newThreshold})[/center]`,
+    );
+  }
+
+  function triggerDuty() {
+    const options = [
+      { label: "Affected (x1)", value: "1" },
+      { label: "Triggered (x2)", value: "2" },
+      { label: "Affected Doubled (x2)", value: "affected2" },
+      { label: "Triggered Doubled (x4)", value: "4" },
+    ];
+    api.showPrompt(
+      "Trigger Duty",
+      "Duty Severity",
+      "Affected = party member, Triggered = the character whose duty was rolled. Doubled = doubles were rolled.",
+      options,
+      null,
+      (value) => {
+        const selection = value[0];
+        let bonus = 0;
+        let label = "";
+        if (selection === "1") {
+          bonus = 1;
+          label = "Affected (+1)";
+        } else if (selection === "2") {
+          bonus = 2;
+          label = "Triggered (+2)";
+        } else if (selection === "affected2") {
+          bonus = 2;
+          label = "Affected Doubled (+2)";
+        } else if (selection === "4") {
+          bonus = 4;
+          label = "Triggered Doubled (+4)";
+        }
+        if (bonus === 0) return;
+
+        const currentThreshold = parseInt(
+          record?.data?.woundThreshold || "0",
+          10,
+        );
+        const currentWounds = parseInt(record?.data?.wounds || "0", 10);
+        const newThreshold = currentThreshold + bonus;
+        const newRemaining = Math.max(0, newThreshold - currentWounds);
+
+        api.setValues({
+          "data.woundThreshold": newThreshold,
+          "data.woundsRemaining": newRemaining,
+          "data.dutyBonus": bonus,
+        });
+
+        const charName = record?.name || "Unknown";
+        api.sendMessage(
+          `[center]**Duty ${label}**: ${charName}'s Wound Threshold increased by ${bonus} (${currentThreshold} → ${newThreshold})[/center]`,
+        );
+      },
+      "OK",
+      "Cancel",
+      1,
+    );
+  }
+
+  function revertDuty() {
+    const bonus = parseInt(record?.data?.dutyBonus || "0", 10);
+    if (bonus === 0) {
+      api.showNotification("No duty bonus to revert.", "yellow", "Duty");
+      return;
+    }
+
+    const currentThreshold = parseInt(record?.data?.woundThreshold || "0", 10);
+    const currentWounds = parseInt(record?.data?.wounds || "0", 10);
+    const newThreshold = Math.max(0, currentThreshold - bonus);
+    const newRemaining = Math.max(0, newThreshold - currentWounds);
+
+    api.setValues({
+      "data.woundThreshold": newThreshold,
+      "data.woundsRemaining": newRemaining,
+      "data.dutyBonus": 0,
+    });
+
+    const charName = record?.name || "Unknown";
+    api.sendMessage(
+      `[center]**Duty Reverted**: ${charName}'s Wound Threshold restored by ${bonus} (${currentThreshold} → ${newThreshold})[/center]`,
+    );
+  }
 </script>
 
 <div style="display: flex; margin-top: 4px; flex-direction: column; gap: 8px">
@@ -774,6 +940,31 @@
     style="
       display: flex;
       flex-direction: row;
+      gap: 4px;
+      justify-content: flex-end;
+    "
+  >
+    <button
+      field="triggerObligationBtn"
+      size="xs"
+      variant="outline"
+      color="red"
+      label="Trigger"
+      onclick="triggerObligation()"
+    ></button>
+    <button
+      field="revertObligationBtn"
+      size="xs"
+      variant="outline"
+      color="tertiary"
+      label="End Session"
+      onclick="revertObligation()"
+    ></button>
+  </div>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
       gap: 8px;
       width: 100;
       align-items: flex-end;
@@ -825,6 +1016,31 @@
 
   <!-- Duty List -->
   <divider label="Duty"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      justify-content: flex-end;
+    "
+  >
+    <button
+      field="triggerDutyBtn"
+      size="xs"
+      variant="outline"
+      color="red"
+      label="Trigger"
+      onclick="triggerDuty()"
+    ></button>
+    <button
+      field="revertDutyBtn"
+      size="xs"
+      variant="outline"
+      color="tertiary"
+      label="End Session"
+      onclick="revertDuty()"
+    ></button>
+  </div>
   <div
     style="
       display: flex;

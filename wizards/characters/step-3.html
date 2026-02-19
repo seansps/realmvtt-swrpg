@@ -13,7 +13,7 @@
       api.showNotification(
         "Please select a game type before continuing.",
         "yellow",
-        "Game Type Required"
+        "Game Type Required",
       );
       return false;
     }
@@ -24,7 +24,7 @@
         api.showNotification(
           "Please select an obligation type before continuing.",
           "yellow",
-          "Obligation Required"
+          "Obligation Required",
         );
         return false;
       }
@@ -34,7 +34,7 @@
         api.showNotification(
           "Please select a duty type before continuing.",
           "yellow",
-          "Duty Required"
+          "Duty Required",
         );
         return false;
       }
@@ -45,7 +45,7 @@
         api.showNotification(
           "Please select both a strength and weakness for your morality.",
           "yellow",
-          "Morality Required"
+          "Morality Required",
         );
         return false;
       }
@@ -64,9 +64,15 @@
     const baseObDuty = getBaseObligationDuty();
     const valuesToSet = {
       "data.wizard.baseObligationDuty": baseObDuty,
-      "data.wizard.totalObligation": baseObDuty,
-      "data.wizard.startingDuty": baseObDuty,
     };
+
+    // Only initialize totalObligation/startingDuty if not already set (preserve bonus choice)
+    if (record.data?.wizard?.totalObligation === undefined) {
+      valuesToSet["data.wizard.totalObligation"] = baseObDuty;
+    }
+    if (record.data?.wizard?.startingDuty === undefined) {
+      valuesToSet["data.wizard.startingDuty"] = baseObDuty;
+    }
 
     // Only initialize startingMorality if not already set (preserve user's choice)
     if (record.data?.wizard?.startingMorality === undefined) {
@@ -89,7 +95,7 @@
       },
       () => {
         showGameTypeSection(value);
-      }
+      },
     );
   }
 
@@ -212,8 +218,8 @@
     field="gameType"
     placeholder="Select game type..."
     width="100%"
-    onchange="onGameTypeChange(value);"
-    onload="onStep3Load();"
+    onchange="onGameTypeChange(value)"
+    onload="onStep3Load()"
     options='[
       {"label": "Edge of the Empire (Obligation)", "value": "eote"},
       {"label": "Age of Rebellion (Duty)", "value": "aor"},
@@ -258,7 +264,7 @@
         placeholder="Describe the details of your obligation..."
         multiline="true"
         width="100%"
-        onchange="onObligationDescriptionChange(value);"
+        onchange="onObligationDescriptionChange(value)"
       ></stringfield>
 
       <divider label="Starting Bonus"></divider>
@@ -280,7 +286,7 @@
           {"label": "+1,000 Credits", "value": "credits5"},
           {"label": "+2,500 Credits", "value": "credits10"}
         ]'
-        onchange="onBonusChange(value);"
+        onchange="onBonusChange(value)"
       ></dropdown>
 
       <div
@@ -363,7 +369,7 @@
         placeholder="Describe how you serve the Alliance..."
         multiline="true"
         width="100%"
-        onchange="onDutyDescriptionChange(value);"
+        onchange="onDutyDescriptionChange(value)"
       ></stringfield>
 
       <divider label="Starting Bonus"></divider>
@@ -385,7 +391,7 @@
           {"label": "+1,000 Credits", "value": "credits5"},
           {"label": "+2,500 Credits", "value": "credits10"}
         ]'
-        onchange="onBonusChange(value);"
+        onchange="onBonusChange(value)"
       ></dropdown>
 
       <div
@@ -504,7 +510,7 @@
           {"label": "Dark Side: +2,500 Credits (Start at 29)", "value": "dark_credits2500"},
           {"label": "Dark Side: +5 XP and +1,000 Credits (Start at 29)", "value": "dark_xp5credits1000"}
         ]'
-        onchange="onMoralityBonusChange(value);"
+        onchange="onMoralityBonusChange(value)"
       ></dropdown>
 
       <div
