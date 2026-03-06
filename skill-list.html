@@ -17,6 +17,44 @@
     });
   }
 
+  function onBuyRank() {
+    const skillDataPath = dataPath.replace(".data.buyRankBtn", "");
+    const skill = api.getValue(skillDataPath);
+    const currentRank = parseInt(skill?.data?.rank || "0", 10);
+    const isCareer = skill?.data?.careerOrMinionSkill === true;
+    const newRank = currentRank + 1;
+
+    if (currentRank >= 5) {
+      api.showNotification("Already at maximum rank (5).", "red", "Max Rank");
+      return;
+    }
+
+    const cost = isCareer ? 5 * newRank : 5 * newRank + 5;
+    const totalXp = parseInt(record?.data?.xp || "0", 10);
+    const spentXp = parseInt(record?.data?.spentXp || "0", 10);
+    const availableXp = totalXp - spentXp;
+
+    if (availableXp < cost) {
+      api.showNotification(
+        `Not enough XP. Need ${cost} XP but only have ${availableXp} available.`,
+        "red",
+        "Insufficient XP"
+      );
+      return;
+    }
+
+    api.setValues({
+      [skillDataPath + ".data.rank"]: newRank,
+      "data.spentXp": spentXp + cost,
+    });
+
+    api.showNotification(
+      `Purchased ${skill.name} rank ${newRank} for ${cost} XP.`,
+      "green",
+      "Skill Rank Purchased"
+    );
+  }
+
   function onChangeCareerOrMinionSkill(value) {
     // If this is a minion, we need to recalculate the skill rank
     const dataPathToSkill = dataPath.replace(".data.careerOrMinionSkill", "");
@@ -122,6 +160,14 @@
       {"label": "Cunning", "value": "cunning", "icon": "IconHexagonLetterCFilled"}, 
       {"label": "Willpower", "value": "willpower", "icon": "IconHexagonLetterWFilled"}, 
       {"label": "Presence", "value": "presence", "icon": "IconHexagonLetterPFilled"}]'
+  ></iconbutton>
+
+  <iconbutton
+    size="sm"
+    field="buyRankBtn"
+    variant="default"
+    onclick="onBuyRank()"
+    options='[{"label": "Buy Rank", "value": "buyRank", "icon": "IconPlus"}]'
   ></iconbutton>
 
   <button
