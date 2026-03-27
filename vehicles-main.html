@@ -25,7 +25,9 @@
   }
 
   function onDropCondition(type, recordLink) {
-    api.getRecord(record.recordType, record._id, (actualRecord) => {
+    const lookupType =
+      record.recordType === "vehicles" ? "npcs" : record.recordType;
+    api.getRecord(lookupType, record._id, (actualRecord) => {
       addConditionToRecord(actualRecord, recordLink);
     });
   }
