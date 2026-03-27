@@ -36,8 +36,8 @@ if (value > 0 && token) {
       token.data?.type?.toLowerCase() !== "nemesis"
     ) {
       api.addEffect("Dead", token);
-    } else {
-      // Others are unconscious at > 100% wounds
+    } else if (token.data?.type !== "vehicle" && token.recordType !== "vehicles") {
+      // Others are unconscious at > 100% wounds (not vehicles)
       api.addEffect("Unconscious", token);
     }
   }

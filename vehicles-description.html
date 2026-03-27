@@ -1,0 +1,116 @@
+<label variant="bold" textalign="center" label="Vehicle Properties"></label>
+
+<!-- Cost & Rarity -->
+<div style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px">
+  <stringfield
+    width="100%"
+    size="xs"
+    field="price"
+    placeholder="Enter cost..."
+    label="Cost"
+  ></stringfield>
+  <numberfield
+    width="100%"
+    size="xs"
+    field="rarity"
+    label="Rarity"
+    placeholder="0"
+  ></numberfield>
+  <dropdown
+    width="100%"
+    field="restricted"
+    label="Restricted"
+    defaultvalue="no"
+    size="xs"
+    placeholder="No"
+    options='[{"label": "No", "value": "no"}, {"label": "Yes", "value": "yes"}]'
+  >
+  </dropdown>
+</div>
+
+<!-- Hyperdrive & Navigation -->
+<div
+  style="
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin-bottom: 8px;
+  "
+>
+  <stringfield
+    width="100%"
+    size="xs"
+    label="Hyperdrive"
+    field="hyperdrive"
+    placeholder="Enter Hyperdrive..."
+  ></stringfield>
+  <checkbox
+    width="250px"
+    field="navicomputer"
+    label="Navigation Computer"
+  ></checkbox>
+</div>
+
+<!-- Sensors & Crew -->
+<div style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px">
+  <stringfield
+    width="100%"
+    size="xs"
+    field="sensorRange"
+    placeholder="Enter Sensor Range..."
+    label="Sensor Range"
+  ></stringfield>
+  <numberfield
+    width="100%"
+    size="xs"
+    field="passengers"
+    label="Passengers"
+    placeholder="0"
+  ></numberfield>
+</div>
+
+<stringfield
+  width="100%"
+  size="xs"
+  field="crew"
+  multiline="true"
+  placeholder="Enter Crew..."
+  label="Crew"
+></stringfield>
+
+<!-- Capacity & Consumables -->
+<div style="display: flex; flex-direction: row; gap: 4px; margin-bottom: 8px">
+  <numberfield
+    width="100%"
+    size="xs"
+    field="encumbranceCapacity"
+    label="Encumbrance Capacity"
+    placeholder="0"
+  ></numberfield>
+  <stringfield
+    width="100%"
+    size="xs"
+    field="consumables"
+    placeholder="Enter Consumables..."
+    label="Consumables"
+  ></stringfield>
+  <numberfield
+    width="100%"
+    size="xs"
+    field="hardpoints"
+    label="Hard Points"
+    placeholder="0"
+  ></numberfield>
+</div>
+
+<div>
+  <label variant="bold" textalign="center" label="Description"></label>
+</div>
+
+<div>
+  <richtextfield
+    field="description"
+    placeholder="Enter description..."
+  ></richtextfield>
+</div>

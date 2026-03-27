@@ -175,7 +175,10 @@ if (weapon) {
     }
 
     let critType = "notset";
-    if (target?.token?.data?.type === "vehicle") {
+    if (
+      target?.token?.data?.type === "vehicle" ||
+      target?.token?.recordType === "vehicles"
+    ) {
       critType = "hit";
     } else if (
       target?.token?.recordType === "characters" ||
@@ -260,7 +263,7 @@ if (weapon) {
     if (weapon.data?.special && weapon.data?.special.includes("burn")) {
       const burnRating = weapon.data?.burn || 0;
       additionalMacros.push(
-        getEffectMacroByName("Burn", burnRating, baseDamage)
+        getEffectMacroByName("Burn", burnRating, baseDamage),
       );
       message += `\n\n**[center][color=blue]Burn can be Triggered[/color][/center]**`;
     }
@@ -268,7 +271,7 @@ if (weapon) {
     if (weapon.data?.special && weapon.data?.special.includes("concussive")) {
       const concussiveRating = weapon.data?.concussive || 0;
       additionalMacros.push(
-        getEffectMacroByName("Staggered", concussiveRating)
+        getEffectMacroByName("Staggered", concussiveRating),
       );
       message += `\n\n**[center][color=blue]Concussive can be Triggered[/color][/center]**`;
     }
@@ -276,7 +279,7 @@ if (weapon) {
     if (weapon.data?.special && weapon.data?.special.includes("disorient")) {
       const disorientRating = weapon.data?.disorient || 0;
       additionalMacros.push(
-        getEffectMacroByName("Disoriented", disorientRating)
+        getEffectMacroByName("Disoriented", disorientRating),
       );
       message += `\n\n**[center][color=blue]Disorient can be Triggered[/color][/center]**`;
     }
@@ -306,7 +309,7 @@ if (weapon) {
   if (weapon.data?.special && weapon.data?.special.includes("slow-firing")) {
     const slowFiringRating = weapon.data?.slowFiring || 0;
     additionalMacros.push(
-      getEffectMacroByName("Slow-Firing", slowFiringRating)
+      getEffectMacroByName("Slow-Firing", slowFiringRating),
     );
   }
 
@@ -332,7 +335,9 @@ if (weapon) {
     message += `\n\n**[center][color=blue]Sunder can be Triggered[/color][/center]**`;
   }
 
-  message += `\n\n${damageMacro}`;
+  if (results.successes > 0) {
+    message += `\n\n${damageMacro}`;
+  }
   if (critMacro) {
     message += `\n\n${critMacro}`;
   }

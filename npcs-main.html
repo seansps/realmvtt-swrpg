@@ -27,7 +27,7 @@
       onDropTalent(recordLink);
     } else if (type === "force_powers") {
       onDropForcePower(recordLink);
-    } else if (type === "npcs" && isVehicle(recordLink.value)) {
+    } else if ((type === "npcs" && isVehicle(recordLink.value)) || type === "vehicles") {
       api.setValue("data.activeVehicle", [
         { ...recordLink.value, icon: "IconJetpack" },
       ]);

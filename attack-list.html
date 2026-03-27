@@ -63,8 +63,9 @@
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
     // If this is a vehicle attack, we set the scale to planetary
+    // (either via activeVehicle embed or a standalone vehicles record)
     let scale = "personal";
-    if (dataPathToWeapon.includes("activeVehicle")) {
+    if (dataPathToWeapon.includes("activeVehicle") || record.recordType === "vehicles") {
       scale = "planetary";
     }
     rollAttack(record, weapon, dataPathToWeapon, "attack", scale);
@@ -74,7 +75,7 @@
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
     let scale = "personal";
-    if (dataPathToWeapon.includes("activeVehicle")) {
+    if (dataPathToWeapon.includes("activeVehicle") || record.recordType === "vehicles") {
       scale = "planetary";
     }
     rollAttack(record, weapon, dataPathToWeapon, "stun-setting", scale);
@@ -84,7 +85,7 @@
     const dataPathToWeapon = getNearestParentDataPath(dataPath);
     const weapon = api.getValue(dataPathToWeapon);
     let scale = "personal";
-    if (dataPathToWeapon.includes("activeVehicle")) {
+    if (dataPathToWeapon.includes("activeVehicle") || record.recordType === "vehicles") {
       scale = "planetary";
     }
     rollAttack(record, weapon, dataPathToWeapon, "auto-fire", scale);

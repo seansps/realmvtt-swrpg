@@ -1,0 +1,502 @@
+<script>
+  function onDrop(type, recordLink, sourceInfo) {
+    if (type === "conditions") {
+      onDropCondition(type, recordLink);
+    } else if (type === "items") {
+      onDropItem(recordLink);
+      if (sourceInfo) {
+        if (sourceInfo?.type === "list") {
+          api.getRecord(
+            sourceInfo.recordType,
+            sourceInfo.recordId,
+            (sourceRecord) => {
+              api.removeValueFromRecord(
+                sourceRecord,
+                sourceInfo.dataPath,
+                sourceInfo.index,
+              );
+            },
+          );
+        } else if (sourceInfo?.type === "partysheet") {
+          api.removePartySheetItem(sourceInfo.itemId);
+        }
+      }
+    }
+  }
+
+  function onDropCondition(type, recordLink) {
+    api.getRecord(record.recordType, record._id, (actualRecord) => {
+      addConditionToRecord(actualRecord, recordLink);
+    });
+  }
+
+  function onDropItem(recordLink) {
+    const item = recordLink?.value;
+    const isConsumable = item?.data?.consumable || false;
+    const hasUseBtn = item?.data?.hasUseBtn || false;
+
+    const recordDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(recordDataPath) || record;
+
+    let unitCount = item.data?.count || 1;
+    const itemToAdd = {
+      ...item,
+      icon: "IconBox",
+      data: {
+        ...item?.data,
+        fromId: item._id,
+        count: unitCount,
+      },
+      fields: {
+        ...item?.fields,
+        useBtn: {
+          hidden: !isConsumable && !hasUseBtn,
+        },
+      },
+    };
+
+    const items = thisRecord?.data?.inventory || [];
+    const index = items.findIndex((i) => i.data?.fromId === item._id);
+
+    let existingItem = index !== -1 ? items[index] : undefined;
+    if (existingItem) {
+      const count = parseFloat(existingItem.data?.count || "0");
+      let unitCount = parseFloat(item.data?.count || "1");
+      api.setValue(
+        `${recordDataPath ? `${recordDataPath}.` : ""}data.inventory.${index}.data.count`,
+        count + unitCount,
+      );
+    } else {
+      api.addValue(
+        `${recordDataPath ? `${recordDataPath}.` : ""}data.inventory`,
+        itemToAdd,
+      );
+    }
+  }
+
+  function showHideFields() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const vehicle = api.getValue(vehicleDataPath) || record;
+    const prefix = vehicleDataPath ? `${vehicleDataPath}.` : "";
+    const fieldsToSet = {};
+
+    // Show hardpoints section (always visible on a vehicle record)
+    if (vehicle.fields?.vehicleHardpointsField?.hidden !== false) {
+      fieldsToSet[`${prefix}fields.vehicleHardpointsField.hidden`] = false;
+    }
+
+    // Show hardpoints counter only when hardpoints > 0
+    if (
+      vehicle.fields?.vehicleHardpoints?.hidden !== false &&
+      vehicle.data?.hardpoints &&
+      vehicle.data?.hardpoints > 0
+    ) {
+      fieldsToSet[`${prefix}fields.vehicleHardpoints.hidden`] = false;
+    } else if (
+      vehicle.fields?.vehicleHardpoints?.hidden !== true &&
+      (!vehicle.data?.hardpoints || vehicle.data?.hardpoints === 0)
+    ) {
+      fieldsToSet[`${prefix}fields.vehicleHardpoints.hidden`] = true;
+    }
+
+    if (Object.keys(fieldsToSet).length > 0) {
+      api.setValues(fieldsToSet);
+    }
+  }
+
+  function onRollCriticalInjury() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(vehicleDataPath) || record;
+    rollCriticalInjury(thisRecord, "hit", []);
+  }
+
+  function onChangeConditions() {
+    const deletedItem = data.deletedItem;
+    if (!deletedItem) return;
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const thisRecord = api.getValue(vehicleDataPath) || record;
+    onConditionChange(thisRecord, deletedItem);
+  }
+
+  function onChangeWounds() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const prefix = vehicleDataPath ? `${vehicleDataPath}.` : "";
+    const wounds = api.getValue(`${prefix}data.wounds`);
+    const woundThreshold = api.getValue(`${prefix}data.woundThreshold`);
+    const woundsRemaining = Math.max(woundThreshold - wounds, 0);
+    api.setValue(`${prefix}data.woundsRemaining`, woundsRemaining);
+  }
+
+  function onChangeStrain() {
+    const vehicleDataPath = getNearestParentDataPath(dataPath);
+    const prefix = vehicleDataPath ? `${vehicleDataPath}.` : "";
+    const strain = api.getValue(`${prefix}data.strain`);
+    const strainThreshold = api.getValue(`${prefix}data.strainThreshold`);
+    const strainRemaining = Math.max(strainThreshold - strain, 0);
+    api.setValue(`${prefix}data.strainRemaining`, strainRemaining);
+  }
+</script>
+
+<div style="display: flex; margin-top: 4px; flex-direction: column; gap: 8px">
+  <!-- First Flex Row: Portrait | (Silhouette | Subtype) -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: flex-start;
+    "
+  >
+    <div style="display: flex; flex-direction: column">
+      <div
+        style="
+          width: 125px;
+          min-width: 125px;
+          max-width: 125px;
+          min-height: 125px;
+          max-height: 125px;
+        "
+      >
+        <portrait width="125px" height="125px" objectfit="contain"></portrait>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+      <dropdown
+        width="100%"
+        field="size"
+        label="Silhouette"
+        placeholder="Silhouette 1"
+        defaultvalue="Silhouette 1"
+        size="sm"
+        onload="showHideFields()"
+        options='[{"value": "Silhouette 0", "label": "Silhouette 0"},
+{"value": "Silhouette 1", "label": "Silhouette 1"},
+{"value": "Silhouette 2", "label": "Silhouette 2"},
+{"value": "Silhouette 3", "label": "Silhouette 3"},
+{"value": "Silhouette 4", "label": "Silhouette 4"},
+{"value": "Silhouette 5", "label": "Silhouette 5"},
+{"value": "Silhouette 6", "label": "Silhouette 6"},
+{"value": "Silhouette 7", "label": "Silhouette 7"},
+{"value": "Silhouette 8", "label": "Silhouette 8"},
+{"value": "Silhouette 9", "label": "Silhouette 9"},
+{"value": "Silhouette 10", "label": "Silhouette 10"}]'
+      ></dropdown>
+
+      <stringfield
+        width="100%"
+        size="sm"
+        field="subtype"
+        label="Subtype"
+        placeholder="Enter Subtype..."
+      ></stringfield>
+    </div>
+  </div>
+
+  <!-- Vehicle Stats: Armor, Hull Trauma, System Strain -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      justify-content: center;
+      flex-wrap: wrap;
+    "
+  >
+    <numberfield
+      width="60px"
+      size="xs"
+      field="soakValue"
+      label="Armor"
+      placeholder="0"
+      textalign="center"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="pink"
+      icon="IconHeartFilled"
+      field="woundThreshold"
+      label="HT Threshold"
+      placeholder="0"
+      textalign="center"
+      onchange="onChangeWounds()"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="red"
+      icon="IconHeart"
+      field="wounds"
+      label="Hull Trauma"
+      placeholder="0"
+      textalign="center"
+      onchange="onChangeWounds()"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="blue"
+      icon="IconActivity"
+      field="strainThreshold"
+      label="SS Threshold"
+      placeholder="0"
+      textalign="center"
+      onchange="onChangeStrain()"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      color="cyan"
+      icon="IconHeartbeat"
+      field="strain"
+      label="S. Strain"
+      placeholder="0"
+      textalign="center"
+      onchange="onChangeStrain()"
+    ></numberfield>
+  </div>
+
+  <!-- Speed & Handling -->
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+    "
+  >
+    <numberfield
+      width="80px"
+      size="xs"
+      field="speed"
+      label="Speed"
+      placeholder="0"
+      textalign="center"
+    ></numberfield>
+    <numberfield
+      width="80px"
+      size="xs"
+      field="handling"
+      label="Handling"
+      showsign="true"
+      placeholder="0"
+      textalign="center"
+    ></numberfield>
+  </div>
+
+  <!-- Defense and Current Speed (compass grid) -->
+  <div style="margin-bottom: 4px">
+    <label
+      variant="bold"
+      size="sm"
+      textalign="center"
+      label="Defense and Current Speed"
+    ></label>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 4px;
+        max-width: 300px;
+        margin: 0 auto;
+        position: relative;
+        padding: 0px 8px 8px 8px;
+        background: linear-gradient(
+          45deg,
+          rgba(147, 51, 234, 0.1),
+          rgba(79, 70, 229, 0.1)
+        );
+        border-radius: 8px;
+        border: 1px solid rgba(147, 51, 234, 0.2);
+        margin-top: 4px;
+      "
+    >
+      <!-- Top row - Fore -->
+      <div
+        style="
+          grid-column: 2;
+          grid-row: 1;
+          display: flex;
+          justify-content: center;
+        "
+      >
+        <numberfield
+          width="80px"
+          size="xs"
+          field="defFore"
+          textalign="center"
+          label="Fore"
+          placeholder="--"
+          color="violet"
+        ></numberfield>
+      </div>
+      <!-- Middle row - Port, Current Speed, Starboard -->
+      <div
+        style="
+          grid-column: 1;
+          grid-row: 2;
+          display: flex;
+          justify-content: center;
+        "
+      >
+        <numberfield
+          width="80px"
+          size="xs"
+          field="defPort"
+          color="violet"
+          textalign="center"
+          label="Port"
+          placeholder="--"
+        ></numberfield>
+      </div>
+      <div
+        style="
+          grid-column: 2;
+          grid-row: 2;
+          display: flex;
+          justify-content: center;
+        "
+      >
+        <numberfield
+          width="80px"
+          size="xs"
+          field="currentSpeed"
+          label="Current Speed"
+          placeholder="0"
+        ></numberfield>
+      </div>
+      <div
+        style="
+          grid-column: 3;
+          grid-row: 2;
+          display: flex;
+          justify-content: center;
+        "
+      >
+        <numberfield
+          width="80px"
+          size="xs"
+          field="defStarboard"
+          color="violet"
+          textalign="center"
+          label="Starboard"
+          placeholder="--"
+        ></numberfield>
+      </div>
+      <!-- Bottom row - Aft -->
+      <div
+        style="
+          grid-column: 2;
+          grid-row: 3;
+          display: flex;
+          justify-content: center;
+        "
+      >
+        <numberfield
+          width="80px"
+          size="xs"
+          field="defAft"
+          color="violet"
+          textalign="center"
+          label="Aft"
+          placeholder="--"
+        ></numberfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hardpoints (hidden by default, revealed by showHideFields on load) -->
+  <box field="vehicleHardpointsField" hidden="true">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        justify-content: center;
+        align-items: flex-end;
+      "
+    >
+      <numberfield
+        width="80px"
+        size="xs"
+        field="hardpoints"
+        label="Hardpoints"
+        placeholder="0"
+        textalign="center"
+        onchange="showHideFields()"
+      ></numberfield>
+      <box field="vehicleHardpoints" hidden="true">
+        <div
+          style="
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+          "
+        >
+          <label
+            variant="bold"
+            size="sm"
+            textalign="center"
+            label="Hardpoints Used"
+          ></label>
+          <counter
+            field="hardpointsUsed"
+            minvalue="0"
+            maxvaluefield="hardpoints"
+          ></counter>
+        </div>
+      </box>
+    </div>
+  </box>
+
+  <!-- Equipment -->
+  <divider label="Equipment"></divider>
+  <list
+    listtype="npc_inventory_list"
+    field="inventory"
+    variant="striped"
+  ></list>
+
+  <!-- Critical Hits -->
+  <divider label="Critical Hits"></divider>
+  <div
+    style="
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      align-items: flex-end;
+      justify-content: right;
+    "
+  >
+    <button
+      field="rollCriticalInjuryBtn"
+      size="xs"
+      variant="outline"
+      color="primary"
+      label="Roll for Critical Hit"
+      onclick="onRollCriticalInjury()"
+    ></button>
+  </div>
+  <div style="min-height: 75px; max-height: 200px; overflow-y: auto">
+    <list
+      listtype="conditions_list"
+      field="criticalInjuries"
+      height="100%"
+      variant="striped"
+      onchange="onChangeConditions()"
+    ></list>
+  </div>
+
+  <!-- Actions -->
+  <divider label="Actions"></divider>
+  <list
+    listtype="npc_vehicle_actions_list"
+    field="features"
+    variant="striped"
+  ></list>
+</div>

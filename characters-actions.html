@@ -1,6 +1,9 @@
 <script>
   function onDrop(type, recordlink) {
-    if (type === "npcs" && isVehicle(recordlink.value)) {
+    if (
+      (type === "npcs" && isVehicle(recordlink.value)) ||
+      type === "vehicles"
+    ) {
       api.setValue("data.activeVehicle", [
         { ...recordlink.value, icon: "IconJetpack" },
       ]);
@@ -55,7 +58,7 @@
         size="xs"
         label="Roll Initiative"
         variant="outline"
-        onclick="rollInit();"
+        onclick="rollInit()"
       ></button>
     </div>
   </div>

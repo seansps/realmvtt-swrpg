@@ -110,16 +110,16 @@ const processNextTable = () => {
 \`\`\`Apply_${tableData.injuryName.replaceAll(" ", "_")}
 let targets = api.getSelectedOrDroppedToken();
 
-// If record is not null, check if we're the GM or owner and use it
-if (record) {
-  if (isGM || record?.record?.ownerId === userId) {
-    targets = [record];
+// If no tokens selected/dropped, try record context or owned tokens
+if (targets.length === 0) {
+  if (record) {
+    if (isGM || record?.record?.ownerId === userId) {
+      targets = [record];
+    }
   }
-}
-
-// If we're a player and we did not drop on a record, get our owned tokens
-if (!isGM && targets.length === 0) {
+  if (!isGM && targets.length === 0) {
     targets = api.getSelectedOwnedTokens().map(target => target.token);
+  }
 }
 
 // First re-query the injury record
@@ -130,12 +130,18 @@ api.getRecord('conditions', '${tableData.injuryId}', (injuryRecord) => {
       tooltip: injuryRecord?.name || "Injury",
     };
     targets.forEach(target => {
+      // Vehicles just get the condition added, no strain/wound processing
+      const isVehicle = target.data?.type === "vehicle" || target.recordType === "vehicles";
+      if (isVehicle) {
+        addCondition(target, injuryRecordLink);
+        return;
+      }
       // Add strain if set
       const strain = injuryRecord?.data?.strain || 0;
       // Minions and rivals don't have strain
-      const isMinionOrRival = target.recordType === "npcs" && 
+      const isMinionOrRival = target.recordType === "npcs" &&
         (!target.data?.type || target.data?.type === "minion" || target.data?.type === "rival");
-      const isMinion = target.recordType === "npcs" && 
+      const isMinion = target.recordType === "npcs" &&
         (!target.data?.type || target.data?.type === "minion");
       if (strain > 0 && !isMinionOrRival) {
         let valuesToSet = {
