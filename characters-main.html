@@ -158,11 +158,18 @@
     };
 
     // Use updateAttribute to properly recalculate remaining values
-    updateAttribute(
-      { record, attribute: "wounds", value: newWounds },
-      valuesToSet,
-    );
-    updateAttribute({ record, attribute: "strain", value: 0 }, valuesToSet);
+    updateAttribute({
+      record,
+      attribute: "wounds",
+      value: newWounds,
+      moreValuesToSet: valuesToSet,
+    });
+    updateAttribute({
+      record,
+      attribute: "strain",
+      value: 0,
+      moreValuesToSet: valuesToSet,
+    });
 
     api.setValues(valuesToSet);
 
