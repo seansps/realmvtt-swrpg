@@ -30,14 +30,22 @@ if (dataPathToWeapon) {
   weaponName = weapon?.name || "";
 }
 
+// Show the weapon's portrait above the result if one is set; no icon fallback.
+const weaponPortrait = weapon?.portrait || "";
+const portraitHeader = weaponPortrait
+  ? `[center]![](${assetUrl}${encodeURI(
+      weaponPortrait,
+    )}?width=30&height=30) ${weaponName}[/center]\n\n`
+  : "";
+
 if (results.successes > 0) {
-  message = `**[center][color=green]Hit: ${
+  message = `${portraitHeader}**[center][color=green]Hit: ${
     results.successes
   } Additional Damage${
     weaponName ? ` with ${weaponName}` : ""
   }[/color][/center]**`;
 } else {
-  message = `**[center][color=red]Miss${
+  message = `${portraitHeader}**[center][color=red]Miss${
     weaponName ? ` with ${weaponName}` : ""
   }![/color][/center]**`;
 }
