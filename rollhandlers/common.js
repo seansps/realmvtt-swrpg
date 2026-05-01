@@ -2739,9 +2739,10 @@ function getDamageForMacroForAttack({
   breach = 0,
   pierce = 0,
 }) {
-  // Get the weapon's type
-  const additionalDamage = getDamageModifiersForAttack({ record, weapon });
-  damage += additionalDamage;
+  // NOTE: damage modifiers are collected once in the prompt phase
+  // (getDamageModifiersForAttack → metadata.additionalDamage) and added to
+  // `damage` by the caller (attack.js) before this function is called.
+  // Do NOT re-collect here or talent damage bonuses double-count.
   return getDamageMacro({ damage, damageType, scale, breach, pierce });
 }
 
