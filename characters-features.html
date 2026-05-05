@@ -136,66 +136,64 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: column; gap: 4px">
-  <label
-    variant="bold"
-    size="md"
-    label="Specializations"
-    textalign="center"
-  ></label>
+<div
+  class="sheet--datapad sheet--datapad--swrpg"
+  style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px"
+>
+  <!-- ===== SPECIALIZATIONS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Specializations</span>
+    </div>
+    <div style="display: flex; justify-content: center">
+      <label
+        class="rvtt-datapad-label"
+        label="Click a Specialization's Icon to View the Tree and Add Talents"
+      ></label>
+    </div>
+    <list
+      listtype="character_specialization_list"
+      field="specializations"
+      variant="striped"
+    ></list>
+  </div>
 
-  <label
-    size="sm"
-    label="Click a Specialization's Icon to View the Tree and Add Talents"
-    textalign="center"
-  ></label>
+  <!-- ===== TALENTS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Talents</span>
+    </div>
+    <list
+      listtype="character_talents_list"
+      field="talents"
+      variant="striped"
+    ></list>
+  </div>
 
-  <list
-    listtype="character_specialization_list"
-    field="specializations"
-    variant="striped"
-  ></list>
+  <!-- ===== SPECIES FEATURES ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Species Features</span>
+    </div>
+    <list listtype="character_species_details_list" field="species"></list>
+    <div style="display: flex; justify-content: center">
+      <label
+        class="rvtt-datapad-label"
+        field="speciesDetailsLabel"
+        label="Drag and Drop a Species on the Main Tab"
+      ></label>
+    </div>
+  </div>
 
-  <div style="margin-top: 8px"></div>
-
-  <label variant="bold" size="md" label="Talents" textalign="center"></label>
-
-  <list
-    listtype="character_talents_list"
-    field="talents"
-    variant="striped"
-  ></list>
-
-  <div style="margin-top: 8px"></div>
-
-  <label
-    variant="bold"
-    size="md"
-    label="Species Features"
-    textalign="center"
-  ></label>
-  <list listtype="character_species_details_list" field="species"></list>
-  <label
-    field="speciesDetailsLabel"
-    size="sm"
-    width="100%"
-    variant="unstyled"
-    textalign="center"
-    label="Drag and Drop a Species on the Main Tab"
-  ></label>
-
-  <div style="margin-top: 8px"></div>
-
-  <label
-    variant="bold"
-    size="md"
-    label="Force Powers"
-    textalign="center"
-  ></label>
-
-  <list
-    listtype="character_force_powers_list"
-    field="forcePowers"
-    variant="striped"
-  ></list>
+  <!-- ===== FORCE POWERS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Force Powers</span>
+    </div>
+    <list
+      listtype="character_force_powers_list"
+      field="forcePowers"
+      variant="striped"
+    ></list>
+  </div>
 </div>

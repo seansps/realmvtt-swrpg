@@ -1,231 +1,189 @@
 <script></script>
 
+<!-- Datapad-themed Skills tab. Quick-roll attribute cards mirror the
+     main tab so players don't tab-switch for an attribute check. The
+     skills list itself follows below. -->
 <div
-  style="
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-  "
+  class="sheet--datapad sheet--datapad--swrpg"
+  style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px"
 >
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      textalign="center"
-      field="brawn"
-      label="Brawn"
-      onchange="updateAttribute({ record, attribute: 'brawn', value })"
-      onclick="rollCheck('brawn');"
-    ></numberfield>
-    <button
-      field="Brawn Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('brawn');"
-    ></button>
-  </div>
-
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      field="agility"
-      label="Agility"
-      textalign="center"
-      onchange="updateAttribute({ record, attribute: 'agility', value })"
-      onclick="rollCheck('agility');"
-    ></numberfield>
-    <button
-      field="Agility Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('agility');"
-    ></button>
-  </div>
-
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      field="intellect"
-      textalign="center"
-      label="Intellect"
-      onchange="updateAttribute({ record, attribute: 'intellect', value })"
-      onclick="rollCheck('intellect');"
-    ></numberfield>
-    <button
-      field="Intellect Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('intellect');"
-    ></button>
-  </div>
-
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      textalign="center"
-      field="cunning"
-      label="Cunning"
-      onchange="updateAttribute({ record, attribute: 'cunning', value })"
-      onclick="rollCheck('cunning');"
-    ></numberfield>
-    <button
-      field="Cunning Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('cunning');"
-    ></button>
-  </div>
-
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      textalign="center"
-      field="willpower"
-      label="Willpower"
-      onchange="updateAttribute({ record, attribute: 'willpower', value })"
-      onclick="rollCheck('willpower');"
-    ></numberfield>
-    <button
-      field="Willpower Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('willpower');"
-    ></button>
-  </div>
-
-  <div
-    style="display: flex; flex-direction: column; align-items: center; gap: 2px"
-  >
-    <numberfield
-      placeholder="0"
-      size="sm"
-      width="80px"
-      textalign="center"
-      field="presence"
-      label="Presence"
-      onchange="updateAttribute({ record, attribute: 'presence', value })"
-      onclick="rollCheck('presence');"
-    ></numberfield>
-    <button
-      field="Presence Check"
-      size="xs"
-      width="80px"
-      variant="outline"
-      label="Roll"
-      onclick="rollCheck('presence');"
-    ></button>
-  </div>
-</div>
-
-<div
-  style="
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-    width: 100%;
-  "
->
-  <label
-    field="skills"
-    label="Skills"
-    variant="bold"
-    size="md"
-    textalign="center"
-  ></label>
-  <div
-    style="display: flex; flex-direction: row; gap: 8px; align-items: center"
-  >
-    <dropdown
-      width="120px"
-      field="groupFilter"
-      disablediflocked="false"
-      options='[{"label": "All", "value": ""}, {"label": "General", "value": "General"}, {"label": "Combat", "value": "Combat"}, {"label": "Knowledge", "value": "Knowledge"}]'
-      size="xs"
-      label="Filter by Group"
-      placeholder="All"
-    ></dropdown>
-    <dropdown
-      width="120px"
-      field="attributeFilter"
-      disablediflocked="false"
-      options='[{"label": "All", "value": ""}, {"label": "Brawn", "value": "brawn"}, {"label": "Agility", "value": "agility"}, {"label": "Intellect", "value": "intellect"}, {"label": "Cunning", "value": "cunning"}, {"label": "Willpower", "value": "willpower"}, {"label": "Presence", "value": "presence"}]'
-      size="xs"
-      label="Filter by Attribute"
-      placeholder="All"
-    ></dropdown>
-  </div>
-  <div style="display: flex; flex-direction: row; width: 100%">
-    <div style="width: 80px">
-      <label
-        field="skillsLabel1"
-        label="Career"
-        width="100%"
-        variant="bold"
-        size="xs"
-        textalign="left"
-      ></label>
+  <!-- ===== ATTRIBUTES ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Attributes</span>
     </div>
-    <div style="flex: 1"></div>
-    <div style="width: 74px">
-      <label
-        field="skillsLabel3"
-        label="Group"
-        variant="bold"
+    <div
+      style="
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      "
+    >
+      <attribute
+        field="brawn"
+        label="Brawn"
+        size="md"
         width="100%"
-        size="xs"
-        textalign="left"
-      ></label>
-    </div>
-    <div style="width: 150px">
-      <label
-        field="skillsLabel4"
-        label="Rank"
-        variant="bold"
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('brawn');"
+        onchange="updateAttribute({ record, attribute: 'brawn', value })"
+      ></attribute>
+      <attribute
+        field="agility"
+        label="Agility"
+        size="md"
         width="100%"
-        size="xs"
-        textalign="left"
-      ></label>
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('agility');"
+        onchange="updateAttribute({ record, attribute: 'agility', value })"
+      ></attribute>
+      <attribute
+        field="intellect"
+        label="Intellect"
+        size="md"
+        width="100%"
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('intellect');"
+        onchange="updateAttribute({ record, attribute: 'intellect', value })"
+      ></attribute>
+      <attribute
+        field="cunning"
+        label="Cunning"
+        size="md"
+        width="100%"
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('cunning');"
+        onchange="updateAttribute({ record, attribute: 'cunning', value })"
+      ></attribute>
+      <attribute
+        field="willpower"
+        label="Willpower"
+        size="md"
+        width="100%"
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('willpower');"
+        onchange="updateAttribute({ record, attribute: 'willpower', value })"
+      ></attribute>
+      <attribute
+        field="presence"
+        label="Presence"
+        size="md"
+        width="100%"
+        placeholder="0"
+        containervariant="fancy"
+        textalign="center"
+        bold="true"
+        showbutton
+        buttontext="Roll"
+        buttonsize="xxs"
+        buttonvariant="outline"
+        buttonposition="bottom"
+        onclick="rollCheck('presence');"
+        onchange="updateAttribute({ record, attribute: 'presence', value })"
+      ></attribute>
     </div>
-    <box field="skillsSpacer" width="30px" hideonlocked="true"> </box>
   </div>
-  <list
-    listtype="skill_list"
-    field="skills"
-    height="100%"
-    variant="striped"
-  ></list>
+
+  <!-- ===== SKILLS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Skills</span>
+    </div>
+
+    <div
+      style="display: flex; flex-direction: row; gap: 8px; align-items: flex-end"
+    >
+      <dropdown
+        width="120px"
+        field="groupFilter"
+        disablediflocked="false"
+        options='[{"label": "All", "value": ""}, {"label": "General", "value": "General"}, {"label": "Combat", "value": "Combat"}, {"label": "Knowledge", "value": "Knowledge"}]'
+        size="xs"
+        label="Filter by Group"
+        placeholder="All"
+      ></dropdown>
+      <dropdown
+        width="120px"
+        field="attributeFilter"
+        disablediflocked="false"
+        options='[{"label": "All", "value": ""}, {"label": "Brawn", "value": "brawn"}, {"label": "Agility", "value": "agility"}, {"label": "Intellect", "value": "intellect"}, {"label": "Cunning", "value": "cunning"}, {"label": "Willpower", "value": "willpower"}, {"label": "Presence", "value": "presence"}]'
+        size="xs"
+        label="Filter by Attribute"
+        placeholder="All"
+      ></dropdown>
+    </div>
+
+    <div style="display: flex; flex-direction: row; width: 100%; margin-top: 6px">
+      <div style="width: 80px">
+        <label
+          class="rvtt-datapad-label rvtt-datapad-label--accent"
+          field="skillsLabel1"
+          label="Career"
+        ></label>
+      </div>
+      <div style="flex: 1"></div>
+      <div style="width: 74px">
+        <label
+          class="rvtt-datapad-label rvtt-datapad-label--accent"
+          field="skillsLabel3"
+          label="Group"
+        ></label>
+      </div>
+      <div style="width: 150px">
+        <label
+          class="rvtt-datapad-label rvtt-datapad-label--accent"
+          field="skillsLabel4"
+          label="Rank"
+        ></label>
+      </div>
+      <box field="skillsSpacer" width="30px" hideonlocked="true"></box>
+    </div>
+
+    <list
+      listtype="skill_list"
+      field="skills"
+      height="100%"
+      variant="striped"
+    ></list>
+  </div>
 </div>

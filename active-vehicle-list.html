@@ -4,7 +4,7 @@
     const vehicle = api.getValue(vehicleDataPath);
     const wounds = api.getValue(`${vehicleDataPath}.data.wounds`);
     const woundThreshold = api.getValue(
-      `${vehicleDataPath}.data.woundThreshold`
+      `${vehicleDataPath}.data.woundThreshold`,
     );
     const woundsRemaining = Math.max(woundThreshold - wounds, 0);
     api.setValue(`${vehicleDataPath}.data.woundsRemaining`, woundsRemaining);
@@ -15,7 +15,7 @@
     const vehicle = api.getValue(vehicleDataPath);
     const strain = api.getValue(`${vehicleDataPath}.data.strain`);
     const strainThreshold = api.getValue(
-      `${vehicleDataPath}.data.strainThreshold`
+      `${vehicleDataPath}.data.strainThreshold`,
     );
     const strainRemaining = Math.max(strainThreshold - strain, 0);
     api.setValue(`${vehicleDataPath}.data.strainRemaining`, strainRemaining);
@@ -64,7 +64,7 @@
       color="pink"
       icon="IconHeartFilled"
       field="woundThreshold"
-      onchange="onChangeWounds();"
+      onchange="onChangeWounds()"
       label="HT Threshold"
       placeholder="0"
       textalign="center"
@@ -78,7 +78,7 @@
       label="Hull Trauma"
       placeholder="0"
       textalign="center"
-      onchange="onChangeWounds();"
+      onchange="onChangeWounds()"
     ></numberfield>
     <numberfield
       width="80px"
@@ -89,7 +89,7 @@
       label="SS Threshold"
       placeholder="0"
       textalign="center"
-      onchange="onChangeStrain();"
+      onchange="onChangeStrain()"
     ></numberfield>
     <numberfield
       width="80px"
@@ -100,13 +100,13 @@
       label="S. Strain"
       placeholder="0"
       textalign="center"
-      onchange="onChangeStrain();"
+      onchange="onChangeStrain()"
     ></numberfield>
     <numberfield
       field="currentSpeed"
       maxvaluefield="speed"
       size="xs"
-      label="Current Speed"
+      label="Cur. Speed"
       width="80px"
       minvalue="0"
       maxvalue="100"

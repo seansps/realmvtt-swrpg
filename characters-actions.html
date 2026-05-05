@@ -19,126 +19,117 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: column; gap: 4px">
-  <label size="md" variant="bold" label="Attacks" textalign="center"></label>
+<div
+  class="sheet--datapad sheet--datapad--swrpg"
+  style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px"
+>
+  <!-- ===== ATTACKS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Attacks</span>
+    </div>
 
-  <div style="width: 100%; display: flex; gap: 4px; align-items: center">
-    <dropdown
-      field="rangeBand"
-      placeholder="Select Range Band..."
-      disablediflocked="false"
-      size="xs"
-      label="Range to Target"
-      width="fit-content"
-      options='[{"label": "Engaged", "value": "Engaged"}, {"label": "Short", "value": "Short"},
-        {"label": "Medium", "value": "Medium"}, {"label": "Long", "value": "Long"},
-        {"label": "Extreme", "value": "Extreme"}]'
-    ></dropdown>
-    <div
-      style="
-        margin-left: auto;
-        display: flex;
-        flex-direction: row;
-        gap: 4px;
-        align-items: flex-end;
-      "
-    >
+    <div style="width: 100%; display: flex; gap: 4px; align-items: flex-end">
       <dropdown
-        field="initiativeSkill"
-        label="Initiative Skill"
-        size="xs"
-        combo="true"
+        field="rangeBand"
+        placeholder="Select Range Band..."
         disablediflocked="false"
-        placeholder="Vigilance"
-        options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
-      ></dropdown>
-
-      <button
-        field="rollInitBtn"
         size="xs"
-        label="Roll Initiative"
-        variant="outline"
-        onclick="rollInit()"
-      ></button>
+        label="Range to Target"
+        width="fit-content"
+        options='[{"label": "Engaged", "value": "Engaged"}, {"label": "Short", "value": "Short"},
+          {"label": "Medium", "value": "Medium"}, {"label": "Long", "value": "Long"},
+          {"label": "Extreme", "value": "Extreme"}]'
+      ></dropdown>
+      <div
+        style="
+          margin-left: auto;
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+          align-items: flex-end;
+        "
+      >
+        <dropdown
+          field="initiativeSkill"
+          label="Initiative Skill"
+          size="xs"
+          combo="true"
+          disablediflocked="false"
+          placeholder="Vigilance"
+          options='[{"label": "Vigilance", "value": "Vigilance"}, {"label": "Cool", "value": "Cool"}]'
+        ></dropdown>
+        <button
+          field="rollInitBtn"
+          size="xs"
+          label="Roll Initiative"
+          variant="outline"
+          onclick="rollInit()"
+        ></button>
+      </div>
+    </div>
+
+    <div
+      style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
+    >
+      <list listtype="attack_list" variant="striped" field="inventory"></list>
+    </div>
+    <divider field="unarmedAttackDivider"></divider>
+    <list listtype="unarmed_attack_list" field="unarmedAttack"></list>
+  </div>
+
+  <!-- ===== ACTIVE TALENTS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Active Talents</span>
+    </div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <list
+        listtype="character_active_talent_action_list"
+        variant="striped"
+        field="talents"
+      ></list>
     </div>
   </div>
 
-  <div
-    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
-  >
-    <list listtype="attack_list" variant="striped" field="inventory"> </list>
-  </div>
-  <divider field="unarmedAttackDivider"></divider>
-  <list listtype="unarmed_attack_list" field="unarmedAttack"></list>
-
-  <label
-    size="md"
-    variant="bold"
-    label="Active Talents"
-    textalign="center"
-  ></label>
-
-  <div
-    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
-  >
-    <list
-      listtype="character_active_talent_action_list"
-      variant="striped"
-      field="talents"
-    >
-    </list>
+  <!-- ===== SIGNATURE ABILITIES ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Signature Abilities</span>
+    </div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <list
+        listtype="character_specialization_action_list"
+        field="specializations"
+      ></list>
+    </div>
   </div>
 
-  <label
-    size="md"
-    variant="bold"
-    label="Signature Abilities"
-    textalign="center"
-  ></label>
-
-  <div
-    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
-  >
-    <list
-      listtype="character_specialization_action_list"
-      field="specializations"
-    >
-    </list>
+  <!-- ===== ACTIVE VEHICLE ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Active Vehicle</span>
+    </div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <list
+        emptylisttext="Drag a Vehicle from the NPCs Compendium to the Actions Tab"
+        listtype="active_vehicle_list"
+        field="activeVehicle"
+      ></list>
+    </div>
   </div>
 
-  <label
-    size="md"
-    variant="bold"
-    label="Active Vehicle"
-    textalign="center"
-  ></label>
-
-  <div
-    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
-  >
-    <list
-      emptylisttext="Drag a Vehicle from the NPCs Compendium to the Actions Tab"
-      listtype="active_vehicle_list"
-      field="activeVehicle"
-    >
-    </list>
-  </div>
-
-  <label
-    size="md"
-    variant="bold"
-    label="Force Powers"
-    textalign="center"
-  ></label>
-
-  <div
-    style="display: flex; flex-direction: column; margin-top: 8px; flex-grow: 1"
-  >
-    <list
-      listtype="character_force_power_action_list"
-      variant="striped"
-      field="forcePowers"
-    >
-    </list>
+  <!-- ===== FORCE POWERS ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Force Powers</span>
+    </div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <list
+        listtype="character_force_power_action_list"
+        variant="striped"
+        field="forcePowers"
+      ></list>
+    </div>
   </div>
 </div>

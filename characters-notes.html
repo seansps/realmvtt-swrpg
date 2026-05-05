@@ -1,73 +1,86 @@
-<div>
-  <label variant="bold" textalign="center" label="Notes and Backstory"></label>
-</div>
+<div
+  class="sheet--datapad sheet--datapad--swrpg"
+  style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px"
+>
+  <!-- ===== IDENTITY & BACKSTORY ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Identity &amp; Backstory</span>
+    </div>
 
-<div style="margin-top: 8px; display: flex; flex-direction: row; gap: 4px">
-  <stringfield
-    width="33%"
-    field="age"
-    label="Age"
-    placeholder="Enter your Age..."
-  ></stringfield>
-  <stringfield
-    width="33%"
-    field="height"
-    label="Height"
-    placeholder="Enter your Height..."
-  ></stringfield>
-  <stringfield
-    width="33%"
-    field="weight"
-    label="Weight"
-    placeholder="Enter your Weight..."
-  ></stringfield>
-</div>
+    <div style="display: flex; flex-direction: row; gap: 4px">
+      <stringfield
+        width="33%"
+        field="age"
+        label="Age"
+        placeholder="Enter your Age..."
+      ></stringfield>
+      <stringfield
+        width="33%"
+        field="height"
+        label="Height"
+        placeholder="Enter your Height..."
+      ></stringfield>
+      <stringfield
+        width="33%"
+        field="weight"
+        label="Weight"
+        placeholder="Enter your Weight..."
+      ></stringfield>
+    </div>
 
-<div style="margin-top: 8px; display: flex; flex-direction: row; gap: 4px">
-  <stringfield
-    width="33%"
-    field="gender"
-    label="Gender"
-    placeholder="Enter your Gender..."
-  ></stringfield>
-  <stringfield
-    width="33%"
-    field="pronouns"
-    label="Pronouns"
-    placeholder="Enter your Pronouns..."
-  ></stringfield>
-  <dropdown
-    width="33%"
-    field="size"
-    label="Silhouette"
-    placeholder="Silhouette 1"
-    defaultvalue="Silhouette 1"
-    options='[{"value": "Silhouette 0", "label": "Silhouette 0"},
-  {"value": "Silhouette 1", "label": "Silhouette 1"}, 
-  {"value": "Silhouette 2", "label": "Silhouette 2"}, 
-  {"value": "Silhouette 3", "label": "Silhouette 3"}, 
-  {"value": "Silhouette 4", "label": "Silhouette 4"}, 
-  {"value": "Silhouette 5", "label": "Silhouette 5"}, 
-  {"value": "Silhouette 6", "label": "Silhouette 6"}, 
-  {"value": "Silhouette 7", "label": "Silhouette 7"}, 
-  {"value": "Silhouette 8", "label": "Silhouette 8"}, 
-  {"value": "Silhouette 9", "label": "Silhouette 9"}, 
-  {"value": "Silhouette 10", "label": "Silhouette 10"}]'
-  ></dropdown>
-</div>
+    <div style="margin-top: 8px; display: flex; flex-direction: row; gap: 4px">
+      <stringfield
+        width="33%"
+        field="gender"
+        label="Gender"
+        placeholder="Enter your Gender..."
+      ></stringfield>
+      <stringfield
+        width="33%"
+        field="pronouns"
+        label="Pronouns"
+        placeholder="Enter your Pronouns..."
+      ></stringfield>
+      <dropdown
+        width="33%"
+        field="size"
+        label="Silhouette"
+        placeholder="Silhouette 1"
+        defaultvalue="Silhouette 1"
+        options='[{"value": "Silhouette 0", "label": "Silhouette 0"},
+      {"value": "Silhouette 1", "label": "Silhouette 1"},
+      {"value": "Silhouette 2", "label": "Silhouette 2"},
+      {"value": "Silhouette 3", "label": "Silhouette 3"},
+      {"value": "Silhouette 4", "label": "Silhouette 4"},
+      {"value": "Silhouette 5", "label": "Silhouette 5"},
+      {"value": "Silhouette 6", "label": "Silhouette 6"},
+      {"value": "Silhouette 7", "label": "Silhouette 7"},
+      {"value": "Silhouette 8", "label": "Silhouette 8"},
+      {"value": "Silhouette 9", "label": "Silhouette 9"},
+      {"value": "Silhouette 10", "label": "Silhouette 10"}]'
+      ></dropdown>
+    </div>
 
-<stringfield
-  width="100%"
-  field="motivation"
-  label="Motivation"
-  placeholder="Enter your character's motivation..."
-  multiline="true"
-></stringfield>
+    <div style="margin-top: 8px">
+      <stringfield
+        width="100%"
+        field="motivation"
+        label="Motivation"
+        placeholder="Enter your character's motivation..."
+        multiline="true"
+      ></stringfield>
+    </div>
+  </div>
 
-<div style="margin-top: 8px">
-  <label textalign="center" label="Notes" variant="bold"></label>
-  <richtextfield
-    field="notes"
-    placeholder="Enter additional details..."
-  ></richtextfield>
+  <!-- ===== NOTES ===== -->
+  <div class="rvtt-datapad-section">
+    <div class="rvtt-datapad-divider">
+      <span class="rvtt-datapad-divider__label">Notes</span>
+    </div>
+    <richtextfield
+      field="notes"
+      placeholder="Enter additional details..."
+    ></richtextfield>
+  </div>
 </div>
