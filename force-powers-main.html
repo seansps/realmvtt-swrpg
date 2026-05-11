@@ -26,18 +26,22 @@
         valuesToSet[`${prefix}data.initalized`] = true;
       }
     } else if (recordType === "force_powers") {
-      // Authoring view: editor grid, no canvas
+      // Authoring/compendium view. editorTreeBox + canvasTreeBoxLocked use
+      // hideonlocked attributes so lock state picks which one renders:
+      //   unlocked → editor grid; locked → rendered canvas tree.
       valuesToSet[`${prefix}fields.editorTreeBox.hidden`] = false;
       valuesToSet[`${prefix}fields.canvasTreeBox.hidden`] = true;
+      valuesToSet[`${prefix}fields.canvasTreeBoxLocked.hidden`] = false;
       showHideDividers();
     }
 
     if (Object.keys(valuesToSet).length > 0) {
       api.setValues(valuesToSet, () => {
-        if (recordType === "characters") paintForceTree();
+        // paint is a no-op when no canvas is mounted (unlocked compendium).
+        paintForceTree();
       });
     }
-    if (recordType === "characters") paintForceTree();
+    paintForceTree();
   }
 
   function onHideTalentChange(value, talentList) {
@@ -248,8 +252,19 @@
     return { fp: api.getValue(path) || record, fpPath: path };
   }
 
+  // Two canvases share this code: `forceTreeCanvas` lives in the character
+  // view (canvasTreeBox), `forceTreeCanvasLocked` lives in the locked-compendium
+  // view (canvasTreeBoxLocked). Visibility is mutually exclusive by
+  // construction, so probe both and use whichever is mounted.
+  function getActiveCanvas() {
+    return (
+      api.getCanvas("forceTreeCanvas") ||
+      api.getCanvas("forceTreeCanvasLocked")
+    );
+  }
+
   function ttLayout() {
-    const c = api.getCanvas("forceTreeCanvas");
+    const c = getActiveCanvas();
     if (!c) return null;
     const W = c.width;
     const H = c.height;
@@ -903,7 +918,7 @@
   }
 
   function paintForceTree(explicitCharRec) {
-    const c = api.getCanvas("forceTreeCanvas");
+    const c = getActiveCanvas();
     if (!c) return;
     const lay = ttLayout();
     if (!lay || lay.tileW <= 0 || lay.tileH <= 0) return;
@@ -925,6 +940,9 @@
           }
         });
         return;
+      } else if (record?.recordType === "force_powers") {
+        // Locked compendium view — no character. Paint the bare tree
+        // (no chosen state); charRec stays undefined.
       } else {
         // No character resolvable — bail rather than clobber correct render.
         return;
@@ -1021,6 +1039,9 @@
   // attached to the START col of each merged group only (talent slots are
   // only populated at the start col).
   function migrateLegacyForceChosenSlots(fp, fpPath, charRec) {
+    // Compendium view has no character — nothing to migrate, and we
+    // must not stamp legacyChosenMigrated onto the master template.
+    if (!charRec) return;
     if (fp?.data?.legacyChosenMigrated) return;
     const prefix = fpPath ? fpPath + "." : "";
     const talents = fp?.data?.talents || [];
@@ -1099,6 +1120,10 @@
   }
 
   function onCanvasClick() {
+    // Only the character-sheet canvas is interactive — compendium-locked
+    // view is read-only/visual.
+    if (record?.recordType !== "characters") return;
+
     const lay = ttLayout();
     if (!lay) return;
     const ctx = getForceForCanvas();
@@ -1112,14 +1137,7 @@
     if (!talent) return;
 
     if (hit.region === "checkbox") {
-      const charId = fp.data?.characterId;
-      if (!charId) {
-        console.warn(
-          "[FP] no characterId on force power — paint hasn't backfilled yet",
-        );
-        return;
-      }
-      api.getRecord("characters", charId, (charRec) => {
+      api.getRecord("characters", record._id, (charRec) => {
         if (!charRec) return;
         // Per-slot chosen state — paint reads slot.data.chosen, so the click
         // handler must too. Looking up by talent._id alone matches every slot
@@ -1127,10 +1145,6 @@
         const isChosen = ttIsSlotChosen(fp, hit.row, hit.col);
         ttToggleChosen(hit.row, hit.col, isChosen ? "no" : "yes", charRec);
       });
-    } else if (hit.region === "tile") {
-      if (talent._id && talent.recordType) {
-        api.openRecord(talent.recordType, talent._id);
-      }
     }
   }
 
@@ -1287,8 +1301,9 @@
   </div>
 
   <!-- Editor view: full grid + connector toggles + per-cell hide buttons.
-       Shown on force_powers records (default authoring view). -->
-  <box field="editorTreeBox" hidden="true">
+       Shown on force_powers records when unlocked. hideonlocked hides this
+       on locked compendium views so the rendered canvas takes over. -->
+  <box field="editorTreeBox" hidden="true" hideonlocked="true">
     <!-- Force Power Tree Wrapper - uses margin auto for centering while allowing full scroll -->
     <div
       style="
@@ -2839,6 +2854,30 @@
     <div style="width: 100%; height: 500px">
       <canvas
         field="forceTreeCanvas"
+        autosize="true"
+        style="
+          width: 100%;
+          height: 100%;
+          display: block;
+          cursor: pointer;
+          border-radius: 4px;
+        "
+        onresize="paintForceTree()"
+        onmousemove="onCanvasMove()"
+        onmouseleave="onCanvasLeave()"
+        onclick="onCanvasClick()"
+      ></canvas>
+    </div>
+  </box>
+
+  <!-- Compendium-locked view: rendered force power tree, no chosen state.
+       hideonlocked="false" hides this on unlocked force_powers records so
+       the editor grid takes over. Separate canvas (forceTreeCanvasLocked)
+       so it can coexist with the character-view canvas. -->
+  <box field="canvasTreeBoxLocked" hidden="true" hideonlocked="false">
+    <div style="width: 100%; height: 500px">
+      <canvas
+        field="forceTreeCanvasLocked"
         autosize="true"
         style="
           width: 100%;
