@@ -31,13 +31,32 @@
       });
     }
 
-    // Ensure the specialization is in wizard.specializations for the talent tree list
+    // Ensure the specialization is in wizard.specializations for the talent tree list.
+    // Stamp characterId so the canvas tree (where `record` resolves to the spec entry,
+    // not the character) can fetch the character via api.getRecord to write toggles.
+    // Also backfill characterId on already-staged specs (e.g. added in step 2 before
+    // this stamp logic existed).
     const spec = record.data?.wizard?.selectedSpecialization?.[0];
     const existingSpecs = record.data?.wizard?.specializations || [];
     if (spec && !existingSpecs.some((s) => s._id === spec._id)) {
+      const stamped = {
+        ...spec,
+        data: { ...(spec.data || {}), characterId: record._id },
+      };
       api.setValues({
-        "data.wizard.specializations": [spec],
+        "data.wizard.specializations": [stamped],
       });
+    } else if (existingSpecs.length > 0) {
+      const updates = {};
+      existingSpecs.forEach((s, i) => {
+        if (s?.data?.characterId !== record._id) {
+          updates[`data.wizard.specializations.${i}.data.characterId`] =
+            record._id;
+        }
+      });
+      if (Object.keys(updates).length > 0) {
+        api.setValues(updates);
+      }
     }
 
     // Display remaining XP
@@ -140,7 +159,7 @@
   <!-- Specialization Talent Tree -->
   <divider label="Your Specialization Talent Tree"></divider>
   <label
-    label="Scroll horizontally to see all talents. Click the checkbox icon on a talent to purchase it."
+    label="Click the checkbox icon on a talent to purchase it."
     size="xs"
     color="dimmed"
     textalign="center"

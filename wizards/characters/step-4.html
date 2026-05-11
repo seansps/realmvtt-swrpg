@@ -54,10 +54,19 @@
       );
     }
 
+    // Clear the load-guard flag so re-entering step 4 re-runs the init.
+    api.setValues({ "data.wizard._step4Loaded": false });
+
     return true;
   }
 
   function onStep4Load() {
+    // Guard against onload-loop: numberfield onload re-fires whenever any
+    // sibling field re-renders, and recalculateXp's setValues triggers exactly
+    // that. Only do the heavy work once per fresh mount of step 4.
+    if (record.data?.wizard?._step4Loaded) return;
+    api.setValues({ "data.wizard._step4Loaded": true });
+
     // Initialize skills if not already done
     if (!record.data?.wizard?.skillsInitialized) {
       initializeSkills();

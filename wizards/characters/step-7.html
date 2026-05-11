@@ -253,22 +253,56 @@
     const wizardTalents = record.data?.wizard?.talents || [];
 
     if (wizardSpec) {
-      // Copy the wizard's specialization tree directly - it already has the chosen states set
+      // Copy the wizard's specialization tree directly - it already has the chosen states set.
+      // Pre-set visibility + initialized so the canvas tree mounts correctly the first time
+      // the user opens this spec on the character (matches characters-features.html drop path).
       valuesToSet["data.specializations"] = [
         {
           ...wizardSpec,
           _id: wizardSpec._id || generateUuid(),
+          fields: {
+            ...(wizardSpec.fields || {}),
+            canvasTreeBox: { hidden: false },
+            editorTreeBox: { hidden: true },
+            signatureAbility: { hidden: false },
+          },
+          data: {
+            ...(wizardSpec.data || {}),
+            initalized: true,
+            // Stash the character's id so canvas-handler context (which sees
+            // the spec entry as `record`, not the character) can patch back.
+            characterId: record._id,
+          },
         },
       ];
     }
 
-    // Copy wizard talents to character talents list
+    // Copy wizard talents to character talents list.
+    // Unranked talent IDs encode the slot path (e.g.
+    // `${talentId}-data.wizard.specializations.0.data.talent1_1.0.`) so the
+    // chosen-state lookup in specialization-main.html can match them. After
+    // finalization the spec lives at data.specializations[0] (not
+    // data.wizard.specializations.X), so rewrite the path segment in each
+    // unranked ID — otherwise the regular canvas won't find the chosen entries
+    // and clicking the checkbox would add a duplicate instead of toggling off.
     if (wizardTalents.length > 0) {
-      const finalTalents = wizardTalents.map((talent) => ({
-        ...talent,
-        // Keep the existing _id - it's already set correctly (either base ID for ranked, or ID+path for non-ranked)
-        icon: talent.icon || "IconStar",
-      }));
+      const finalTalents = wizardTalents.map((talent) => {
+        let newId = talent._id;
+        if (
+          typeof newId === "string" &&
+          /data\.wizard\.specializations\.\d+/.test(newId)
+        ) {
+          newId = newId.replace(
+            /data\.wizard\.specializations\.\d+/,
+            "data.specializations.0"
+          );
+        }
+        return {
+          ...talent,
+          _id: newId,
+          icon: talent.icon || "IconStar",
+        };
+      });
       valuesToSet["data.talents"] = finalTalents;
     }
 

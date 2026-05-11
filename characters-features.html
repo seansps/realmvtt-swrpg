@@ -11,7 +11,27 @@
 
   function onDropSpecialization(type, recordLink) {
     const specializationName = recordLink.tooltip;
-    const specializationObj = { ...recordLink.value, icon: "IconStars" };
+    // Pre-set visibility + initialized so the canvas tree mounts correctly the
+    // first time the user opens this spec — otherwise the spec-main onLoad has
+    // to do a setValues round-trip to flip canvasTreeBox.hidden, and the
+    // canvas mounts a frame too late to catch its initial size measurement.
+    const specializationObj = {
+      ...recordLink.value,
+      icon: "IconStars",
+      fields: {
+        ...(recordLink.value?.fields || {}),
+        canvasTreeBox: { hidden: false },
+        editorTreeBox: { hidden: true },
+        signatureAbility: { hidden: false },
+      },
+      data: {
+        ...(recordLink.value?.data || {}),
+        initalized: true,
+        // Stash the character's id so canvas-handler context (which sees the
+        // spec entry as `record`, not the character) can patch back to us.
+        characterId: record._id,
+      },
+    };
 
     api.addValue("data.specializations", specializationObj, () => {
       const valuesToSet = {};
@@ -57,7 +77,23 @@
 
   function onDropForcePower(type, recordLink) {
     const forcePowerName = recordLink.tooltip;
-    const forcePowerObj = { ...recordLink.value, icon: "IconWand" };
+    // Pre-set visibility/init/characterId so the canvas tree mounts in player
+    // mode the first time the user opens this force power. Same pattern as
+    // spec/sig-ability drops.
+    const forcePowerObj = {
+      ...recordLink.value,
+      icon: "IconWand",
+      fields: {
+        ...(recordLink.value?.fields || {}),
+        editorTreeBox: { hidden: true },
+        canvasTreeBox: { hidden: false },
+      },
+      data: {
+        ...(recordLink.value?.data || {}),
+        initalized: true,
+        characterId: record._id,
+      },
+    };
 
     api.addValue("data.forcePowers", forcePowerObj, () => {
       const valuesToSet = {};

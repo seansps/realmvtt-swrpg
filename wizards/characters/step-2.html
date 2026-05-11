@@ -50,15 +50,20 @@
       return false;
     }
 
-    // Add the specialization to data.wizard.specializations so step 5 can display the talent tree
+    // Add the specialization to data.wizard.specializations so step 5 can display the talent tree.
+    // Stash characterId on the spec so the canvas tree (which sees the spec entry as `record`,
+    // not the character) can fetch the character to write talent toggles to data.wizard.talents.
     const spec = record.data?.wizard?.selectedSpecialization?.[0];
     if (spec) {
       const existingSpecs = record.data?.wizard?.specializations || [];
-      // Check if already added (in case user went back and forth)
       const alreadyAdded = existingSpecs.some((s) => s._id === spec._id);
       if (!alreadyAdded) {
+        const stamped = {
+          ...spec,
+          data: { ...(spec.data || {}), characterId: record._id },
+        };
         api.setValues({
-          "data.wizard.specializations": [...existingSpecs, spec],
+          "data.wizard.specializations": [...existingSpecs, stamped],
         });
       }
     }

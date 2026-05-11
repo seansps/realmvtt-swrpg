@@ -18,7 +18,36 @@
   }
 
   function onLoad() {
-    showHideDividers();
+    const recordType = record.recordType;
+    const nearestParentDataPath = getNearestParentDataPath(dataPath);
+    const prefix = nearestParentDataPath ? `${nearestParentDataPath}.` : "";
+    const sig = api.getValue(nearestParentDataPath);
+    const valuesToSet = {};
+
+    if (recordType === "characters") {
+      // Player view: canvas tree, hide editor grid
+      valuesToSet[`${prefix}fields.editorTreeBox.hidden`] = true;
+      valuesToSet[`${prefix}fields.canvasTreeBox.hidden`] = false;
+
+      // Stamp characterId so canvas event handlers (record = sig entry) can
+      // fetch the character to apply toggle patches. Required for legacy
+      // sig abilities dropped before this backfill landed.
+      if (sig?.data?.characterId !== record._id) {
+        valuesToSet[`${prefix}data.characterId`] = record._id;
+      }
+    } else {
+      // Authoring view: editor grid, no canvas
+      valuesToSet[`${prefix}fields.editorTreeBox.hidden`] = false;
+      valuesToSet[`${prefix}fields.canvasTreeBox.hidden`] = true;
+      showHideDividers();
+    }
+
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet, () => {
+        if (recordType === "characters") paintSigTree();
+      });
+    }
+    if (recordType === "characters") paintSigTree();
   }
 
   function showHideDividers() {
@@ -92,6 +121,909 @@
       api.setValues(valuesToSet);
     }
   }
+
+  // ---------- Canvas signature ability tree (player view) ----------
+  // Mirrors specialiation-signature-ability-list.html. Upgrades (talents) live
+  // on this sig ability's `data.talents`; their cost reduces character's spentXp.
+
+  function getSigForCanvas() {
+    const path = getNearestParentDataPath(dataPath);
+    return { sig: api.getValue(path) || record, sigPath: path };
+  }
+
+  function ttLayout() {
+    const c = api.getCanvas("sigTreeCanvas");
+    if (!c) return null;
+    const W = c.width;
+    const H = c.height;
+    const PAD = 8;
+    const HGAP = 18;
+    const VGAP = 24;
+    const TOP_CONN_H = 18;
+    const BANNER_H = 56;
+    const MID_CONN_H = 18;
+    const tileW = Math.floor((W - 2 * PAD - 3 * HGAP) / 4);
+    const tileH = Math.floor(
+      (H - 2 * PAD - TOP_CONN_H - BANNER_H - MID_CONN_H - VGAP) / 2,
+    );
+    const bannerY = PAD + TOP_CONN_H;
+    const tileTop = bannerY + BANNER_H + MID_CONN_H;
+    return {
+      W: W, H: H, PAD: PAD, HGAP: HGAP, VGAP: VGAP,
+      TOP_CONN_H: TOP_CONN_H, BANNER_H: BANNER_H, MID_CONN_H: MID_CONN_H,
+      bannerY: bannerY, tileTop: tileTop,
+      tileW: tileW, tileH: tileH,
+    };
+  }
+
+  function ttTileRect(row, col, lay) {
+    const x = lay.PAD + (col - 1) * (lay.tileW + lay.HGAP);
+    const y = lay.tileTop + (row - 1) * (lay.tileH + lay.VGAP);
+    return { x: x, y: y, w: lay.tileW, h: lay.tileH };
+  }
+
+  function ttCheckboxRect(row, col, lay) {
+    const t = ttTileRect(row, col, lay);
+    const sz = 20;
+    return { x: t.x + t.w - sz - 5, y: t.y + 5, w: sz, h: sz };
+  }
+
+  function ttChosenIdFor(talent, slotPathDot) {
+    if (!talent) return null;
+    const ranked = talent?.data?.ranked === "yes";
+    return ranked ? talent._id : `${talent._id}-${slotPathDot}`;
+  }
+
+  // Per-slot chosen state (mirrors specialization-main.html). Source of truth
+  // for which checkbox shows checked.
+  function ttIsSlotChosen(sig, row, col) {
+    const slot = sig?.data?.[`talent${row}_${col}`]?.[0];
+    return slot?.data?.chosen === "yes";
+  }
+
+  function ttChosenRank(talent, sigEntry) {
+    if (!talent || talent?.data?.ranked !== "yes") return 0;
+    const list = (sigEntry || record)?.data?.talents || [];
+    const found = list.find((t) => t._id === talent._id);
+    return found?.data?.rank || 0;
+  }
+
+  function ttStripHtml(s) {
+    return (s || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/\s+/g, " ");
+  }
+
+  function ttTruncate(c, text, maxW) {
+    if (!text) return "";
+    if (c.measureText(text).width <= maxW) return text;
+    let lo = 0;
+    let hi = text.length;
+    while (lo < hi - 1) {
+      const mid = (lo + hi) >> 1;
+      if (c.measureText(text.slice(0, mid) + "…").width <= maxW) lo = mid;
+      else hi = mid;
+    }
+    return text.slice(0, lo) + "…";
+  }
+
+  function ttWrapText(c, text, maxW, maxLines) {
+    const words = (text || "").split(" ");
+    const lines = [];
+    let line = "";
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      const test = line ? line + " " + w : w;
+      if (c.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = w;
+        if (lines.length >= maxLines) break;
+      } else {
+        line = test;
+      }
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+    if (lines.length >= maxLines) {
+      lines[maxLines - 1] = ttTruncate(c, lines[maxLines - 1] + "…", maxW);
+    }
+    return lines;
+  }
+
+  function ttHitTest(x, y, lay) {
+    for (let row = 1; row <= 2; row++) {
+      for (let col = 1; col <= 4; col++) {
+        const cb = ttCheckboxRect(row, col, lay);
+        if (x >= cb.x && x <= cb.x + cb.w && y >= cb.y && y <= cb.y + cb.h) {
+          return { row: row, col: col, region: "checkbox" };
+        }
+        const t = ttTileRect(row, col, lay);
+        if (x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h) {
+          return { row: row, col: col, region: "tile" };
+        }
+      }
+    }
+    return null;
+  }
+
+  function ttSymbolMap() {
+    return {
+      ability: {
+        char: "d",
+        font: "EotE Symbol",
+        fill: "#46ac4e",
+        stroke: "#000000",
+      },
+      difficulty: {
+        char: "d",
+        font: "EotE Symbol",
+        fill: "#52287e",
+        stroke: "#000000",
+      },
+      proficiency: {
+        char: "c",
+        font: "EotE Symbol",
+        fill: "#fef035",
+        stroke: "#000000",
+      },
+      challenge: {
+        char: "c",
+        font: "EotE Symbol",
+        fill: "#751317",
+        stroke: "#000000",
+      },
+      boost: {
+        char: "b",
+        font: "EotE Symbol",
+        fill: "#76cddb",
+        stroke: "#000000",
+      },
+      setback: {
+        char: "b",
+        font: "EotE Symbol",
+        fill: "#000000",
+        stroke: "#888888",
+      },
+      magic: {
+        char: "c",
+        font: "EotE Symbol",
+        fill: "#ffffff",
+        stroke: "#000000",
+      },
+      force: {
+        char: "c",
+        font: "EotE Symbol",
+        fill: "#ffffff",
+        stroke: "#000000",
+      },
+      success: { char: "s", font: "EotE Symbol", fill: null },
+      advantage: { char: "a", font: "EotE Symbol", fill: null },
+      failure: { char: "f", font: "EotE Symbol", fill: null },
+      threat: { char: "t", font: "EotE Symbol", fill: null },
+      triumph: { char: "x", font: "EotE Symbol", fill: null },
+      despair: { char: "y", font: "EotE Symbol", fill: null },
+      light: { char: "Z", font: "EotE Symbol", fill: null },
+      dark: { char: "z", font: "EotE Symbol", fill: null },
+      forcepoint: { char: "Y", font: "EotE Symbol", fill: null },
+    };
+  }
+
+  function ttParseRichText(html) {
+    if (!html) return [];
+    const out = [];
+    const spanRe =
+      /<span[^>]*data-dice-type=["']([^"']+)["'][^>]*>[\s\S]*?<\/span>/gi;
+    let last = 0;
+    let m;
+    while ((m = spanRe.exec(html)) !== null) {
+      if (m.index > last) {
+        const txt = ttStripHtml(html.slice(last, m.index));
+        if (txt) out.push({ type: "text", text: txt });
+      }
+      out.push({ type: "symbol", kind: m[1].toLowerCase() });
+      last = m.index + m[0].length;
+    }
+    if (last < html.length) {
+      const txt = ttStripHtml(html.slice(last));
+      if (txt) out.push({ type: "text", text: txt });
+    }
+    return out;
+  }
+
+  function ttRenderRichText(
+    c,
+    tokens,
+    x,
+    y,
+    maxW,
+    lineH,
+    maxLines,
+    color,
+    basePxFont,
+    dry,
+  ) {
+    const sym = ttSymbolMap();
+    const px = parseInt(basePxFont, 10) || 12;
+    const symFontStr = (def) => px + "px '" + def.font + "'";
+    const items = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t.type === "text") {
+        const parts = t.text.split(/(\s+)/);
+        for (let j = 0; j < parts.length; j++) {
+          const p = parts[j];
+          if (!p) continue;
+          if (/^\s+$/.test(p)) items.push({ kind: "space" });
+          else items.push({ kind: "word", text: p });
+        }
+      } else if (t.type === "symbol") {
+        items.push({ kind: "symbol", which: t.kind });
+      }
+    }
+    let curX = x;
+    let curY = y;
+    let line = 1;
+    let firstOnLine = true;
+    c.setTextAlign("left");
+    c.setTextBaseline("top");
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      let itW = 0;
+      if (it.kind === "word") {
+        c.setFont(basePxFont);
+        itW = c.measureText(it.text).width;
+      } else if (it.kind === "space") {
+        c.setFont(basePxFont);
+        itW = c.measureText(" ").width;
+      } else if (it.kind === "symbol") {
+        const def = sym[it.which];
+        if (!def) continue;
+        c.setFont(symFontStr(def));
+        itW = c.measureText(def.char).width + 2;
+      }
+      if (it.kind === "space" && firstOnLine) continue;
+      if (curX + itW > x + maxW && !firstOnLine) {
+        curX = x;
+        curY += lineH;
+        line++;
+        if (line > maxLines) return maxLines;
+        firstOnLine = true;
+        if (it.kind === "space") continue;
+      }
+      if (!dry) {
+        if (it.kind === "word") {
+          c.setFont(basePxFont);
+          c.setFillStyle(color);
+          c.fillText(it.text, curX, curY);
+        } else if (it.kind === "symbol") {
+          const def = sym[it.which];
+          if (def) {
+            c.setFont(symFontStr(def));
+            if (def.stroke) {
+              c.setStrokeStyle(def.stroke);
+              c.setLineWidth(1.5);
+              c.strokeText(def.char, curX + 1, curY);
+            }
+            c.setFillStyle(def.fill || color);
+            c.fillText(def.char, curX + 1, curY);
+          }
+        }
+      }
+      curX += itW;
+      firstOnLine = false;
+    }
+    return line;
+  }
+
+  function ttTheme() {
+    return {
+      bg: api.getThemeColor("background"),
+      surface: api.getThemeColor("surface"),
+      border: api.getThemeColor("border"),
+      primary: api.getThemeColor("primary"),
+      primaryLight: api.getThemeColor("primaryLight"),
+      primaryContrast: api.getThemeColor("primaryContrast"),
+      text: api.getThemeColor("text"),
+      textDim: api.getThemeColor("textDim"),
+    };
+  }
+
+  function ttDrawConnectors(c, sig, lay, theme) {
+    c.setStrokeStyle(theme.primary);
+    c.setLineWidth(3);
+    c.setLineCap("round");
+    // connector0_C: UP arrows from canvas top down to banner top.
+    for (let col = 1; col <= 4; col++) {
+      if (sig.data?.[`connector0_${col}`] !== "Yes") continue;
+      const t = ttTileRect(1, col, lay);
+      const x = t.x + t.w / 2;
+      c.beginPath();
+      c.moveTo(x, 0);
+      c.lineTo(x, lay.bannerY);
+      c.stroke();
+    }
+    // connector1_C: DOWN arrows from banner bottom to row 1 tile top.
+    for (let col = 1; col <= 4; col++) {
+      if (sig.data?.[`connector1_${col}`] !== "Yes") continue;
+      const t = ttTileRect(1, col, lay);
+      const x = t.x + t.w / 2;
+      c.beginPath();
+      c.moveTo(x, lay.bannerY + lay.BANNER_H);
+      c.lineTo(x, t.y);
+      c.stroke();
+    }
+    for (let col = 1; col <= 4; col++) {
+      if (sig.data?.[`connector2_${col}`] !== "Yes") continue;
+      const top = ttTileRect(1, col, lay);
+      const bot = ttTileRect(2, col, lay);
+      const x = top.x + top.w / 2;
+      c.beginPath();
+      c.moveTo(x, top.y + top.h);
+      c.lineTo(x, bot.y);
+      c.stroke();
+    }
+    for (let row = 1; row <= 2; row++) {
+      for (let col = 2; col <= 4; col++) {
+        const key = `h_connector${row}_${col}`;
+        if (sig.data?.[key] !== "Yes") continue;
+        const left = ttTileRect(row, col - 1, lay);
+        const right = ttTileRect(row, col, lay);
+        const y = left.y + left.h / 2;
+        c.beginPath();
+        c.moveTo(left.x + left.w, y);
+        c.lineTo(right.x, y);
+        c.stroke();
+      }
+    }
+  }
+
+  function ttDrawBanner(c, sig, lay, theme) {
+    const x = lay.PAD;
+    const y = lay.bannerY;
+    const w = lay.W - 2 * lay.PAD;
+    const h = lay.BANNER_H;
+
+    c.setFillStyle(theme.surface);
+    c.fillRect(x, y, w, h);
+    c.setStrokeStyle(theme.primary);
+    c.setLineWidth(2);
+    c.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+    // Portrait — left side, vertically centered. Falls back to a colored
+    // circle with the first letter when no portrait is set.
+    const pSize = Math.max(0, h - 14);
+    const pX = x + 8;
+    const pY = y + (h - pSize) / 2;
+    if (sig?.portrait) {
+      c.drawImage(sig.portrait, pX, pY, pSize, pSize);
+    } else {
+      c.setFillStyle(theme.border);
+      c.beginPath();
+      c.arc(pX + pSize / 2, pY + pSize / 2, pSize / 2, 0, Math.PI * 2);
+      c.fill();
+      const name0 = sig?.name || sig?.namefield || "?";
+      c.setFillStyle(theme.text);
+      c.setFont("bold 18px sans-serif");
+      c.setTextAlign("center");
+      c.setTextBaseline("middle");
+      c.fillText(name0.charAt(0).toUpperCase(), pX + pSize / 2, pY + pSize / 2 + 1);
+    }
+
+    const name = sig?.name || sig?.namefield || "Signature Ability";
+    const cost = sig?.data?.cost != null ? sig.data.cost : null;
+    const textX = pX + pSize + 12;
+    const textMaxW = x + w - textX - 8;
+
+    c.setTextAlign("left");
+    c.setTextBaseline("middle");
+
+    if (cost != null) {
+      c.setFillStyle(theme.text);
+      c.setFont("bold 16px sans-serif");
+      c.fillText(ttTruncate(c, name, textMaxW), textX, y + h / 2 - 10);
+      c.setFillStyle(theme.textDim);
+      c.setFont("italic 11px sans-serif");
+      c.fillText("Base cost: " + cost + " XP", textX, y + h / 2 + 12);
+    } else {
+      c.setFillStyle(theme.text);
+      c.setFont("bold 16px sans-serif");
+      c.fillText(ttTruncate(c, name, textMaxW), textX, y + h / 2);
+    }
+  }
+
+  function ttDrawTile(c, row, col, talent, chosen, rank, lay, theme) {
+    const t = ttTileRect(row, col, lay);
+    if (chosen) {
+      c.setFillStyle(theme.primary);
+      c.fillRect(t.x, t.y, t.w, t.h);
+    } else if (talent) {
+      c.setFillStyle(theme.surface);
+      c.fillRect(t.x, t.y, t.w, t.h);
+    }
+    if (chosen) {
+      c.setStrokeStyle(theme.primary);
+      c.setLineWidth(1);
+    } else {
+      c.setStrokeStyle(theme.border);
+      c.setLineWidth(1);
+    }
+    c.strokeRect(t.x + 0.5, t.y + 0.5, t.w - 1, t.h - 1);
+    if (!talent) {
+      c.setFillStyle(theme.textDim);
+      c.setFont("11px sans-serif");
+      c.setTextAlign("center");
+      c.setTextBaseline("middle");
+      c.fillText("(empty)", t.x + t.w / 2, t.y + t.h / 2);
+      return;
+    }
+    const textColor = chosen ? theme.primaryContrast : theme.text;
+    const dimColor = chosen ? theme.primaryContrast : theme.textDim;
+    const pSize = 26;
+    const pX = t.x + 6;
+    const pY = t.y + 6;
+    if (talent.portrait) {
+      c.drawImage(talent.portrait, pX, pY, pSize, pSize);
+    } else {
+      c.setFillStyle(chosen ? theme.primaryContrast : theme.border);
+      c.beginPath();
+      c.arc(pX + pSize / 2, pY + pSize / 2, pSize / 2, 0, Math.PI * 2);
+      c.fill();
+      c.setFillStyle(chosen ? theme.primary : theme.text);
+      c.setFont("bold 13px sans-serif");
+      c.setTextAlign("center");
+      c.setTextBaseline("middle");
+      c.fillText(
+        (talent.name || "?").charAt(0).toUpperCase(),
+        pX + pSize / 2,
+        pY + pSize / 2 + 1,
+      );
+    }
+    const headerX = pX + pSize + 8;
+    const headerRight = t.x + t.w - 30;
+    c.setFillStyle(textColor);
+    c.setFont("bold 13px sans-serif");
+    c.setTextAlign("left");
+    c.setTextBaseline("top");
+    const name = ttTruncate(c, talent.name || "Unnamed", headerRight - headerX);
+    c.fillText(name, headerX, t.y + 7);
+    const activation = talent.data?.activation || "Passive";
+    const cost = talent.data?.cost != null ? talent.data.cost : "";
+    const ranked = talent.data?.ranked === "yes";
+    const sub = `${activation}${cost !== "" ? " · " + cost + " XP" : ""}${ranked ? " · Ranked" : ""}`;
+    c.setFillStyle(dimColor);
+    c.setFont("11px sans-serif");
+    c.fillText(ttTruncate(c, sub, headerRight - headerX), headerX, t.y + 24);
+    const tokens = ttParseRichText(talent.data?.description || "");
+    if (tokens.length) {
+      ttRenderRichText(
+        c,
+        tokens,
+        t.x + 8,
+        t.y + 42,
+        t.w - 16,
+        14,
+        2,
+        dimColor,
+        "11px sans-serif",
+        false,
+      );
+    }
+    if (chosen && ranked && rank > 1) {
+      c.setFillStyle(theme.primaryContrast);
+      c.setFont("bold 11px sans-serif");
+      c.setTextAlign("right");
+      c.setTextBaseline("top");
+      c.fillText("×" + rank, t.x + t.w - 32, t.y + 8);
+    }
+    const cb = ttCheckboxRect(row, col, lay);
+    if (chosen) {
+      c.setFillStyle(theme.primaryContrast);
+      c.fillRect(cb.x, cb.y, cb.w, cb.h);
+    }
+    c.setStrokeStyle(chosen ? theme.primary : theme.border);
+    c.setLineWidth(1);
+    c.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
+    if (chosen) {
+      c.setStrokeStyle(theme.primary);
+      c.setLineWidth(2);
+      c.setLineCap("round");
+      c.beginPath();
+      c.moveTo(cb.x + 4, cb.y + 11);
+      c.lineTo(cb.x + 9, cb.y + 15);
+      c.lineTo(cb.x + 16, cb.y + 5);
+      c.stroke();
+    }
+  }
+
+  function ttDrawTooltip(c, talent, hoveredTile, lay, theme) {
+    const tipW = Math.min(360, lay.W - 20);
+    const padX = 10;
+    const padY = 8;
+    const lineH = 16;
+    const headerH = 18;
+    const subH = 15;
+    const tokens = ttParseRichText(talent.data?.description || "");
+    const descMaxW = tipW - padX * 2;
+    const MAX_DESC_LINES = 14;
+    const descLineCount = tokens.length
+      ? ttRenderRichText(
+          c,
+          tokens,
+          0,
+          0,
+          descMaxW,
+          lineH,
+          MAX_DESC_LINES,
+          "#000",
+          "12px sans-serif",
+          true,
+        )
+      : 0;
+    const tipH = padY * 2 + headerH + subH + descLineCount * lineH;
+    let tipX = hoveredTile.x;
+    let tipY = hoveredTile.y + hoveredTile.h + 6;
+    if (tipY + tipH > lay.H - 4) tipY = hoveredTile.y - tipH - 6;
+    if (tipY < 4) tipY = 4;
+    if (tipX + tipW > lay.W - 4) tipX = lay.W - tipW - 4;
+    if (tipX < 4) tipX = 4;
+    c.setShadowColor("rgba(0, 0, 0, 0.45)");
+    c.setShadowBlur(12);
+    c.setShadowOffsetX(0);
+    c.setShadowOffsetY(2);
+    c.setFillStyle(theme.surface);
+    c.fillRect(tipX, tipY, tipW, tipH);
+    c.setShadowBlur(0);
+    c.setShadowOffsetY(0);
+    c.setStrokeStyle(theme.primary);
+    c.setLineWidth(1);
+    c.strokeRect(tipX + 0.5, tipY + 0.5, tipW - 1, tipH - 1);
+    let ty = tipY + padY;
+    c.setTextAlign("left");
+    c.setTextBaseline("top");
+    c.setFillStyle(theme.text);
+    c.setFont("bold 13px sans-serif");
+    c.fillText(
+      ttTruncate(c, talent.name || "Unnamed", tipW - padX * 2),
+      tipX + padX,
+      ty,
+    );
+    ty += headerH;
+    const activation = talent.data?.activation || "Passive";
+    const cost = talent.data?.cost != null ? talent.data.cost : "";
+    const ranked = talent.data?.ranked === "yes" ? " · Ranked" : "";
+    const sub = `${activation}${cost !== "" ? " · " + cost + " XP" : ""}${ranked}`;
+    c.setFillStyle(theme.textDim);
+    c.setFont("italic 11px sans-serif");
+    c.fillText(sub, tipX + padX, ty);
+    ty += subH;
+    if (tokens.length) {
+      ttRenderRichText(
+        c,
+        tokens,
+        tipX + padX,
+        ty,
+        descMaxW,
+        lineH,
+        MAX_DESC_LINES,
+        theme.text,
+        "12px sans-serif",
+        false,
+      );
+    }
+  }
+
+  function paintSigTree(explicitCharRec) {
+    const c = api.getCanvas("sigTreeCanvas");
+    if (!c) return;
+    const lay = ttLayout();
+    if (!lay || lay.tileW <= 0 || lay.tileH <= 0) return;
+    const ctx = getSigForCanvas();
+    const sig = ctx.sig;
+    if (!sig) return;
+    let charRec = explicitCharRec;
+    if (!charRec) {
+      if (record?.recordType === "characters") {
+        charRec = record;
+      } else if (sig.data?.characterId) {
+        api.getRecord("characters", sig.data.characterId, (cr) => {
+          if (cr) {
+            ttPreloadPortraitsThen(sig, () =>
+              doPaintSigTree(c, lay, ctx, cr),
+            );
+          }
+        });
+        return;
+      } else {
+        return;
+      }
+    }
+    ttPreloadPortraitsThen(sig, () => doPaintSigTree(c, lay, ctx, charRec));
+  }
+
+  // Preload all sig-banner + tile portraits via api.preloadImage so c.drawImage
+  // is sync (otherwise async portrait paints overlay the tooltip).
+  function ttPreloadPortraitsThen(sig, then) {
+    if (typeof api.preloadImage !== "function") {
+      then();
+      return;
+    }
+    const urls = [];
+    const seen = new Set();
+    const add = (u) => {
+      if (u && !seen.has(u)) {
+        seen.add(u);
+        urls.push(u);
+      }
+    };
+    add(sig?.portrait);
+    for (let r = 1; r <= 2; r++) {
+      for (let col = 1; col <= 4; col++) {
+        add(sig?.data?.[`talent${r}_${col}`]?.[0]?.portrait);
+      }
+    }
+    if (!urls.length) {
+      then();
+      return;
+    }
+    Promise.all(urls.map((u) => api.preloadImage(u))).then(then, then);
+  }
+
+  function doPaintSigTree(c, lay, ctx, charRec) {
+    const theme = ttTheme();
+    const sig = ctx.sig;
+    const sigPath = ctx.sigPath;
+    if (
+      charRec?.recordType === "characters" &&
+      charRec._id &&
+      sig.data?.characterId !== charRec._id
+    ) {
+      api.setValues({
+        [`${sigPath ? sigPath + "." : ""}data.characterId`]: charRec._id,
+      });
+    }
+    migrateLegacySigChosenSlots(sig, sigPath, charRec);
+    c.clearRect(0, 0, lay.W, lay.H);
+    ttDrawConnectors(c, sig, lay, theme);
+    ttDrawBanner(c, sig, lay, theme);
+    for (let row = 1; row <= 2; row++) {
+      for (let col = 1; col <= 4; col++) {
+        const slotKey = `talent${row}_${col}`;
+        const talent = sig.data?.[slotKey]?.[0] || null;
+        const chosen = !!talent && ttIsSlotChosen(sig, row, col);
+        const rank = chosen ? ttChosenRank(talent, sig) : 0;
+        ttDrawTile(c, row, col, talent, chosen, rank, lay, theme);
+      }
+    }
+    // Tooltip drawn last; portraits preloaded so c.drawImage is sync and the
+    // tooltip naturally lands on top.
+    const hover = api.getSession("sigHover");
+    if (hover) {
+      const talent = sig.data?.[`talent${hover.row}_${hover.col}`]?.[0];
+      if (talent && (talent.name || talent.data?.description)) {
+        ttDrawTooltip(
+          c,
+          talent,
+          ttTileRect(hover.row, hover.col, lay),
+          lay,
+          theme,
+        );
+      }
+    }
+  }
+
+  // Idempotent legacy migration. See specialization-main.html for the full
+  // rationale. Derives slot.data.chosen from sig.data.talents for upgrades
+  // chosen before per-slot tracking landed.
+  function migrateLegacySigChosenSlots(sig, sigPath, charRec) {
+    if (sig?.data?.legacyChosenMigrated) return;
+    const prefix = sigPath ? sigPath + "." : "";
+    const talents = sig?.data?.talents || [];
+    const updates = {};
+    let touched = false;
+    const slotsByTalentId = {};
+    for (let r = 1; r <= 2; r++) {
+      for (let col = 1; col <= 4; col++) {
+        const t = sig.data?.[`talent${r}_${col}`]?.[0];
+        if (!t?._id) continue;
+        if (!slotsByTalentId[t._id]) slotsByTalentId[t._id] = [];
+        slotsByTalentId[t._id].push({ row: r, col: col });
+      }
+    }
+    for (const entry of talents) {
+      if (!entry?._id) continue;
+      const dashIdx = entry._id.indexOf("-");
+      const isUnrankedEncoded =
+        dashIdx > 0 && entry._id.slice(dashIdx + 1).includes("data.");
+      if (isUnrankedEncoded) {
+        const slotPathDot = entry._id.slice(dashIdx + 1);
+        const m = slotPathDot.match(/data\.(talent\d+_\d+)\.0\.?$/);
+        if (m && slotPathDot.startsWith(prefix + "data.")) {
+          const slotKey = m[1];
+          const slot = sig.data?.[slotKey]?.[0];
+          if (slot && slot.data?.chosen !== "yes") {
+            updates[`${prefix}data.${slotKey}.0.data.chosen`] = "yes";
+            touched = true;
+          }
+        }
+      } else {
+        const occurrences = slotsByTalentId[entry._id] || [];
+        const rank = entry?.data?.rank || 1;
+        for (let i = 0; i < Math.min(rank, occurrences.length); i++) {
+          const { row, col } = occurrences[i];
+          const slot = sig.data?.[`talent${row}_${col}`]?.[0];
+          if (slot && slot.data?.chosen !== "yes") {
+            updates[`${prefix}data.talent${row}_${col}.0.data.chosen`] = "yes";
+            touched = true;
+          }
+        }
+      }
+    }
+    updates[`${prefix}data.legacyChosenMigrated`] = true;
+    if (touched) {
+      api.setValuesOnRecord(charRec, updates, (recUpd) => paintSigTree(recUpd));
+    } else {
+      api.setValuesOnRecord(charRec, {
+        [`${prefix}data.legacyChosenMigrated`]: true,
+      });
+    }
+  }
+
+  function onCanvasMove() {
+    const lay = ttLayout();
+    if (!lay) return;
+    const hit = ttHitTest(event.x, event.y, lay);
+    const prev = api.getSession("sigHover");
+    const same =
+      (!prev && !hit) ||
+      (prev && hit && prev.row === hit.row && prev.col === hit.col);
+    if (!same) {
+      api.setSession("sigHover", hit);
+      paintSigTree();
+    }
+  }
+
+  function onCanvasLeave() {
+    if (api.getSession("sigHover")) {
+      api.setSession("sigHover", null);
+      paintSigTree();
+    }
+  }
+
+  function onCanvasClick() {
+    const lay = ttLayout();
+    if (!lay) return;
+    const hit = ttHitTest(event.x, event.y, lay);
+    if (!hit) return;
+    const ctx = getSigForCanvas();
+    const sig = ctx.sig;
+    const slotKey = `talent${hit.row}_${hit.col}`;
+    const talent = sig.data?.[slotKey]?.[0];
+    if (!talent) return;
+    if (hit.region === "checkbox") {
+      const charId = sig.data?.characterId;
+      if (!charId) {
+        console.warn(
+          "[SIG] no characterId on sig ability — paint hasn't backfilled yet",
+        );
+        return;
+      }
+      api.getRecord("characters", charId, (charRec) => {
+        if (!charRec) return;
+        const isChosen = ttIsSlotChosen(sig, hit.row, hit.col);
+        ttToggleChosen(hit.row, hit.col, isChosen ? "no" : "yes", charRec);
+      });
+    } else if (hit.region === "tile") {
+      if (talent._id && talent.recordType) {
+        api.openRecord(talent.recordType, talent._id);
+      }
+    }
+  }
+
+  function ttToggleChosen(row, col, newValue, charRec) {
+    const ctx = getSigForCanvas();
+    const sig = ctx.sig;
+    const sigPath = ctx.sigPath;
+    const slotKey = `talent${row}_${col}`;
+    const talent = sig.data?.[slotKey]?.[0];
+    if (!talent) return;
+    const sigPrefix = sigPath ? sigPath + "." : "";
+    const slotPathDot = `${sigPrefix}data.${slotKey}.0.`;
+    const slotChosenPath = `${sigPrefix}data.${slotKey}.0.data.chosen`;
+    const sigTalentsPath = `${sigPrefix}data.talents`;
+    const ranked = talent.data?.ranked === "yes";
+    const id = ranked ? talent._id : `${talent._id}-${slotPathDot}`;
+    const talents = sig.data?.talents || [];
+    const idx = talents.findIndex((t) => t._id === id);
+    const existing = talents[idx];
+    const cost = talent.data?.cost || 0;
+    if (newValue === "yes") {
+      if (idx !== -1) {
+        api.setValuesOnRecord(
+          charRec,
+          {
+            [slotChosenPath]: "yes",
+            [`${sigTalentsPath}.${idx}.data.rank`]:
+              (existing?.data?.rank || 0) + 1,
+          },
+          (recUpd) => {
+            const valuesToSet = {
+              [`data.spentXp`]: (recUpd.data.spentXp || 0) + cost,
+            };
+            updateAttributes(recUpd, valuesToSet);
+            api.setValuesOnRecord(recUpd, valuesToSet, (recFinal) =>
+              paintSigTree(recFinal || recUpd),
+            );
+          },
+        );
+      } else {
+        const newTalents = [
+          ...talents,
+          {
+            ...talent,
+            _id: id,
+            data: { ...talent.data, rank: 1 },
+            icon: "IconStar",
+          },
+        ];
+        api.setValuesOnRecord(
+          charRec,
+          { [slotChosenPath]: "yes", [sigTalentsPath]: newTalents },
+          (recUpd) => {
+            const valuesToSet = {
+              [`data.spentXp`]: (recUpd.data.spentXp || 0) + cost,
+            };
+            updateAttributes(recUpd, valuesToSet);
+            api.setValuesOnRecord(recUpd, valuesToSet, (recFinal) =>
+              paintSigTree(recFinal || recUpd),
+            );
+          },
+        );
+      }
+    } else {
+      if (idx !== -1 && existing?.data?.rank && existing.data.rank > 1) {
+        api.setValuesOnRecord(
+          charRec,
+          {
+            [slotChosenPath]: "no",
+            [`${sigTalentsPath}.${idx}.data.rank`]: existing.data.rank - 1,
+          },
+          (recUpd) => {
+            const valuesToSet = {
+              [`data.spentXp`]: (recUpd.data.spentXp || 0) - cost,
+            };
+            updateAttributes(recUpd, valuesToSet);
+            api.setValuesOnRecord(recUpd, valuesToSet, (recFinal) =>
+              paintSigTree(recFinal || recUpd),
+            );
+          },
+        );
+      } else if (idx !== -1) {
+        const filtered = talents.filter((_, i) => i !== idx);
+        api.setValuesOnRecord(
+          charRec,
+          { [slotChosenPath]: "no", [sigTalentsPath]: filtered },
+          (recUpd) => {
+            const valuesToSet = {
+              [`data.spentXp`]: (recUpd.data.spentXp || 0) - cost,
+            };
+            updateAttributes(recUpd, valuesToSet);
+            api.setValuesOnRecord(recUpd, valuesToSet, (recFinal) =>
+              paintSigTree(recFinal || recUpd),
+            );
+          },
+        );
+      } else {
+        api.setValuesOnRecord(
+          charRec,
+          { [slotChosenPath]: "no" },
+          (recUpd) => paintSigTree(recUpd),
+        );
+      }
+    }
+  }
 </script>
 
 <div
@@ -113,7 +1045,7 @@
         field="career"
         label="Career"
         placeholder="Enter Required Career..."
-        onload="onLoad();"
+        onload="onLoad()"
       ></stringfield>
       <numberfield
         width="100%"
@@ -131,757 +1063,786 @@
     label="Ability and Talents"
   ></label>
 
-  <!-- Signature Ability Tree Wrapper - uses margin auto for centering while allowing full scroll -->
-  <div
-    style="
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: fit-content;
-      margin: 0 auto;
-    "
-  >
-    <!-- Connectors to Spec Tree -->
-    <div style="display: flex; gap: 36px; align-items: center">
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-          width: 250px;
-        "
-      >
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector0_1_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector0_1"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-          ></iconbutton>
-        </div>
-      </div>
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-          width: 250px;
-        "
-      >
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector0_2_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector0_2"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-          ></iconbutton>
-        </div>
-      </div>
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-          width: 250px;
-        "
-      >
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector0_3_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector0_3"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-          ></iconbutton>
-        </div>
-      </div>
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-          width: 250px;
-        "
-      >
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector0_4_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector0_4"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
-          ></iconbutton>
-        </div>
-      </div>
-    </div>
+  <!-- Description — always visible (both editor authoring and player viewing). -->
+  <label
+    variant="bold"
+    size="sm"
+    textalign="left"
+    label="Description"
+  ></label>
+  <richtextfield
+    width="100%"
+    field="description"
+    label="Description"
+    placeholder="Enter Description..."
+  ></richtextfield>
 
-    <!-- Skill and Difficulty -->
-    <div style="margin-top: 8px">
-      <div style="display: flex; gap: 4px; width: 100%">
-        <dropdown
-          width="100%"
-          field="skill"
-          label="Skill"
-          placeholder="Select Skill to Roll if Applicable..."
-          searchable="true"
-          options='[{"label": "None", "value": "None"}, {"label": "Astrogation", "value": "Astrogation"}, {"label": "Athletics", "value": "Athletics"}, {"label": "Brawl", "value": "Brawl"}, {"label": "Charm", "value": "Charm"}, {"label": "Coercion", "value": "Coercion"}, {"label": "Computers", "value": "Computers"}, {"label": "Cool", "value": "Cool"}, {"label": "Coordination", "value": "Coordination"}, {"label": "Core Worlds", "value": "Core Worlds"}, {"label": "Deception", "value": "Deception"}, {"label": "Discipline", "value": "Discipline"}, {"label": "Education", "value": "Education"}, {"label": "Gunnery", "value": "Gunnery"}, {"label": "Leadership", "value": "Leadership"}, {"label": "Lightsaber", "value": "Lightsaber"}, {"label": "Lore", "value": "Lore"}, {"label": "Mechanics", "value": "Mechanics"}, {"label": "Medicine", "value": "Medicine"}, {"label": "Melee", "value": "Melee"}, {"label": "Negotiation", "value": "Negotiation"}, {"label": "Outer Rim", "value": "Outer Rim"}, {"label": "Perception", "value": "Perception"}, {"label": "Piloting (Planetary)", "value": "Piloting (Planetary)"}, {"label": "Piloting (Space)", "value": "Piloting (Space)"}, {"label": "Ranged (Heavy)", "value": "Ranged (Heavy)"}, {"label": "Ranged (Light)", "value": "Ranged (Light)"}, {"label": "Resilience", "value": "Resilience"}, {"label": "Skulduggery", "value": "Skulduggery"}, {"label": "Stealth", "value": "Stealth"}, {"label": "Streetwise", "value": "Streetwise"}, {"label": "Survival", "value": "Survival"}, {"label": "Underworld", "value": "Underworld"}, {"label": "Vigilance", "value": "Vigilance"}, {"label": "Xenology", "value": "Xenology"}]'
-        ></dropdown>
-        <dropdown
-          width="100%"
-          field="difficulty"
-          label="Difficulty"
-          placeholder="Select Difficulty..."
-          options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
+  <!-- Editor view: full tree with connector toggles + dividers. Shown on
+       signature_abilities records (default). -->
+  <box field="editorTreeBox" hidden="true">
+    <!-- Signature Ability Tree Wrapper - uses margin auto for centering while allowing full scroll -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: fit-content;
+        margin: 0 auto;
+      "
+    >
+      <!-- Connectors to Spec Tree -->
+      <div style="display: flex; gap: 36px; align-items: center">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector0_1_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector0_1"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+            ></iconbutton>
+          </div>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector0_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector0_2"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+            ></iconbutton>
+          </div>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector0_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector0_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+            ></iconbutton>
+          </div>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+            width: 250px;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector0_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector0_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected to Spec Tree", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected Up to Spec Tree", "value": "Yes", "icon": "IconArrowUp"}]'
+            ></iconbutton>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill and Difficulty -->
+      <div style="margin-top: 8px">
+        <div style="display: flex; gap: 4px; width: 100%">
+          <dropdown
+            width="100%"
+            field="skill"
+            label="Skill"
+            placeholder="Select Skill to Roll if Applicable..."
+            searchable="true"
+            options='[{"label": "None", "value": "None"}, {"label": "Astrogation", "value": "Astrogation"}, {"label": "Athletics", "value": "Athletics"}, {"label": "Brawl", "value": "Brawl"}, {"label": "Charm", "value": "Charm"}, {"label": "Coercion", "value": "Coercion"}, {"label": "Computers", "value": "Computers"}, {"label": "Cool", "value": "Cool"}, {"label": "Coordination", "value": "Coordination"}, {"label": "Core Worlds", "value": "Core Worlds"}, {"label": "Deception", "value": "Deception"}, {"label": "Discipline", "value": "Discipline"}, {"label": "Education", "value": "Education"}, {"label": "Gunnery", "value": "Gunnery"}, {"label": "Leadership", "value": "Leadership"}, {"label": "Lightsaber", "value": "Lightsaber"}, {"label": "Lore", "value": "Lore"}, {"label": "Mechanics", "value": "Mechanics"}, {"label": "Medicine", "value": "Medicine"}, {"label": "Melee", "value": "Melee"}, {"label": "Negotiation", "value": "Negotiation"}, {"label": "Outer Rim", "value": "Outer Rim"}, {"label": "Perception", "value": "Perception"}, {"label": "Piloting (Planetary)", "value": "Piloting (Planetary)"}, {"label": "Piloting (Space)", "value": "Piloting (Space)"}, {"label": "Ranged (Heavy)", "value": "Ranged (Heavy)"}, {"label": "Ranged (Light)", "value": "Ranged (Light)"}, {"label": "Resilience", "value": "Resilience"}, {"label": "Skulduggery", "value": "Skulduggery"}, {"label": "Stealth", "value": "Stealth"}, {"label": "Streetwise", "value": "Streetwise"}, {"label": "Survival", "value": "Survival"}, {"label": "Underworld", "value": "Underworld"}, {"label": "Vigilance", "value": "Vigilance"}, {"label": "Xenology", "value": "Xenology"}]'
+          ></dropdown>
+          <dropdown
+            width="100%"
+            field="difficulty"
+            label="Difficulty"
+            placeholder="Select Difficulty..."
+            options='[{"label": "None", "value": "None"}, {"label": "Easy (1)", "value": "Easy"},
         {"label": "Average (2)", "value": "Average"}, {"label": "Hard (3)", "value": "Hard"},
         {"label": "Daunting (4)", "value": "Daunting"}, {"label": "Formidable (5)", "value": "Formidable"}]'
-        ></dropdown>
+          ></dropdown>
+        </div>
       </div>
-      <label
-        variant="bold"
-        size="sm"
-        textalign="left"
-        label="Description"
-      ></label>
-      <richtextfield
-        width="100%"
-        field="description"
-        label="Description"
-        placeholder="Enter Description..."
-      ></richtextfield>
-    </div>
 
-    <!-- Row 1 - Talents -->
-    <div style="display: flex; gap: 4px; align-items: center">
-      <!-- Talent 1 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
+      <!-- Row 1 - Talents -->
+      <div style="display: flex; gap: 4px; align-items: center">
+        <!-- Talent 1 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_1_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_1"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <list
+            field="talent1_1"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+          <!-- Connection Vertical -->
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_1_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_1"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+        </div>
+
+        <!-- Connection Horizontal -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_1_divider" hidden="true">
+          <box field="h_connector1_2_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector1_1"
+            field="h_connector1_2"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
+            onchange="showHideDividers()"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <list
-          field="talent1_1"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-        <!-- Connection Vertical -->
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_1_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector2_1"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-      </div>
-
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector1_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
+          ></iconbutton>
+        </div>
 
-      <!-- Talent 2 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
+        <!-- Talent 2 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_2"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <list
+            field="talent1_2"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+          <!-- Connection Vertical -->
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_2_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_2"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+        </div>
+
+        <!-- Connection Horizontal -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_2_divider" hidden="true">
+          <box field="h_connector1_3_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector1_2"
+            field="h_connector1_3"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
+            onchange="showHideDividers()"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <list
-          field="talent1_2"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-        <!-- Connection Vertical -->
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_2_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector2_2"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-      </div>
-
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector1_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
+          ></iconbutton>
+        </div>
 
-      <!-- Talent 3 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
+        <!-- Talent 3 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <list
+            field="talent1_3"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+          <!-- Connection Vertical -->
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_3_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector2_3"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+        </div>
+
+        <!-- Connection Horizontal -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_3_divider" hidden="true">
+          <box field="h_connector1_4_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector1_3"
+            field="h_connector1_4"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
+            onchange="showHideDividers()"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-        <list
-          field="talent1_3"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-        <!-- Connection Vertical -->
-        <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_3_divider" hidden="true">
-            <div
-              style="
-                position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
-                background: var(--mantine-color-primary-filled);
-                opacity: 0.75;
-              "
-            ></div>
-          </box>
-          <iconbutton
-            field="connector2_3"
-            variant="default"
-            size="md"
-            disablediflocked="true"
-            onchange="showHideDividers();"
-            hideonlocked="true"
-            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
-          ></iconbutton>
-        </div>
-      </div>
-
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector1_4_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector1_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
 {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
+          ></iconbutton>
+        </div>
+
+        <!-- Talent 4 (no horizontal connector after this) -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector1_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+            <iconbutton
+              field="connector1_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+          <list
+            field="talent1_4"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+          <!-- Connection Vertical -->
+          <div style="position: relative; min-width: 27px; min-height: 27px">
+            <box field="connector2_4_divider" hidden="true">
+              <div
+                style="
+                  position: absolute;
+                  top: -4px;
+                  left: 10px;
+                  right: 10px;
+                  bottom: 0;
+                  height: 36px;
+                  background: var(--mantine-color-primary-filled);
+                  opacity: 0.75;
+                "
+              ></div>
+            </box>
+
+            <iconbutton
+              field="connector2_4"
+              variant="default"
+              size="md"
+              disablediflocked="true"
+              onchange="showHideDividers()"
+              hideonlocked="true"
+              options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+            ></iconbutton>
+          </div>
+        </div>
       </div>
 
-      <!-- Talent 4 (no horizontal connector after this) -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
+      <!-- Row 2 - Talents -->
+      <div style="display: flex; gap: 4px; align-items: center">
+        <!-- Talent 1 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <list
+            field="talent2_1"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+        </div>
+
+        <!-- Connection Horizontal -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector1_4_divider" hidden="true">
+          <box field="h_connector2_2_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
           <iconbutton
-            field="connector1_4"
+            field="h_connector2_2"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
+            onchange="showHideDividers()"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
           ></iconbutton>
         </div>
-        <list
-          field="talent1_4"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-        <!-- Connection Vertical -->
+
+        <!-- Talent 2 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <list
+            field="talent2_2"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+        </div>
+
+        <!-- Connection Horizontal -->
         <div style="position: relative; min-width: 27px; min-height: 27px">
-          <box field="connector2_4_divider" hidden="true">
+          <box field="h_connector2_3_divider" hidden="true">
             <div
               style="
                 position: absolute;
-                top: -4px;
-                left: 10px;
-                right: 10px;
-                bottom: 0;
-                height: 36px;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
                 background: var(--mantine-color-primary-filled);
                 opacity: 0.75;
               "
             ></div>
           </box>
-
           <iconbutton
-            field="connector2_4"
+            field="h_connector2_3"
             variant="default"
             size="md"
             disablediflocked="true"
-            onchange="showHideDividers();"
+            onchange="showHideDividers()"
             hideonlocked="true"
             options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
-{"label": "Connected", "value": "Yes", "icon": "IconArrowDown"}]'
+ {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
           ></iconbutton>
         </div>
-      </div>
-    </div>
 
-    <!-- Row 2 - Talents -->
-    <div style="display: flex; gap: 4px; align-items: center">
-      <!-- Talent 1 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
-        <list
-          field="talent2_1"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-      </div>
+        <!-- Talent 3 -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <list
+            field="talent2_3"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+        </div>
 
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_2_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_2"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
+        <!-- Connection Horizontal -->
+        <div style="position: relative; min-width: 27px; min-height: 27px">
+          <box field="h_connector2_4_divider" hidden="true">
+            <div
+              style="
+                position: absolute;
+                top: 10px;
+                left: -4px;
+                right: 0;
+                bottom: 10px;
+                width: 36px;
+                background: var(--mantine-color-primary-filled);
+                opacity: 0.75;
+              "
+            ></div>
+          </box>
+          <iconbutton
+            field="h_connector2_4"
+            variant="default"
+            size="md"
+            disablediflocked="true"
+            onchange="showHideDividers()"
+            hideonlocked="true"
+            options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
  {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
+          ></iconbutton>
+        </div>
 
-      <!-- Talent 2 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
-        <list
-          field="talent2_2"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-      </div>
-
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_3_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_3"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-
-      <!-- Talent 3 -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
-        <list
-          field="talent2_3"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
-      </div>
-
-      <!-- Connection Horizontal -->
-      <div style="position: relative; min-width: 27px; min-height: 27px">
-        <box field="h_connector2_4_divider" hidden="true">
-          <div
-            style="
-              position: absolute;
-              top: 10px;
-              left: -4px;
-              right: 0;
-              bottom: 10px;
-              width: 36px;
-              background: var(--mantine-color-primary-filled);
-              opacity: 0.75;
-            "
-          ></div>
-        </box>
-        <iconbutton
-          field="h_connector2_4"
-          variant="default"
-          size="md"
-          disablediflocked="true"
-          onchange="showHideDividers();"
-          hideonlocked="true"
-          options='[{"label": "Not Connected", "value": "No", "icon": "IconBlank"}, 
- {"label": "Connected", "value": "Yes", "icon": "IconArrowsLeftRight"}]'
-        ></iconbutton>
-      </div>
-
-      <!-- Talent 4 (no horizontal connector after this) -->
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          justify-content: center;
-          align-items: center;
-        "
-      >
-        <list
-          field="talent2_4"
-          size="xs"
-          variant="outline"
-          width="250px"
-          height="200px"
-          listtype="signature_ability_talent_list"
-          onchange="onTalentChange();"
-        ></list>
+        <!-- Talent 4 (no horizontal connector after this) -->
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <list
+            field="talent2_4"
+            size="xs"
+            variant="outline"
+            width="250px"
+            height="200px"
+            listtype="signature_ability_talent_list"
+            onchange="onTalentChange()"
+          ></list>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- End Signature Ability Tree Wrapper -->
+    <!-- End Signature Ability Tree Wrapper -->
+  </box>
+
+  <!-- Player view: rendered upgrade tree. Shown on character records (defensive
+       — this template normally only renders for signature_abilities recordType,
+       but the canvas branch covers any future character-context render). -->
+  <box field="canvasTreeBox" hidden="true">
+    <div style="width: 100%; height: 300px">
+      <canvas
+        field="sigTreeCanvas"
+        autosize="true"
+        style="
+          width: 100%;
+          height: 100%;
+          display: block;
+          cursor: pointer;
+          border-radius: 4px;
+        "
+        onresize="paintSigTree()"
+        onmousemove="onCanvasMove()"
+        onmouseleave="onCanvasLeave()"
+        onclick="onCanvasClick()"
+      ></canvas>
+    </div>
+  </box>
 </div>
