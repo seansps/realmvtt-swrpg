@@ -193,6 +193,12 @@
           return { row: row, col: col, region: "checkbox" };
         }
         const t = ttTileRect(row, col, lay);
+        const pX = t.x + 6;
+        const pY = t.y + 6;
+        const pSize = 26;
+        if (x >= pX && x <= pX + pSize && y >= pY && y <= pY + pSize) {
+          return { row: row, col: col, region: "portrait" };
+        }
         if (x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h) {
           return { row: row, col: col, region: "tile" };
         }
@@ -949,10 +955,12 @@
         const isChosen = ttIsSlotChosen(sig, hit.row, hit.col);
         ttToggleChosen(hit.row, hit.col, isChosen ? "no" : "yes", charRec);
       });
-    } else if (hit.region === "tile") {
-      if (talent._id && talent.recordType) {
-        api.openRecord(talent.recordType, talent._id);
-      }
+    } else if (hit.region === "portrait") {
+      const sigPrefix = ctx.sigPath ? ctx.sigPath + "." : "";
+      api.openListRecord(
+        `${sigPrefix}data.${slotKey}.0`,
+        talent.recordType,
+      );
     }
   }
 

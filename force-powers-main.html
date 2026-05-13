@@ -416,6 +416,12 @@
         if (x >= cb.x && x <= cb.x + cb.w && y >= cb.y && y <= cb.y + cb.h) {
           return { row: row, col: g.startCol, region: "checkbox" };
         }
+        const pX = rect.x + 6;
+        const pY = rect.y + 6;
+        const pSize = 26;
+        if (x >= pX && x <= pX + pSize && y >= pY && y <= pY + pSize) {
+          return { row: row, col: g.startCol, region: "portrait" };
+        }
         if (
           x >= rect.x &&
           x <= rect.x + rect.w &&
@@ -1120,10 +1126,6 @@
   }
 
   function onCanvasClick() {
-    // Only the character-sheet canvas is interactive — compendium-locked
-    // view is read-only/visual.
-    if (record?.recordType !== "characters") return;
-
     const lay = ttLayout();
     if (!lay) return;
     const ctx = getForceForCanvas();
@@ -1137,6 +1139,7 @@
     if (!talent) return;
 
     if (hit.region === "checkbox") {
+      if (record?.recordType !== "characters") return;
       api.getRecord("characters", record._id, (charRec) => {
         if (!charRec) return;
         // Per-slot chosen state — paint reads slot.data.chosen, so the click
@@ -1145,6 +1148,12 @@
         const isChosen = ttIsSlotChosen(fp, hit.row, hit.col);
         ttToggleChosen(hit.row, hit.col, isChosen ? "no" : "yes", charRec);
       });
+    } else if (hit.region === "portrait") {
+      const fpPrefix = fpPath ? fpPath + "." : "";
+      api.openListRecord(
+        `${fpPrefix}data.${slotKey}.0`,
+        talent.recordType,
+      );
     }
   }
 

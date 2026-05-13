@@ -256,6 +256,12 @@
           return { row: row, col: col, region: "checkbox" };
         }
         const t = ttTileRect(row, col, lay);
+        const pX = t.x + 6;
+        const pY = t.y + 6;
+        const pSize = 26;
+        if (x >= pX && x <= pX + pSize && y >= pY && y <= pY + pSize) {
+          return { row: row, col: col, region: "portrait" };
+        }
         if (x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h) {
           return { row: row, col: col, region: "tile" };
         }
@@ -914,10 +920,6 @@
   }
 
   function onCanvasClick() {
-    // Only the character-sheet canvas is interactive — compendium-locked
-    // view is read-only/visual.
-    if (record?.recordType !== "characters") return;
-
     const lay = ttLayout();
     if (!lay) return;
     const hit = ttHitTest(event.x, event.y, lay);
@@ -928,11 +930,18 @@
     const talent = sig.data?.[slotKey]?.[0];
     if (!talent) return;
     if (hit.region === "checkbox") {
+      if (record?.recordType !== "characters") return;
       api.getRecord("characters", record._id, (charRec) => {
         if (!charRec) return;
         const isChosen = ttIsSlotChosen(sig, hit.row, hit.col);
         ttToggleChosen(hit.row, hit.col, isChosen ? "no" : "yes", charRec);
       });
+    } else if (hit.region === "portrait") {
+      const sigPrefix = ctx.sigPath ? ctx.sigPath + "." : "";
+      api.openListRecord(
+        `${sigPrefix}data.${slotKey}.0`,
+        talent.recordType,
+      );
     }
   }
 
