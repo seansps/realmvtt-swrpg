@@ -1296,6 +1296,9 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   const strainThresholdBonuses = getEffectsAndModifiersForToken(record, [
     "strainThresholdBonus",
   ]);
+  const encumbranceThresholdBonuses = getEffectsAndModifiersForToken(record, [
+    "encumbranceThresholdBonus",
+  ]);
   const forceRatingBonuses = getEffectsAndModifiersForToken(record, [
     "forceRatingBonus",
   ]);
@@ -1315,6 +1318,19 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
   // Calculate base thresholds (species + attribute)
   const baseWoundThreshold = speciesWoundThreshold + brawn;
   const baseStrainThreshold = speciesStrainThreshold + willpower;
+
+  // Encumbrance threshold is 5 + Brawn, plus any encumbranceThresholdBonus
+  // modifiers (e.g. Backpacks increase the threshold by 4 while equipped).
+  // Recomputed fully from base each time so equipping/unequipping items or
+  // changing Brawn keeps it in sync. Skipped for vehicles, which don't use it.
+  if (record.data?.type !== "vehicle" && record.recordType !== "vehicles") {
+    const totalEncumbranceThresholdBonus = encumbranceThresholdBonuses.reduce(
+      (sum, bonus) => sum + parseInt(bonus.value || "0", 10),
+      0,
+    );
+    valuesToSet["data.encumbranceThreshold"] =
+      5 + brawn + totalEncumbranceThresholdBonus;
+  }
 
   // Calculate total bonus values from current effects
   const totalWoundBonus = woundThresholdBonuses.reduce(
