@@ -1,0 +1,3409 @@
+{
+  "name": "Star Wars (FFG)",
+  "description": "The Star Wars RPG ruleset by Fantasy Flight Games.",
+  "version": 1,
+  "published": true,
+  "records": [
+    {
+      "name": "Characters",
+      "type": "characters",
+      "minX": 580,
+      "minY": 700,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "characters-main.html"
+        },
+        {
+          "name": "Skills",
+          "file": "characters-skills.html"
+        },
+        {
+          "name": "Actions",
+          "file": "characters-actions.html"
+        },
+        {
+          "name": "Inventory",
+          "file": "characters-inventory.html"
+        },
+        {
+          "name": "Talents",
+          "file": "characters-features.html"
+        },
+        {
+          "name": "Notes",
+          "file": "characters-notes.html"
+        }
+      ],
+      "isList": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {},
+      "hideFromCompendium": false,
+      "wizard": {
+        "enabled": true,
+        "steps": [
+          {
+            "name": "Step 1",
+            "file": "wizards/characters/step-1.html",
+            "next": "",
+            "previous": ""
+          },
+          {
+            "name": "Step 2",
+            "file": "wizards/characters/step-2.html",
+            "next": "",
+            "previous": "Back"
+          },
+          {
+            "name": "Step 3",
+            "file": "wizards/characters/step-3.html",
+            "next": "",
+            "previous": "Back"
+          },
+          {
+            "name": "Step 4",
+            "file": "wizards/characters/step-4.html",
+            "next": "",
+            "previous": "Back"
+          },
+          {
+            "name": "Step 5",
+            "file": "wizards/characters/step-5.html",
+            "next": "",
+            "previous": "Back"
+          },
+          {
+            "name": "Step 6",
+            "file": "wizards/characters/step-6.html",
+            "next": "",
+            "previous": "Back"
+          },
+          {
+            "name": "Step 7",
+            "file": "wizards/characters/step-7.html",
+            "next": "",
+            "previous": "Back"
+          }
+        ]
+      },
+      "hasToken": false
+    },
+    {
+      "name": "NPCs",
+      "type": "npcs",
+      "minX": 425,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npcs-main.html"
+        },
+        {
+          "name": "Skills",
+          "file": "npc-skills.html"
+        },
+        {
+          "name": "Description",
+          "file": "npcs-description.html"
+        }
+      ],
+      "isList": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "type": "dynamic",
+        "subtype": "dynamic",
+        "speciesName": "dynamic"
+      },
+      "hideFromCompendium": false,
+      "hasToken": false
+    },
+    {
+      "name": "Careers",
+      "type": "careers",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "careers-main.html",
+          "fields": []
+        }
+      ],
+      "icon": "IconBadge",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "forceRating": "dynamic"
+      }
+    },
+    {
+      "name": "Critical Hits",
+      "type": "conditions",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "conditions-main.html",
+          "fields": []
+        },
+        {
+          "name": "Rules",
+          "file": "conditions-rules.html"
+        }
+      ],
+      "icon": "IconBodyScan",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "type": "critical_injury,critical_hit",
+        "d100Min": "dynamic",
+        "d100Max": "dynamic",
+        "severity": "dynamic"
+      }
+    },
+    {
+      "name": "Force Powers",
+      "type": "force_powers",
+      "isList": false,
+      "minX": 800,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "force-powers-main.html",
+          "fields": []
+        },
+        {
+          "name": "FX",
+          "file": "force-powers-fx.html"
+        }
+      ],
+      "icon": "IconWand",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "prereqs": "dynamic"
+      },
+      "hideFromCompendium": false,
+      "hasToken": false
+    },
+    {
+      "name": "Items",
+      "type": "items",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "items-main.html",
+          "fields": []
+        },
+        {
+          "name": "Rules",
+          "file": "items-rules.html"
+        }
+      ],
+      "icon": "IconBox",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "type": "dynamic",
+        "subtype": "dynamic",
+        "rarity": "dynamic",
+        "restricted": "dynamic"
+      },
+      "hideFromCompendium": false,
+      "hasToken": false
+    },
+    {
+      "name": "Signature Abilities",
+      "type": "signature_abilities",
+      "isList": false,
+      "minX": 800,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "signature-abilities-main.html",
+          "fields": []
+        },
+        {
+          "name": "FX",
+          "file": "signature-abilities-fx.html"
+        }
+      ],
+      "icon": "IconMichelinStar",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "career": "dynamic"
+      },
+      "hideFromCompendium": false,
+      "hasToken": false
+    },
+    {
+      "name": "Skills",
+      "type": "skills",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "skills-main.html",
+          "fields": []
+        }
+      ],
+      "icon": "IconTools",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "stat": "dynamic",
+        "group": "dynamic"
+      }
+    },
+    {
+      "name": "Specializations",
+      "type": "specializations",
+      "isList": false,
+      "minX": 800,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "specialization-main.html",
+          "fields": []
+        },
+        {
+          "name": "Notes",
+          "file": "specialization-notes.html"
+        }
+      ],
+      "icon": "IconStars",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "career": "dynamic"
+      },
+      "hideFromCompendium": false,
+      "hasToken": false
+    },
+    {
+      "name": "Species",
+      "type": "species",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "species-main.html",
+          "fields": []
+        },
+        {
+          "name": "Special Abilities",
+          "file": "species-features.html"
+        }
+      ],
+      "icon": "IconAlien",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {}
+    },
+    {
+      "name": "Talents",
+      "type": "talents",
+      "isList": false,
+      "minX": 500,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "talents-main.html",
+          "fields": []
+        },
+        {
+          "name": "Rules",
+          "file": "talents-rules.html"
+        }
+      ],
+      "icon": "IconStar",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "tags": "dynamic",
+        "ranked": "dynamic",
+        "activation": "dynamic",
+        "forceTalent": "dynamic",
+        "signatureAbilityUpgrade": "dynamic",
+        "forcePowerUpgrade": "dynamic",
+        "specializationTrees": "dynamic"
+      }
+    },
+    {
+      "name": "Vehicles",
+      "type": "vehicles",
+      "isList": false,
+      "minX": 425,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "vehicles-main.html",
+          "fields": []
+        },
+        {
+          "name": "Description",
+          "file": "vehicles-description.html"
+        }
+      ],
+      "hideFromCompendium": false,
+      "hasToken": true,
+      "icon": "IconJetpack",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "singleRow": false,
+      "filters": {
+        "subtype": "dynamic",
+        "rarity": "dynamic",
+        "restricted": "dynamic"
+      }
+    },
+    {
+      "name": "Active Vehicle Action List",
+      "type": "active_vehicle_action_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "active-vehicle-action-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Actions",
+      "orderCriteria": [
+        {
+          "field": "name",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Active Vehicle List",
+      "type": "active_vehicle_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "active-vehicle-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [
+        "vehicles",
+        "npcs"
+      ],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Attachment List",
+      "type": "attachment_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "attachment_list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Attachment",
+      "allowedListTypes": [
+        "items"
+      ],
+      "newItemName": "New Attachment",
+      "newItemUnidentifiedName": "Unidentified Item",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag Attachments Here",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Attachment Weapon List",
+      "type": "attachment_weapon_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "attachment_list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [
+        "items"
+      ],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag a Weapon Here",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Attack Attachment List",
+      "type": "attack_attachment_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "attack-attachment-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Attachments",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Attack List",
+      "type": "attack_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "attack-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Weapons Equipped",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "ranged weapon",
+          "isOr": false
+        },
+        {
+          "field": "carried",
+          "operator": "equals",
+          "value": "equipped",
+          "isOr": false
+        },
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "melee weapon",
+          "isOr": true
+        },
+        {
+          "field": "carried",
+          "operator": "equals",
+          "value": "equipped",
+          "isOr": false
+        }
+      ],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Character Active Talent Action List",
+      "type": "character_active_talent_action_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-active-talent-action-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Choose Talents from a Specialization Tree",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [
+        {
+          "field": "activation",
+          "operator": "includes",
+          "value": "active",
+          "isOr": true
+        },
+        {
+          "field": "activation",
+          "operator": "includes",
+          "value": "Active",
+          "isOr": true
+        },
+        {
+          "field": "activation",
+          "operator": "includes",
+          "value": "Maneuver",
+          "isOr": true
+        },
+        {
+          "field": "activation",
+          "operator": "includes",
+          "value": "maneuver",
+          "isOr": true
+        }
+      ],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Character Career List",
+      "type": "character_career_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-career-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Careers",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": true
+    },
+    {
+      "name": "Character Features List",
+      "type": "character_features_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-features-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Character Force Power Action List",
+      "type": "character_force_power_action_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-force-power-action-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag Force Powers on the Talents Tab",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Character Force Powers List",
+      "type": "character_force_powers_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-force-powers-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [
+        "force_powers"
+      ],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "Drag Force Powers on the Features Tab",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Signature Ability Action List",
+      "type": "character_signature_ability_action_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-signature-ability-action-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag a Signature Ability to your Specialization Tree",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Signature Ability List",
+      "type": "character_signature_ability_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-signature-ability-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Signature Ability",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Specialization Action List",
+      "type": "character_specialization_action_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-specialization-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag a Specialization to the Talents Tab",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Character Specialization List",
+      "type": "character_specialization_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-specialization-record-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag a Specialization on the Features Tab",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Species Details List",
+      "type": "character_species_details_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-species-details-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Species List",
+      "type": "character_species_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-species-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Species",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": true
+    },
+    {
+      "name": "Character Talents List",
+      "type": "character_talents_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-talents-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Talents Chosen",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Character Upgrades List",
+      "type": "character_upgrades_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "character-upgrades-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Upgrades Chosen",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Conditions List",
+      "type": "conditions_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "conditions-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Critical Injury",
+      "allowedListTypes": [
+        "conditions"
+      ],
+      "newItemName": "New Critical Injury",
+      "newItemUnidentifiedName": "Critical Injury",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "Drag Conditions to the Main Tab",
+      "orderCriteria": [
+        {
+          "field": "d100Min",
+          "descending": false
+        },
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Duty List",
+      "type": "duty_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "duty-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Duty",
+      "allowedListTypes": [],
+      "newItemName": "New Duty",
+      "newItemUnidentifiedName": "Duty",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Duty",
+      "orderCriteria": [
+        {
+          "field": "value",
+          "descending": true
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Feature List",
+      "type": "feature_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "feature-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Feature",
+      "allowedListTypes": [],
+      "newItemName": "New Feature",
+      "newItemUnidentifiedName": "Feature",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "None",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Force Power Talent List",
+      "type": "force_power_talent_list",
+      "isList": true,
+      "minX": 250,
+      "minY": 160,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "force-power-talent-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Upgrade",
+      "allowedListTypes": [
+        "talents"
+      ],
+      "newItemName": "New Upgrade",
+      "newItemUnidentifiedName": "Upgrade",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag or Add Talent",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Inventory List",
+      "type": "inventory_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "inventory-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Item",
+      "allowedListTypes": [
+        "items"
+      ],
+      "newItemName": "New Item",
+      "newItemUnidentifiedName": "Unidentified Item",
+      "stackDuplicates": true,
+      "disableDrop": true,
+      "countFieldName": "count",
+      "emptyListText": "Drag Items on the Inventory Tab",
+      "orderCriteria": [
+        {
+          "field": "location",
+          "descending": false
+        },
+        {
+          "field": "namefield",
+          "descending": false
+        },
+        {
+          "field": "count",
+          "descending": true
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "{data.filterList}",
+          "isOr": false
+        },
+        {
+          "field": "location",
+          "operator": "equals",
+          "value": "{data.filterByLocation}",
+          "isOr": false
+        }
+      ],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Item List",
+      "type": "item_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "item-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Item",
+      "allowedListTypes": [
+        "items"
+      ],
+      "newItemName": "New Item",
+      "newItemUnidentifiedName": "Unidentified Item",
+      "stackDuplicates": true,
+      "disableDrop": false,
+      "countFieldName": "count",
+      "emptyListText": "Drag Items Here",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        },
+        {
+          "field": "count",
+          "descending": true
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Modifier List",
+      "type": "modifier_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "modifier-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Modifier",
+      "allowedListTypes": [],
+      "newItemName": "New Modifier",
+      "newItemUnidentifiedName": "Modifier",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Modifiers",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "NPC Abilities List",
+      "type": "npc_abilities_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npc-abilities-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "New Ability",
+      "allowedListTypes": [],
+      "newItemName": "New Ability",
+      "newItemUnidentifiedName": "Ability",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "No Abilities",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "NPC Inventory List",
+      "type": "npc_inventory_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npc-inventory-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Item",
+      "allowedListTypes": [
+        "items"
+      ],
+      "newItemName": "New Item",
+      "newItemUnidentifiedName": "Unidentified Item",
+      "stackDuplicates": true,
+      "disableDrop": true,
+      "countFieldName": "count",
+      "emptyListText": "Drag Items on the Main Tab",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        },
+        {
+          "field": "count",
+          "descending": true
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "NPC Talents List",
+      "type": "npc_talents_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npc-talents-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Talent",
+      "allowedListTypes": [
+        "talents"
+      ],
+      "newItemName": "New Talent",
+      "newItemUnidentifiedName": "Talent",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "Drag Talents on the Main Tab",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "NPC Vehicle Actions List",
+      "type": "npc_vehicle_actions_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "npc-vehicle-actions-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Action",
+      "allowedListTypes": [],
+      "newItemName": "New Action",
+      "newItemUnidentifiedName": "Action",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "None",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Obligation List",
+      "type": "obligation_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "obligation-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Obligation",
+      "allowedListTypes": [],
+      "newItemName": "New Obligation",
+      "newItemUnidentifiedName": "Obligation",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Obligations",
+      "orderCriteria": [
+        {
+          "field": "value",
+          "descending": true
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Signature Ability Talent List",
+      "type": "signature_ability_talent_list",
+      "isList": true,
+      "minX": 300,
+      "minY": 250,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "signature-ability-talent-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Upgrade",
+      "allowedListTypes": [
+        "talents"
+      ],
+      "newItemName": "New Upgrade",
+      "newItemUnidentifiedName": "Upgrade",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag or Add Talent",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Skill List",
+      "type": "skill_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "skill-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Skill",
+      "allowedListTypes": [
+        "skills"
+      ],
+      "newItemName": "New Skill",
+      "newItemUnidentifiedName": "Skill",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Skills",
+      "orderCriteria": [
+        {
+          "field": "group",
+          "descending": false
+        },
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [
+        {
+          "field": "group",
+          "operator": "equals",
+          "value": "{data.groupFilter}",
+          "isOr": false
+        },
+        {
+          "field": "stat",
+          "operator": "equals",
+          "value": "{data.attributeFilter}",
+          "isOr": false
+        }
+      ],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Specialization Signature Ability List",
+      "type": "specialization_signature_ability_list",
+      "isList": true,
+      "minX": 800,
+      "minY": 500,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "specialiation-signature-ability-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": true,
+      "addButtonText": "",
+      "allowedListTypes": [
+        "signature_abilities"
+      ],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": true,
+      "countFieldName": "",
+      "emptyListText": "Drag a Signature Ability Here",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Specialization Talent List",
+      "type": "specialization_talent_list",
+      "isList": true,
+      "minX": 300,
+      "minY": 200,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "specialization-talent-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": true,
+      "showDeleteButton": true,
+      "addButtonText": "Add Talent",
+      "allowedListTypes": [
+        "talents"
+      ],
+      "newItemName": "New Talent",
+      "newItemUnidentifiedName": "Talent",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "Drag or Add Talent",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Unarmed Attack List",
+      "type": "unarmed_attack_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "unarmed-attack-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Unarmed Attack",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Vehicle Attack List",
+      "type": "vehicle_attack_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "vehcile-attack-list.html",
+          "fields": []
+        }
+      ],
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "No Weapons Equipped",
+      "orderCriteria": [
+        {
+          "field": "namefield",
+          "descending": false
+        }
+      ],
+      "maxLength": 0,
+      "filterCriteria": [
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "ranged weapon",
+          "isOr": false
+        },
+        {
+          "field": "carried",
+          "operator": "equals",
+          "value": "equipped",
+          "isOr": false
+        },
+        {
+          "field": "type",
+          "operator": "equals",
+          "value": "melee weapon",
+          "isOr": true
+        },
+        {
+          "field": "carried",
+          "operator": "equals",
+          "value": "equipped",
+          "isOr": false
+        }
+      ],
+      "singleRow": false,
+      "hideFromCompendium": false
+    },
+    {
+      "name": "Wizard Feature List",
+      "type": "wizard_feature_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "wizard-feature-list.html",
+          "fields": []
+        }
+      ],
+      "hideFromCompendium": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Wizard Item List",
+      "type": "wizard_item_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "wizard-item-list.html",
+          "fields": []
+        }
+      ],
+      "hideFromCompendium": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Wizard Skill List",
+      "type": "wizard_skill_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "wizard-skill-list.html",
+          "fields": []
+        }
+      ],
+      "hideFromCompendium": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 0,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Wizard Specialization Talent List",
+      "type": "wizard_specialization_talent_list",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "wizard-specialization-talent-list.html",
+          "fields": []
+        }
+      ],
+      "hideFromCompendium": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    },
+    {
+      "name": "Wizard Specialization Tree",
+      "type": "wizard_specialization_tree",
+      "isList": true,
+      "minX": 500,
+      "minY": 60,
+      "tabs": [
+        {
+          "name": "Main",
+          "file": "wizard-specialization-tree.html",
+          "fields": []
+        }
+      ],
+      "hideFromCompendium": false,
+      "icon": "",
+      "showAddButton": false,
+      "showDeleteButton": false,
+      "addButtonText": "",
+      "allowedListTypes": [],
+      "newItemName": "",
+      "newItemUnidentifiedName": "",
+      "stackDuplicates": false,
+      "disableDrop": false,
+      "countFieldName": "",
+      "emptyListText": "",
+      "orderCriteria": [],
+      "maxLength": 1,
+      "filterCriteria": [],
+      "singleRow": false
+    }
+  ],
+  "settings": {
+    "otherSettings": {
+      "advDisRolls": [],
+      "advName": "",
+      "advShortName": "",
+      "disName": "",
+      "disShortName": "",
+      "commonScript": {
+        "file": "rollhandlers/common.js"
+      },
+      "scripts": {},
+      "defaultDice": "narrative",
+      "defaultUnitsPerSquare": 2,
+      "defaultUnits": "meters",
+      "alternateDiagonalMovement": false,
+      "rerollContextMenuLabel": "",
+      "onReroll": "",
+      "rerollIgnoresAdvDis": false
+    },
+    "healthIndicator": {
+      "disabled": false,
+      "maxHealthField": "woundThreshold",
+      "currentHealthField": "woundsRemaining",
+      "color": [
+        {
+          "percentage": 0,
+          "color": "#ff0000",
+          "label": "Critically Wounded"
+        },
+        {
+          "percentage": 10,
+          "color": "#ff0000",
+          "label": "Severely Wounded"
+        },
+        {
+          "percentage": 30,
+          "color": "#ff4d00",
+          "label": "Seriously Wounded"
+        },
+        {
+          "percentage": 50,
+          "color": "#ffd600",
+          "label": "Badly Wounded"
+        },
+        {
+          "percentage": 70,
+          "color": "#dbff00",
+          "label": "Moderately Wounded"
+        },
+        {
+          "percentage": 90,
+          "color": "#87c91b",
+          "label": "Lightly Wounded"
+        },
+        {
+          "percentage": 99,
+          "color": "#1bc91b",
+          "label": "Barely Wounded"
+        },
+        {
+          "percentage": 100,
+          "color": "#00FF00",
+          "label": "Healthy"
+        }
+      ]
+    },
+    "damage": {
+      "enableDamage": true,
+      "enableHealing": true,
+      "damageScript": {
+        "file": "rollhandlers/damageScript.js"
+      },
+      "healingScript": {
+        "file": "rollhandlers/healingScript.js"
+      },
+      "damageTypes": {},
+      "enableSecondaryStat": true,
+      "secondaryStatLabel": "Strain",
+      "secondaryStatScript": {
+        "file": "rollhandlers/strainScript.js"
+      },
+      "secondaryStatIcon": "IconHeartbeat",
+      "secondaryStatColor": "blue"
+    },
+    "rollTypes": [
+      {
+        "name": "initiative",
+        "file": "rollhandlers/initiative.js"
+      },
+      {
+        "name": "skill",
+        "file": "rollhandlers/skill.js"
+      },
+      {
+        "name": "ability",
+        "file": "rollhandlers/ability.js"
+      },
+      {
+        "name": "force",
+        "file": "rollhandlers/force.js"
+      },
+      {
+        "name": "criticalInjury",
+        "file": "rollhandlers/criticalInjury.js"
+      },
+      {
+        "name": "obligation",
+        "file": "rollhandlers/obligation.js"
+      },
+      {
+        "name": "duty",
+        "file": "rollhandlers/duty.js"
+      },
+      {
+        "name": "conflict",
+        "file": "rollhandlers/conflict.js"
+      },
+      {
+        "name": "attack",
+        "file": "rollhandlers/attack.js"
+      }
+    ],
+    "secondaryIndicator": {
+      "disabled": false,
+      "label": "",
+      "maxField": "strainThreshold",
+      "currentField": "strainRemaining",
+      "color": [
+        {
+          "percentage": 0,
+          "color": "#0d62ff",
+          "label": "Stunned"
+        },
+        {
+          "percentage": 10,
+          "color": "#0d62ff",
+          "label": "Exhausted"
+        },
+        {
+          "percentage": 30,
+          "color": "#0d62ff",
+          "label": "Seriously Strained"
+        },
+        {
+          "percentage": 50,
+          "color": "#0d62ff",
+          "label": "Heavily Strained"
+        },
+        {
+          "percentage": 70,
+          "color": "#0d62ff",
+          "label": "Moderately Strained"
+        },
+        {
+          "percentage": 90,
+          "color": "#0d62ff",
+          "label": "Strained"
+        },
+        {
+          "percentage": 99,
+          "color": "#0d62ff",
+          "label": "Barely Strained"
+        },
+        {
+          "percentage": 100,
+          "color": "#0d62ff",
+          "label": "No Strain"
+        }
+      ]
+    },
+    "partySheet": {
+      "additionalFields": [
+        {
+          "field": "woundsRemaining",
+          "label": "Wounds",
+          "type": "healthbar",
+          "width": 150,
+          "editable": false,
+          "onChange": "",
+          "maxField": "woundThreshold"
+        },
+        {
+          "field": "strainRemaining",
+          "label": "Strain",
+          "type": "progressbar",
+          "width": 150,
+          "editable": false,
+          "onChange": "",
+          "maxField": "strainThreshold"
+        },
+        {
+          "field": "careerName",
+          "label": "Career",
+          "type": "string",
+          "width": 200,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "speciesName",
+          "label": "Species",
+          "type": "string",
+          "width": 200,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "xp",
+          "label": "XP",
+          "type": "number",
+          "width": 100,
+          "editable": true,
+          "onChange": ""
+        },
+        {
+          "field": "brawn",
+          "label": "BRA",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "agility",
+          "label": "AGI",
+          "type": "string",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "intellect",
+          "label": "INT",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "cunning",
+          "label": "CUN",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "willpower",
+          "label": "WIL",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "presence",
+          "label": "PRE",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "defenseMelee",
+          "label": "M. Def",
+          "type": "number",
+          "width": 60,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "defenseRanged",
+          "label": "R. Def",
+          "type": "number",
+          "width": 60,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "soakValue",
+          "label": "Soak",
+          "type": "number",
+          "width": 50,
+          "editable": false,
+          "onChange": ""
+        }
+      ],
+      "inventory": {
+        "enabled": true,
+        "recordType": "items",
+        "additionalFields": []
+      },
+      "awards": {
+        "enabled": true,
+        "xpName": "XP",
+        "xpField": "xp",
+        "xpMethod": "award_equally",
+        "currencyFields": [
+          {
+            "field": "cash",
+            "label": "Credits"
+          }
+        ]
+      },
+      "stats": {
+        "enabled": true,
+        "tabName": "Skills",
+        "fields": [
+          {
+            "field": "brawn",
+            "label": "BR"
+          },
+          {
+            "field": "agility",
+            "label": "AG"
+          },
+          {
+            "field": "intellect",
+            "label": "INT"
+          },
+          {
+            "field": "cunning",
+            "label": "CUN"
+          },
+          {
+            "field": "willpower",
+            "label": "WIL"
+          },
+          {
+            "field": "presence",
+            "label": "PR"
+          },
+          {
+            "field": "skills[name=Astrogation].data.rank",
+            "label": "Astrogation (Int)"
+          },
+          {
+            "field": "skills[name=Athletics].data.rank",
+            "label": "Athletics (Br)"
+          },
+          {
+            "field": "skills[name=Computers].data.rank",
+            "label": "Computers (Int)"
+          },
+          {
+            "field": "skills[name=Cool].data.rank",
+            "label": "Cool (Pr)"
+          },
+          {
+            "field": "skills[name=Coordination].data.rank",
+            "label": "Coordination (Ag)"
+          },
+          {
+            "field": "skills[name=Discipline].data.rank",
+            "label": "Discipline (Will)"
+          },
+          {
+            "field": "skills[name=Mechanics].data.rank",
+            "label": "Mechanics (Int)"
+          },
+          {
+            "field": "skills[name=Medicine].data.rank",
+            "label": "Medicine (Int)"
+          },
+          {
+            "field": "skills[name=Perception].data.rank",
+            "label": "Perception (Cun)"
+          },
+          {
+            "field": "skills[name=Piloting (Planetary)].data.rank",
+            "label": "Pilot-Planet (Ag)"
+          },
+          {
+            "field": "skills[name=Piloting (Space)].data.rank",
+            "label": "Pilot-Space (Ag)"
+          },
+          {
+            "field": "skills[name=Resilience].data.rank",
+            "label": "Resilience (Br)"
+          },
+          {
+            "field": "skills[name=Skulduggery].data.rank",
+            "label": "Skulduggery (Cun)"
+          },
+          {
+            "field": "skills[name=Stealth].data.rank",
+            "label": "Stealth (Ag)"
+          },
+          {
+            "field": "skills[name=Streetwise].data.rank",
+            "label": "Streetwise (Cun)"
+          },
+          {
+            "field": "skills[name=Survival].data.rank",
+            "label": "Survival (Cun)"
+          },
+          {
+            "field": "skills[name=Vigilance].data.rank",
+            "label": "Vigilance (Will)"
+          },
+          {
+            "field": "skills[name=Charm].data.rank",
+            "label": "Charm (Pr)"
+          },
+          {
+            "field": "skills[name=Coercion].data.rank",
+            "label": "Coercion (Will)"
+          },
+          {
+            "field": "skills[name=Deception].data.rank",
+            "label": "Deception (Cun)"
+          },
+          {
+            "field": "skills[name=Leadership].data.rank",
+            "label": "Leadership (Pr)"
+          },
+          {
+            "field": "skills[name=Negotiation].data.rank",
+            "label": "Negotiation (Pr)"
+          },
+          {
+            "field": "skills[name=Core Worlds].data.rank",
+            "label": "Core Worlds (Int)"
+          },
+          {
+            "field": "skills[name=Education].data.rank",
+            "label": "Education (Int)"
+          },
+          {
+            "field": "skills[name=Lore].data.rank",
+            "label": "Lore (Int)"
+          },
+          {
+            "field": "skills[name=Outer Rim].data.rank",
+            "label": "Outer Rim (Int)"
+          },
+          {
+            "field": "skills[name=Underworld].data.rank",
+            "label": "Underworld (Int)"
+          },
+          {
+            "field": "skills[name=Xenology].data.rank",
+            "label": "Xenology (Int)"
+          },
+          {
+            "field": "skills[name=Brawl].data.rank",
+            "label": "Brawl (Br)"
+          },
+          {
+            "field": "skills[name=Melee].data.rank",
+            "label": "Melee (Br)"
+          },
+          {
+            "field": "skills[name=Lightsaber].data.rank",
+            "label": "Lightsaber (Br)"
+          },
+          {
+            "field": "skills[name=Ranged (Light)].data.rank",
+            "label": "Ranged-Lt (Ag)"
+          },
+          {
+            "field": "skills[name=Ranged (Heavy)].data.rank",
+            "label": "Ranged-Hv (Ag)"
+          },
+          {
+            "field": "skills[name=Gunnery].data.rank",
+            "label": "Gunnery (Ag)"
+          }
+        ]
+      }
+    },
+    "effects": [
+      {
+        "label": "Ability Checks",
+        "type": "abilityBonus",
+        "fields": [
+          {
+            "label": "All",
+            "field": "all"
+          },
+          {
+            "label": "Brawn",
+            "field": "brawn"
+          },
+          {
+            "label": "Agility",
+            "field": "agility"
+          },
+          {
+            "label": "Intellect",
+            "field": "intellect"
+          },
+          {
+            "label": "Cunning",
+            "field": "cunning"
+          },
+          {
+            "label": "Willpower",
+            "field": "willpower"
+          },
+          {
+            "label": "Presence",
+            "field": "presence"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Skill Checks",
+        "type": "skillBonus",
+        "fields": [],
+        "freeTextField": true
+      },
+      {
+        "label": "Attacks",
+        "type": "attackBonus",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Damage Bonus",
+        "type": "damageBonus",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Damage Penalty",
+        "type": "damagePenalty",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Defense Bonus",
+        "type": "defenseBonus",
+        "fields": [
+          {
+            "label": "All",
+            "field": "all"
+          },
+          {
+            "label": "Ranged",
+            "field": "ranged"
+          },
+          {
+            "label": "Melee",
+            "field": "melee"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Defense Penalty",
+        "type": "defensePenalty",
+        "fields": [
+          {
+            "label": "All",
+            "field": "all"
+          },
+          {
+            "label": "Ranged",
+            "field": "ranged"
+          },
+          {
+            "label": "Melee",
+            "field": "melee"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Soak Bonus",
+        "type": "soakBonus",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Soak Penalty",
+        "type": "soakPenalty",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Initiative Checks",
+        "type": "initiativeBonus",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Increase Difficulty of Attacks Targeting You",
+        "type": "difficultyOfAttacksTargetingYou",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Upgrade Difficulty of Attacks Targeting You",
+        "type": "upgradeDifficultyOfAttacksTargetingYou",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Attacks Targeting You",
+        "type": "attacksTargetingYou",
+        "fields": [
+          {
+            "label": "All Attacks",
+            "field": "all"
+          },
+          {
+            "label": "Ranged Attacks",
+            "field": "ranged"
+          },
+          {
+            "label": "Melee Attacks",
+            "field": "melee"
+          }
+        ],
+        "freeTextField": false
+      },
+      {
+        "label": "Increase Critical Result of Your Attacks",
+        "type": "increaseCriticalHit",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Increase Critical Result of Attacks Targeting You",
+        "type": "increaseCriticalHitTargetingYou",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Reduced Critical Result of Attacks Targeting You",
+        "type": "reducedCriticalHit",
+        "fields": [],
+        "freeTextField": false
+      },
+      {
+        "label": "Persistent Damage",
+        "type": "persistentDamage",
+        "fields": [],
+        "freeTextField": false
+      }
+    ],
+    "combatTracker": {
+      "initiative": "initiative",
+      "slotBased": true,
+      "clearSlotsPerRound": true,
+      "order": "desc",
+      "additionalFields": [
+        {
+          "field": "woundThreshold",
+          "label": "W.T.",
+          "type": "string",
+          "width": 60,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "wounds",
+          "label": "Wounds",
+          "type": "string",
+          "width": 60,
+          "editable": true,
+          "onChange": {
+            "file": "rollhandlers/onChangeWounds.js"
+          }
+        },
+        {
+          "field": "strainThreshold",
+          "label": "S.T.",
+          "type": "string",
+          "width": 60,
+          "editable": false,
+          "onChange": ""
+        },
+        {
+          "field": "strain",
+          "label": "Strain",
+          "type": "string",
+          "width": 60,
+          "editable": true,
+          "onChange": {
+            "file": "rollhandlers/onChangeStrain.js"
+          }
+        }
+      ],
+      "onTokenAdd": "",
+      "onEncounterStart": "",
+      "onEncounterEnd": "",
+      "onTurnStart": {
+        "file": "rollhandlers/onTurnStart.js"
+      },
+      "onTurnEnd": "",
+      "onRoundStart": "",
+      "onRoundEnd": "",
+      "onRollInitiative": {
+        "file": "rollhandlers/combatTracker-roll-initiative.js"
+      },
+      "onRollInitiativeGroup": ""
+    },
+    "tokenSize": [
+      {
+        "label": "Silhouette 0",
+        "size": 0.75
+      },
+      {
+        "label": "Silhouette 1",
+        "size": 1
+      },
+      {
+        "label": "Silhouette 2",
+        "size": 2
+      },
+      {
+        "label": "Silhouette 3",
+        "size": 2
+      },
+      {
+        "label": "Silhouette 4",
+        "size": 3
+      },
+      {
+        "label": "Silhouette 5",
+        "size": 4
+      },
+      {
+        "label": "Silhouette 6",
+        "size": 4
+      },
+      {
+        "label": "Silhouette 7",
+        "size": 5
+      },
+      {
+        "label": "Silhouette 8",
+        "size": 5
+      },
+      {
+        "label": "Silhouette 9",
+        "size": 5
+      },
+      {
+        "label": "Silhouette 10",
+        "size": 6
+      }
+    ],
+    "themes": [
+      {
+        "name": "Star Wars - Dark",
+        "colorScheme": "dark",
+        "theme": {
+          "scale": 1,
+          "fontSmoothing": true,
+          "focusRing": "auto",
+          "white": "#fff",
+          "black": "#000",
+          "colors": {
+            "dark": [
+              "#C1C2C5",
+              "#A6A7AB",
+              "#909296",
+              "#5C5F66",
+              "#373A40",
+              "#2C2E33",
+              "#25262B",
+              "#1A1B23",
+              "#141518",
+              "#101113"
+            ],
+            "gray": [
+              "#F7FAFC",
+              "#EDF2F7",
+              "#E2E8F0",
+              "#CBD5E0",
+              "#A0AEC0",
+              "#718096",
+              "#4A5568",
+              "#2D3748",
+              "#1C2128",
+              "#0F1419"
+            ],
+            "red": [
+              "#FFE3E8",
+              "#FFC9D1",
+              "#FFAEB9",
+              "#FF94A2",
+              "#FF798A",
+              "#FF5F73",
+              "#DC143C",
+              "#f03e3e",
+              "#AE102F",
+              "#970E28"
+            ],
+            "pink": [
+              "#FFE0F7",
+              "#FFCCF0",
+              "#FFB3E6",
+              "#FF99DD",
+              "#FF80D4",
+              "#FF66CA",
+              "#FF4DC1",
+              "#E6459E",
+              "#CC3D8A",
+              "#B33576"
+            ],
+            "grape": [
+              "#F8F0FC",
+              "#F3D9FA",
+              "#E9C2F0",
+              "#DEABE6",
+              "#D194DC",
+              "#C37DD2",
+              "#B566C8",
+              "#9C4FBE",
+              "#8338B4",
+              "#6A21AA"
+            ],
+            "violet": [
+              "#F3E8FF",
+              "#E9D5FF",
+              "#D9BFF9",
+              "#C9A9F3",
+              "#B993ED",
+              "#A97DE7",
+              "#9967E1",
+              "#8951DB",
+              "#793BD5",
+              "#6925CF"
+            ],
+            "indigo": [
+              "#EDF2FF",
+              "#DBE4FF",
+              "#BAC8FF",
+              "#91A7FF",
+              "#748FFC",
+              "#5C7CFA",
+              "#4C6EF5",
+              "#364FC7",
+              "#2B3A99",
+              "#1E2A6B"
+            ],
+            "blue": [
+              "#E6F9FF",
+              "#CCF3FF",
+              "#B3EDFF",
+              "#99E7FF",
+              "#80E1FF",
+              "#66DBFF",
+              "#00D4FF",
+              "#00BFE6",
+              "#00AACC",
+              "#0095B3"
+            ],
+            "cyan": [
+              "#E3FAFC",
+              "#C5F6FA",
+              "#99e9f2",
+              "#66D9EF",
+              "#3BC9DB",
+              "#22B8CF",
+              "#15AABF",
+              "#1098AD",
+              "#0C8599",
+              "#0A7285"
+            ],
+            "teal": [
+              "#E6FFFA",
+              "#C3FAE8",
+              "#96F2D7",
+              "#63E6BE",
+              "#38D9A9",
+              "#20C997",
+              "#12B886",
+              "#0CA678",
+              "#099268",
+              "#087F5B"
+            ],
+            "green": [
+              "#E6FBE6",
+              "#CCF7CC",
+              "#B3F3B3",
+              "#99EF99",
+              "#80EB80",
+              "#66E766",
+              "#4AE54A",
+              "#42CC42",
+              "#39B339",
+              "#309930"
+            ],
+            "lime": [
+              "#F4FDE4",
+              "#E9FC8B",
+              "#D8F5A2",
+              "#C0EB75",
+              "#A9E34B",
+              "#94D82D",
+              "#82C91E",
+              "#74B816",
+              "#66A80F",
+              "#5C940D"
+            ],
+            "yellow": [
+              "#FFF6D3",
+              "#FFF2A6",
+              "#FFEF7A",
+              "#FFEB4D",
+              "#FFE945",
+              "#FFE536",
+              "#FFE81F",
+              "#E6D11C",
+              "#CCBA19",
+              "#B3A315"
+            ],
+            "orange": [
+              "#FFF4E6",
+              "#FFE8CC",
+              "#FFD8A8",
+              "#FFC078",
+              "#FFA94D",
+              "#FF922B",
+              "#FD7E14",
+              "#E8590C",
+              "#D9480F",
+              "#BF400D"
+            ],
+            "primary": [
+              "#FFF6D3",
+              "#FFF2A6",
+              "#FFEF7A",
+              "#FFEB4D",
+              "#FFE945",
+              "#FFE536",
+              "#FFE81F",
+              "#E6D11C",
+              "#CCBA19",
+              "#B3A315"
+            ],
+            "secondary": [
+              "#FFE3E8",
+              "#FFC9D1",
+              "#FFAEB9",
+              "#FF94A2",
+              "#FF798A",
+              "#FF5F73",
+              "#DC143C",
+              "#C51235",
+              "#AE102F",
+              "#970E28"
+            ],
+            "tertiary": [
+              "#E6F9FF",
+              "#CCF3FF",
+              "#B3EDFF",
+              "#99E7FF",
+              "#80E1FF",
+              "#66DBFF",
+              "#00D4FF",
+              "#00BFE6",
+              "#00AACC",
+              "#0095B3"
+            ]
+          },
+          "primaryShade": {
+            "light": 6,
+            "dark": 8
+          },
+          "primaryColor": "primary",
+          "autoContrast": false,
+          "luminanceThreshold": 0.3,
+          "fontFamily": "Roboto",
+          "fontFamilyMonospace": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+          "respectReducedMotion": false,
+          "cursorType": "default",
+          "defaultGradient": {
+            "from": "blue",
+            "to": "cyan",
+            "deg": 45
+          },
+          "defaultRadius": "md",
+          "activeClassName": "mantine-active",
+          "focusClassName": "",
+          "headings": {
+            "fontFamily": "Roboto",
+            "fontWeight": "700",
+            "textWrap": "wrap",
+            "sizes": {
+              "h1": {
+                "fontSize": "calc(2.125rem * var(--mantine-scale))",
+                "lineHeight": "1.3"
+              },
+              "h2": {
+                "fontSize": "calc(1.625rem * var(--mantine-scale))",
+                "lineHeight": "1.35"
+              },
+              "h3": {
+                "fontSize": "calc(1.375rem * var(--mantine-scale))",
+                "lineHeight": "1.4"
+              },
+              "h4": {
+                "fontSize": "calc(1.125rem * var(--mantine-scale))",
+                "lineHeight": "1.45"
+              },
+              "h5": {
+                "fontSize": "calc(1rem * var(--mantine-scale))",
+                "lineHeight": "1.5"
+              },
+              "h6": {
+                "fontSize": "calc(0.875rem * var(--mantine-scale))",
+                "lineHeight": "1.5"
+              }
+            }
+          },
+          "fontSizes": {
+            "xs": "calc(0.75rem * var(--mantine-scale))",
+            "sm": "calc(0.875rem * var(--mantine-scale))",
+            "md": "calc(1rem * var(--mantine-scale))",
+            "lg": "calc(1.125rem * var(--mantine-scale))",
+            "xl": "calc(1.25rem * var(--mantine-scale))",
+            "xxs": "0.7rem"
+          },
+          "lineHeights": {
+            "xs": "1.4",
+            "sm": "1.45",
+            "md": "1.55",
+            "lg": "1.6",
+            "xl": "1.65"
+          },
+          "radius": {
+            "xs": "calc(0.125rem * var(--mantine-scale))",
+            "sm": "calc(0.25rem * var(--mantine-scale))",
+            "md": "calc(0.5rem * var(--mantine-scale))",
+            "lg": "calc(1rem * var(--mantine-scale))",
+            "xl": "calc(2rem * var(--mantine-scale))"
+          },
+          "spacing": {
+            "xs": "calc(0.625rem * var(--mantine-scale))",
+            "sm": "calc(0.75rem * var(--mantine-scale))",
+            "md": "calc(1rem * var(--mantine-scale))",
+            "lg": "calc(1.25rem * var(--mantine-scale))",
+            "xl": "calc(2rem * var(--mantine-scale))",
+            "xxs": "0.4rem"
+          },
+          "breakpoints": {
+            "xs": "36em",
+            "sm": "48em",
+            "md": "62em",
+            "lg": "75em",
+            "xl": "88em"
+          },
+          "shadows": {
+            "xs": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), 0 calc(0.0625rem * var(--mantine-scale)) calc(0.125rem * var(--mantine-scale)) rgba(0, 0, 0, 0.1)",
+            "sm": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(0.625rem * var(--mantine-scale)) calc(0.9375rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.4375rem * var(--mantine-scale)) calc(0.4375rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale))",
+            "md": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(1.25rem * var(--mantine-scale)) calc(1.5625rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.625rem * var(--mantine-scale)) calc(0.625rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale))",
+            "lg": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(1.75rem * var(--mantine-scale)) calc(1.4375rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.75rem * var(--mantine-scale)) calc(0.75rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale))",
+            "xl": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(2.25rem * var(--mantine-scale)) calc(1.75rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(1.0625rem * var(--mantine-scale)) calc(1.0625rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale))"
+          },
+          "other": {},
+          "components": {}
+        }
+      },
+      {
+        "name": "Star Wars - Light",
+        "colorScheme": "light",
+        "theme": {
+          "scale": 1,
+          "fontSmoothing": true,
+          "focusRing": "auto",
+          "white": "#fff",
+          "black": "#000",
+          "colors": {
+            "dark": [
+              "#C1C2C5",
+              "#A6A7AB",
+              "#909296",
+              "#5C5F66",
+              "#373A40",
+              "#2C2E33",
+              "#25262B",
+              "#1A1B23",
+              "#141518",
+              "#101113"
+            ],
+            "gray": [
+              "#F7FAFC",
+              "#EDF2F7",
+              "#E2E8F0",
+              "#CBD5E0",
+              "#A0AEC0",
+              "#718096",
+              "#4A5568",
+              "#2D3748",
+              "#1C2128",
+              "#0F1419"
+            ],
+            "red": [
+              "#FFE3E8",
+              "#FFC9D1",
+              "#FFAEB9",
+              "#FF94A2",
+              "#FF798A",
+              "#FF5F73",
+              "#DC143C",
+              "#f03e3e",
+              "#AE102F",
+              "#970E28"
+            ],
+            "pink": [
+              "#FFE0F7",
+              "#FFCCF0",
+              "#FFB3E6",
+              "#FF99DD",
+              "#FF80D4",
+              "#FF66CA",
+              "#FF4DC1",
+              "#E6459E",
+              "#CC3D8A",
+              "#B33576"
+            ],
+            "grape": [
+              "#F8F0FC",
+              "#F3D9FA",
+              "#E9C2F0",
+              "#DEABE6",
+              "#D194DC",
+              "#C37DD2",
+              "#B566C8",
+              "#9C4FBE",
+              "#8338B4",
+              "#6A21AA"
+            ],
+            "violet": [
+              "#F3E8FF",
+              "#E9D5FF",
+              "#D9BFF9",
+              "#C9A9F3",
+              "#B993ED",
+              "#A97DE7",
+              "#9967E1",
+              "#8951DB",
+              "#793BD5",
+              "#6925CF"
+            ],
+            "indigo": [
+              "#EDF2FF",
+              "#DBE4FF",
+              "#BAC8FF",
+              "#91A7FF",
+              "#748FFC",
+              "#5C7CFA",
+              "#4C6EF5",
+              "#364FC7",
+              "#2B3A99",
+              "#1E2A6B"
+            ],
+            "blue": [
+              "#E6F9FF",
+              "#CCF3FF",
+              "#B3EDFF",
+              "#99E7FF",
+              "#80E1FF",
+              "#66DBFF",
+              "#00D4FF",
+              "#00BFE6",
+              "#00AACC",
+              "#0095B3"
+            ],
+            "cyan": [
+              "#E3FAFC",
+              "#C5F6FA",
+              "#99e9f2",
+              "#66D9EF",
+              "#3BC9DB",
+              "#22B8CF",
+              "#15AABF",
+              "#1098AD",
+              "#0C8599",
+              "#0A7285"
+            ],
+            "teal": [
+              "#E6FFFA",
+              "#C3FAE8",
+              "#96F2D7",
+              "#63E6BE",
+              "#38D9A9",
+              "#20C997",
+              "#12B886",
+              "#0CA678",
+              "#099268",
+              "#087F5B"
+            ],
+            "green": [
+              "#E6FBE6",
+              "#CCF7CC",
+              "#B3F3B3",
+              "#99EF99",
+              "#80EB80",
+              "#66E766",
+              "#4AE54A",
+              "#42CC42",
+              "#39B339",
+              "#309930"
+            ],
+            "lime": [
+              "#F4FDE4",
+              "#E9FC8B",
+              "#D8F5A2",
+              "#C0EB75",
+              "#A9E34B",
+              "#94D82D",
+              "#82C91E",
+              "#74B816",
+              "#66A80F",
+              "#5C940D"
+            ],
+            "yellow": [
+              "#FFF6D3",
+              "#FFF2A6",
+              "#FFEF7A",
+              "#FFEB4D",
+              "#FFE945",
+              "#FFE536",
+              "#FFE81F",
+              "#E6D11C",
+              "#CCBA19",
+              "#B3A315"
+            ],
+            "orange": [
+              "#FFF4E6",
+              "#FFE8CC",
+              "#FFD8A8",
+              "#FFC078",
+              "#FFA94D",
+              "#FF922B",
+              "#FD7E14",
+              "#E8590C",
+              "#D9480F",
+              "#BF400D"
+            ],
+            "primary": [
+              "#FFFBF0",
+              "#FFF8E1",
+              "#FFF4D1",
+              "#FFEFB8",
+              "#FFE99F",
+              "#FFE486",
+              "#8B6914",
+              "#7A5C12",
+              "#694F0F",
+              "#58420D"
+            ],
+            "secondary": [
+              "#FFE3E8",
+              "#FFC9D1",
+              "#FFAEB9",
+              "#FF94A2",
+              "#FF798A",
+              "#FF5F73",
+              "#DC143C",
+              "#C51235",
+              "#AE102F",
+              "#970E28"
+            ],
+            "tertiary": [
+              "#E6F9FF",
+              "#CCF3FF",
+              "#B3EDFF",
+              "#99E7FF",
+              "#80E1FF",
+              "#66DBFF",
+              "#00D4FF",
+              "#00BFE6",
+              "#00AACC",
+              "#0095B3"
+            ]
+          },
+          "primaryShade": {
+            "light": 6,
+            "dark": 8
+          },
+          "primaryColor": "primary",
+          "autoContrast": false,
+          "luminanceThreshold": 0.3,
+          "fontFamily": "Roboto",
+          "fontFamilyMonospace": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+          "respectReducedMotion": false,
+          "cursorType": "default",
+          "defaultGradient": {
+            "from": "blue",
+            "to": "cyan",
+            "deg": 45
+          },
+          "defaultRadius": "md",
+          "activeClassName": "mantine-active",
+          "focusClassName": "",
+          "headings": {
+            "fontFamily": "Roboto",
+            "fontWeight": "700",
+            "textWrap": "wrap",
+            "sizes": {
+              "h1": {
+                "fontSize": "calc(2.125rem * var(--mantine-scale))",
+                "lineHeight": "1.3"
+              },
+              "h2": {
+                "fontSize": "calc(1.625rem * var(--mantine-scale))",
+                "lineHeight": "1.35"
+              },
+              "h3": {
+                "fontSize": "calc(1.375rem * var(--mantine-scale))",
+                "lineHeight": "1.4"
+              },
+              "h4": {
+                "fontSize": "calc(1.125rem * var(--mantine-scale))",
+                "lineHeight": "1.45"
+              },
+              "h5": {
+                "fontSize": "calc(1rem * var(--mantine-scale))",
+                "lineHeight": "1.5"
+              },
+              "h6": {
+                "fontSize": "calc(0.875rem * var(--mantine-scale))",
+                "lineHeight": "1.5"
+              }
+            }
+          },
+          "fontSizes": {
+            "xs": "calc(0.75rem * var(--mantine-scale))",
+            "sm": "calc(0.875rem * var(--mantine-scale))",
+            "md": "calc(1rem * var(--mantine-scale))",
+            "lg": "calc(1.125rem * var(--mantine-scale))",
+            "xl": "calc(1.25rem * var(--mantine-scale))",
+            "xxs": "0.7rem"
+          },
+          "lineHeights": {
+            "xs": "1.4",
+            "sm": "1.45",
+            "md": "1.55",
+            "lg": "1.6",
+            "xl": "1.65"
+          },
+          "radius": {
+            "xs": "calc(0.125rem * var(--mantine-scale))",
+            "sm": "calc(0.25rem * var(--mantine-scale))",
+            "md": "calc(0.5rem * var(--mantine-scale))",
+            "lg": "calc(1rem * var(--mantine-scale))",
+            "xl": "calc(2rem * var(--mantine-scale))"
+          },
+          "spacing": {
+            "xs": "calc(0.625rem * var(--mantine-scale))",
+            "sm": "calc(0.75rem * var(--mantine-scale))",
+            "md": "calc(1rem * var(--mantine-scale))",
+            "lg": "calc(1.25rem * var(--mantine-scale))",
+            "xl": "calc(2rem * var(--mantine-scale))",
+            "xxs": "0.4rem"
+          },
+          "breakpoints": {
+            "xs": "36em",
+            "sm": "48em",
+            "md": "62em",
+            "lg": "75em",
+            "xl": "88em"
+          },
+          "shadows": {
+            "xs": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), 0 calc(0.0625rem * var(--mantine-scale)) calc(0.125rem * var(--mantine-scale)) rgba(0, 0, 0, 0.1)",
+            "sm": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(0.625rem * var(--mantine-scale)) calc(0.9375rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.4375rem * var(--mantine-scale)) calc(0.4375rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale))",
+            "md": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(1.25rem * var(--mantine-scale)) calc(1.5625rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.625rem * var(--mantine-scale)) calc(0.625rem * var(--mantine-scale)) calc(-0.3125rem * var(--mantine-scale))",
+            "lg": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(1.75rem * var(--mantine-scale)) calc(1.4375rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(0.75rem * var(--mantine-scale)) calc(0.75rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale))",
+            "xl": "0 calc(0.0625rem * var(--mantine-scale)) calc(0.1875rem * var(--mantine-scale)) rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) 0 calc(2.25rem * var(--mantine-scale)) calc(1.75rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale)), rgba(0, 0, 0, 0.04) 0 calc(1.0625rem * var(--mantine-scale)) calc(1.0625rem * var(--mantine-scale)) calc(-0.4375rem * var(--mantine-scale))"
+          },
+          "other": {},
+          "components": {}
+        }
+      }
+    ],
+    "campaignSettings": [
+      {
+        "name": "Default Starting Obligation or Duty",
+        "key": "startingObligationDuty",
+        "description": "Used by the Character Wizard when using Obligation or Duty.",
+        "values": [
+          {
+            "label": "4 to 5 Players (10)",
+            "value": "10"
+          },
+          {
+            "label": "2 Players (20)",
+            "value": "20"
+          },
+          {
+            "label": "3 Players (15)",
+            "value": "15"
+          },
+          {
+            "label": "6 Players (5)",
+            "value": "5"
+          }
+        ]
+      }
+    ]
+  }
+}
