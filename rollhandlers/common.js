@@ -3191,3 +3191,37 @@ selectedTokens.forEach(token => {
 });
 \`\`\``;
 }
+
+// Shared equip/carry/drop handler. Updates Use-button visibility, total
+// encumbrance and character attributes. Shared by the item-row carried dropdown
+// (onItemEquipped) and the grid Equip/Carry/Drop actions (equipGridItem).
+function onItemEquippedFor(itemDataPath, newValue) {
+  const itemFields = api.getValue(`${itemDataPath}.fields`) || {};
+  const isConsumable =
+    api.getValue(`${itemDataPath}.data.consumable`) || false;
+  const hasUseBtn = api.getValue(`${itemDataPath}.data.hasUseBtn`) || false;
+
+  const equipEffect = api.getValue(`${itemDataPath}.data.equipEffect`);
+  const isEquipEffect = newValue === "equipped";
+  if (equipEffect) {
+    const effect = JSON.parse(equipEffect);
+    const effectId = effect?._id || "";
+    const ourToken = api.getToken();
+    if (effectId && isEquipEffect && ourToken) {
+      api.addEffectById(effectId, ourToken);
+    } else if (effectId && !isEquipEffect && ourToken) {
+      api.removeEffectById(effectId, ourToken);
+    }
+  }
+
+  const valuesToSet = {};
+  valuesToSet[`${itemDataPath}.fields`] = {
+    ...itemFields,
+    useBtn: { hidden: !isConsumable && !hasUseBtn },
+  };
+  setTotalEncumbrance(record, valuesToSet);
+  updateAttributes(record, valuesToSet);
+  if (Object.keys(valuesToSet).length > 0) {
+    api.setValues(valuesToSet);
+  }
+}
