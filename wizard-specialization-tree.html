@@ -347,7 +347,19 @@
     }
   }
 
-  function ttDrawTile(c, row, col, talent, chosen, rank, lay, theme) {
+  // `drawPortraits` false draws the letter-circle placeholder instead of
+  // calling c.drawImage — see ttPaintTwoPhase.
+  function ttDrawTile(
+    c,
+    row,
+    col,
+    talent,
+    chosen,
+    rank,
+    lay,
+    theme,
+    drawPortraits,
+  ) {
     const t = ttTileRect(row, col, lay);
 
     if (chosen) {
@@ -382,7 +394,7 @@
     const pSize = 26;
     const pX = t.x + 6;
     const pY = t.y + 6;
-    if (talent.portrait) {
+    if (talent.portrait && drawPortraits !== false) {
       c.drawImage(talent.portrait, pX, pY, pSize, pSize);
     } else {
       c.setFillStyle(chosen ? theme.primaryContrast : theme.border);
@@ -572,9 +584,7 @@
       } else if (spec.data?.characterId) {
         api.getRecord("characters", spec.data.characterId, (cr) => {
           if (cr) {
-            ttPreloadPortraitsThen(spec, () =>
-              doPaintWizardTree(c, lay, ctx, cr),
-            );
+            ttPaintTwoPhase(c, lay, ctx, cr);
           }
         });
         return;
@@ -583,9 +593,28 @@
         return;
       }
     }
-    ttPreloadPortraitsThen(spec, () =>
-      doPaintWizardTree(c, lay, ctx, charRec),
-    );
+    ttPaintTwoPhase(c, lay, ctx, charRec);
+  }
+
+  // Two-phase paint. The tree used to draw nothing until every portrait had
+  // been fetched and decoded, which on a cold cache is seconds of blank canvas
+  // (measured on a talent tree: 17 portraits = 5.4s, while the drawing itself
+  // is 2ms).
+  //
+  // Phase 1 draws immediately, with the letter-circle placeholder ttDrawTile
+  // already has standing in for portraits that aren't cached yet — so the tree
+  // is on screen in milliseconds and the placeholders are themselves the
+  // "portraits still loading" indication. Phase 2 repaints once the preloads
+  // settle; that pass is the one that needs the warm cache, so c.drawImage runs
+  // synchronously and the tooltip drawn last really does land on top of every
+  // tile. Only phase 1 may write, so a paint still issues at most one patch.
+  function ttPaintTwoPhase(c, lay, ctx, charRec) {
+    const warm = !!api.getSession("wizardPortraitsWarm");
+    doPaintWizardTree(c, lay, ctx, charRec, true, warm);
+    ttPreloadPortraitsThen(ctx.spec, () => {
+      api.setSession("wizardPortraitsWarm", true);
+      doPaintWizardTree(c, lay, ctx, charRec, false, true);
+    });
   }
 
   // Preload tile portraits via api.preloadImage so c.drawImage is sync
@@ -613,7 +642,14 @@
     Promise.all(urls.map((u) => api.preloadImage(u))).then(then, then);
   }
 
-  function doPaintWizardTree(c, lay, ctx, charRec) {
+  function doPaintWizardTree(
+    c,
+    lay,
+    ctx,
+    charRec,
+    allowWrites,
+    drawPortraits,
+  ) {
     const theme = ttTheme();
     const spec = ctx.spec;
     const specPath = ctx.specPath;
@@ -621,6 +657,7 @@
     // Backfill characterId so canvas handlers (where `record` = spec entry)
     // can fetch the character to write to it.
     if (
+      allowWrites !== false &&
       charRec?.recordType === "characters" &&
       charRec._id &&
       spec.data?.characterId !== charRec._id
@@ -632,7 +669,9 @@
 
     // Legacy migration — derive slot.data.chosen from data.wizard.talents
     // for upgrades chosen before per-slot tracking landed.
-    migrateLegacyWizardChosenSlots(spec, specPath, charRec);
+    if (allowWrites !== false) {
+      migrateLegacyWizardChosenSlots(spec, specPath, charRec);
+    }
 
     c.clearRect(0, 0, lay.W, lay.H);
     ttDrawConnectors(c, spec, lay, theme);
@@ -643,7 +682,17 @@
         const talent = spec.data?.[slotKey]?.[0] || null;
         const chosen = !!talent && ttIsSlotChosen(spec, row, col);
         const rank = chosen ? ttChosenRank(talent, charRec) : 0;
-        ttDrawTile(c, row, col, talent, chosen, rank, lay, theme);
+        ttDrawTile(
+          c,
+          row,
+          col,
+          talent,
+          chosen,
+          rank,
+          lay,
+          theme,
+          drawPortraits,
+        );
       }
     }
 
