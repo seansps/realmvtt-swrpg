@@ -450,7 +450,22 @@
     }
   }
 
-  function ttDrawTile(c, row, col, talent, chosen, rank, lay, theme) {
+  // `drawPortraits` false means "the image cache is not known to be warm":
+  // draw the letter-circle placeholder instead of calling c.drawImage, which
+  // would resolve asynchronously and paint the portrait over whatever was
+  // drawn after it (the tooltip, most visibly). The full pass that runs once
+  // the preloads settle draws the real portraits.
+  function ttDrawTile(
+    c,
+    row,
+    col,
+    talent,
+    chosen,
+    rank,
+    lay,
+    theme,
+    drawPortraits,
+  ) {
     const t = ttTileRect(row, col, lay);
 
     // Background — chosen uses primary, filled tile uses surface, empty stays
@@ -490,7 +505,7 @@
     const pSize = 26;
     const pX = t.x + 6;
     const pY = t.y + 6;
-    if (talent.portrait) {
+    if (talent.portrait && drawPortraits !== false) {
       c.drawImage(talent.portrait, pX, pY, pSize, pSize);
     } else {
       c.setFillStyle(chosen ? theme.primaryContrast : theme.border);
@@ -693,9 +708,7 @@
       } else if (spec.data?.characterId) {
         api.getRecord("characters", spec.data.characterId, (cr) => {
           if (cr) {
-            ttPreloadPortraitsThen(spec, () =>
-              doPaintTalentTree(c, lay, ctx, cr),
-            );
+            ttPaintTwoPhase(c, lay, ctx, cr);
           }
         });
         return;
@@ -709,11 +722,36 @@
         return;
       }
     }
-    // Preload portraits via api.preloadImage so c.drawImage stays synchronous
-    // (otherwise async portrait paints land on top of the tooltip overlay).
-    // After the first preload completes, the canvas's internal cache is warm
-    // and subsequent paints fast-path without yielding.
-    ttPreloadPortraitsThen(spec, () => doPaintTalentTree(c, lay, ctx, charRec));
+    ttPaintTwoPhase(c, lay, ctx, charRec);
+  }
+
+  // Two-phase paint. The tree used to draw nothing until every portrait had
+  // been fetched and decoded, which on a cold cache is seconds of blank canvas
+  // (measured: 17 portraits = 5.4s, while the drawing itself is 2ms).
+  //
+  // Phase 1 draws immediately. Portraits already in the canvas image cache
+  // paint; the rest fall back to the letter circle ttDrawTile already has. So
+  // the tree — tiles, names, costs, connectors, chosen state — is on screen in
+  // a couple of milliseconds, and the placeholder circles are themselves the
+  // "portraits still loading" indication.
+  //
+  // Phase 2 repaints once the preloads settle. That pass is the one that needs
+  // the warm cache: with every portrait cached, c.drawImage forwards straight
+  // to ctx.drawImage without yielding, so the tooltip drawn last genuinely
+  // lands on top of every tile instead of being covered by a late portrait.
+  //
+  // Only phase 1 is allowed to write (characterId backfill, legacy migration),
+  // so a paint still issues at most one patch.
+  function ttPaintTwoPhase(c, lay, ctx, charRec) {
+    // Once a gate has settled in this record window every portrait is cached,
+    // so the fast pass can draw them synchronously and the full pass below is
+    // a no-op repaint. Before that, the fast pass draws placeholders.
+    const warm = !!api.getSession("ttPortraitsWarm");
+    doPaintTalentTree(c, lay, ctx, charRec, true, warm);
+    ttPreloadPortraitsThen(ctx.spec, () => {
+      api.setSession("ttPortraitsWarm", true);
+      doPaintTalentTree(c, lay, ctx, charRec, false, true);
+    });
   }
 
   // Collects every tile portrait URL and warms the canvas image cache via
@@ -744,7 +782,7 @@
     Promise.all(urls.map((u) => api.preloadImage(u))).then(then, then);
   }
 
-  function doPaintTalentTree(c, lay, ctx, charRec) {
+  function doPaintTalentTree(c, lay, ctx, charRec, allowWrites, drawPortraits) {
     const theme = ttTheme();
     const spec = ctx.spec;
     const specPath = ctx.specPath;
@@ -752,6 +790,7 @@
     // Backfill character id onto the spec entry so canvas-handler context
     // (which sees the spec as `record`, not the character) can always find it.
     if (
+      allowWrites !== false &&
       charRec?.recordType === "characters" &&
       charRec._id &&
       spec.data?.characterId !== charRec._id
@@ -765,7 +804,9 @@
     // never populated (the old widget code wrote to data.chosen per slot, but
     // an earlier canvas iteration relied on data.talents lookup only). Derive
     // chosen slots from data.talents now so the canvas renders correctly.
-    migrateLegacyChosenSlots(spec, specPath, charRec);
+    if (allowWrites !== false) {
+      migrateLegacyChosenSlots(spec, specPath, charRec);
+    }
 
     c.clearRect(0, 0, lay.W, lay.H);
 
@@ -777,7 +818,17 @@
         const talent = spec.data?.[slotKey]?.[0] || null;
         const chosen = !!talent && ttIsSlotChosen(spec, row, col);
         const rank = chosen ? ttChosenRank(talent, charRec) : 0;
-        ttDrawTile(c, row, col, talent, chosen, rank, lay, theme);
+        ttDrawTile(
+          c,
+          row,
+          col,
+          talent,
+          chosen,
+          rank,
+          lay,
+          theme,
+          drawPortraits,
+        );
       }
     }
 
