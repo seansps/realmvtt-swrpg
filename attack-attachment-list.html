@@ -19,25 +19,47 @@
     const attachmentDataPath = dataPath.replace(".data.attachmentsIcon", "");
     const attachment = api.getValue(attachmentDataPath);
     const valuesToSet = {};
-    const isShown = attachment.fields?.attachmentProperties?.hidden === false;
-    if (attachment.data?.attachmentType !== "weapon" && !isShown) {
-      valuesToSet[
-        `${attachmentDataPath}.fields.attachmentProperties.hidden`
-      ] = false;
-      // Check if active is undefined and if so default to true
-      if (
-        attachment.data?.active === undefined ||
-        attachment.data?.active === null
-      ) {
-        valuesToSet[`${attachmentDataPath}.data.active`] = true;
-      }
+    const isWeapon = attachment.data?.attachmentType === "weapon";
+    const propsShown = attachment.fields?.attachmentProperties?.hidden === false;
+    const listShown = attachment.fields?.weaponAttached?.hidden === false;
 
+    if (!isWeapon) {
+      if (!propsShown) {
+        valuesToSet[
+          `${attachmentDataPath}.fields.attachmentProperties.hidden`
+        ] = false;
+        // Check if active is undefined and if so default to true
+        if (
+          attachment.data?.active === undefined ||
+          attachment.data?.active === null
+        ) {
+          valuesToSet[`${attachmentDataPath}.data.active`] = true;
+        }
+      }
+      // Non-weapon attachments have no weapon list, so keep it collapsed
+      // instead of rendering an empty list placeholder
+      if (listShown) {
+        valuesToSet[`${attachmentDataPath}.fields.weaponAttached.hidden`] = true;
+      }
+    } else if (!listShown) {
+      valuesToSet[`${attachmentDataPath}.fields.weaponAttached.hidden`] = false;
+    }
+
+    if (Object.keys(valuesToSet).length > 0) {
       api.setValues(valuesToSet);
     }
   }
 </script>
 
-<div style="display: flex; flex-direction: row; align-items: center">
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  "
+>
   <iconbutton
     variant="outline"
     field="attachmentsIcon"
@@ -46,23 +68,34 @@
     options='[{"icon": "IconCornerDownRight", "label": "Attachments", "value": "asttachments"}]'
   ></iconbutton>
 
+  <box field="attachmentProperties" hidden="true" width="100%">
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+      "
+    >
+      <checkbox field="active" label="Active?" textalign="right"></checkbox>
+      <div style="flex: 1 1 auto; min-width: 0">
+        <namefield
+          field="namefield"
+          variant="standard"
+          width="100%"
+          placeholder="Attachment Name..."
+        ></namefield>
+      </div>
+    </div>
+  </box>
+
   <list
     field="weaponAttached"
     listtype="attack_list"
     variant="standard"
+    hidden="true"
+    emptylisttext="No Weapon Attached"
     getfilters="return getWeaponAttachmentFilters();"
   ></list>
-
-  <box field="attachmentProperties" hidden="true">
-    <div
-      style="display: flex; flex-direction: row; align-items: center; gap: 4px"
-    >
-      <checkbox field="active" label="Active?" textalign="right"></checkbox>
-      <namefield
-        field="namefield"
-        variant="standard"
-        placeholder="Attachment Name..."
-      ></namefield>
-    </div>
-  </box>
 </div>
