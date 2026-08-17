@@ -1,0 +1,398 @@
+<script>
+  // ============================================================
+  // Destiny Points campaign panel
+  // ============================================================
+  // Two pools of destiny points (Light Side / Dark Side) shared by the whole
+  // table, stored in campaign variables `lightSidePoints` / `darkSidePoints`
+  // (seeded to 2/2 by onCampaignLoad). Anyone — players included — can:
+  //   - drag a point across the center divider to flip it (LS <-> DS)
+  //   - use the +/- buttons under each pool to add or remove points
+  // All clients see updates live via the campaign variables sync.
+
+  var LS_IMG =
+    "https://assets.realmvtt.com/images/e0dd724d-3d93-485c-929c-b3e49602ca55_LightSidePoint.webp";
+  var DS_IMG =
+    "https://assets.realmvtt.com/images/f27a02a5-a054-4b92-9cb0-4dfc5635063e_DarkSidePoint.webp";
+  // Card art is 368x512 with the orb centered at ~(0.5, 0.49) spanning ~310px
+  // of the width. Scale so the clipped circle shows the orb plus a bit of glow.
+  var IMG_ASPECT = 512 / 368;
+  var IMG_COVER = 1.16;
+  var IMG_CENTER_Y = 0.49;
+
+  var MAX_POINTS = 20;
+
+  function destinyCounts() {
+    var ls = api.getCampaignVariable("lightSidePoints");
+    var ds = api.getCampaignVariable("darkSidePoints");
+    return {
+      light: typeof ls === "number" && ls > 0 ? Math.floor(ls) : 0,
+      dark: typeof ds === "number" && ds > 0 ? Math.floor(ds) : 0,
+    };
+  }
+
+  function destinyLayout() {
+    var c = api.getCanvas("destinyCanvas");
+    if (!c) return null;
+    var W = c.width;
+    var H = c.height;
+    // Buttons live in the header beside each count, so nothing is anchored
+    // to the bottom edge — growing the window only grows the token area.
+    var headerH = 56;
+    return {
+      W: W,
+      H: H,
+      headerH: headerH,
+      poolTop: headerH,
+      poolBottom: H,
+      midX: W / 2,
+    };
+  }
+
+  // Positions for `count` tokens in the given half ("light" = left).
+  function destinyTokenSpots(side, count, lay) {
+    var pad = 12;
+    var x0 = side === "light" ? pad : lay.midX + pad;
+    var x1 = side === "light" ? lay.midX - pad : lay.W - pad;
+    var y0 = lay.poolTop + pad;
+    var y1 = lay.poolBottom - pad;
+    var availW = Math.max(40, x1 - x0);
+    var availH = Math.max(40, y1 - y0);
+
+    // Pick the largest diameter (28..64) whose grid fits every token.
+    var d = 64;
+    var gap = 8;
+    var cols = 1;
+    var rows = 1;
+    while (d > 28) {
+      cols = Math.max(1, Math.floor((availW + gap) / (d + gap)));
+      rows = Math.max(1, Math.floor((availH + gap) / (d + gap)));
+      if (cols * rows >= count) break;
+      d -= 4;
+    }
+
+    var spots = [];
+    for (var i = 0; i < count; i++) {
+      var row = Math.floor(i / cols);
+      var col = i % cols;
+      var rowCount = Math.min(cols, count - row * cols);
+      var rowW = rowCount * d + (rowCount - 1) * gap;
+      var x = x0 + (availW - rowW) / 2 + col * (d + gap) + d / 2;
+      var y = y0 + row * (d + gap) + d / 2;
+      spots.push({ x: x, y: y, r: d / 2 });
+    }
+    return spots;
+  }
+
+  function destinyButtons(side, lay) {
+    var cx = side === "light" ? lay.midX / 2 : lay.midX + lay.midX / 2;
+    var y = 38;
+    var r = 11;
+    return {
+      minus: { x: cx - 36, y: y, r: r },
+      plus: { x: cx + 36, y: y, r: r },
+    };
+  }
+
+  function drawDestinyToken(c, side, x, y, r, alpha) {
+    c.save();
+    if (alpha !== undefined) c.setGlobalAlpha(alpha);
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.clip();
+    // Cover the circle with the card art, orb centered in the clip.
+    var w = r * 2 * IMG_COVER;
+    var h = w * IMG_ASPECT;
+    c.drawImage(
+      side === "light" ? LS_IMG : DS_IMG,
+      x - w / 2,
+      y - h * IMG_CENTER_Y,
+      w,
+      h,
+    );
+    c.restore();
+    // Rim
+    c.save();
+    if (alpha !== undefined) c.setGlobalAlpha(alpha);
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.setLineWidth(1.5);
+    c.setStrokeStyle(
+      side === "light" ? "rgba(120,160,255,0.9)" : "rgba(255,90,80,0.9)",
+    );
+    c.stroke();
+    c.restore();
+  }
+
+  function drawRoundButton(c, btn, label, hovered) {
+    c.save();
+    c.beginPath();
+    c.arc(btn.x, btn.y, btn.r, 0, Math.PI * 2);
+    c.setFillStyle(hovered ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)");
+    c.fill();
+    c.setLineWidth(1);
+    c.setStrokeStyle("rgba(255,255,255,0.35)");
+    c.stroke();
+    c.setFillStyle("#e8e8e8");
+    c.setFont("600 16px sans-serif");
+    c.setTextAlign("center");
+    c.setTextBaseline("middle");
+    c.fillText(label, btn.x, btn.y + 1);
+    c.restore();
+  }
+
+  function paintDestiny() {
+    var c = api.getCanvas("destinyCanvas");
+    var lay = destinyLayout();
+    if (!c || !lay) return;
+    var counts = destinyCounts();
+    var drag = api.getSession("destinyDrag") || null;
+    var hover = api.getSession("destinyHover") || null;
+
+    c.clearRect(0, 0, lay.W, lay.H);
+
+    // Pool backgrounds
+    var lsBg = c.createLinearGradient(0, 0, lay.midX, 0, [
+      [0, "rgba(20,40,110,0.35)"],
+      [1, "rgba(20,40,110,0.10)"],
+    ]);
+    c.setFillStyle(lsBg);
+    c.fillRect(0, 0, lay.midX, lay.H);
+    var dsBg = c.createLinearGradient(lay.midX, 0, lay.W, 0, [
+      [0, "rgba(120,15,15,0.10)"],
+      [1, "rgba(120,15,15,0.35)"],
+    ]);
+    c.setFillStyle(dsBg);
+    c.fillRect(lay.midX, 0, lay.midX, lay.H);
+
+    // Divider — highlight it while a drag is in progress to hint "drop
+    // across the line to flip".
+    c.save();
+    c.setLineWidth(drag ? 2 : 1);
+    c.setStrokeStyle(drag ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)");
+    if (drag) c.setLineDash([6, 4]);
+    c.beginPath();
+    c.moveTo(lay.midX, 8);
+    c.lineTo(lay.midX, lay.H - 8);
+    c.stroke();
+    c.restore();
+
+    // Headers
+    c.save();
+    c.setTextAlign("center");
+    c.setTextBaseline("middle");
+    c.setFont("700 15px sans-serif");
+    c.setFillStyle("#9db8ff");
+    c.fillText("LIGHT SIDE", lay.midX / 2, 16);
+    c.setFillStyle("#ff8d84");
+    c.fillText("DARK SIDE", lay.midX + lay.midX / 2, 16);
+    c.setFont("700 17px sans-serif");
+    c.setFillStyle("#e8e8e8");
+    c.fillText(String(counts.light), lay.midX / 2, 35);
+    c.fillText(String(counts.dark), lay.midX + lay.midX / 2, 35);
+    c.restore();
+
+    // Tokens. While dragging, the dragged token is lifted out of its pool
+    // (drawn as a ghost at the cursor instead).
+    var sides = ["light", "dark"];
+    for (var s = 0; s < sides.length; s++) {
+      var side = sides[s];
+      var count = side === "light" ? counts.light : counts.dark;
+      var drawCount =
+        drag && drag.side === side ? Math.max(0, count - 1) : count;
+      var spots = destinyTokenSpots(side, drawCount, lay);
+      for (var i = 0; i < spots.length; i++) {
+        drawDestinyToken(c, side, spots[i].x, spots[i].y, spots[i].r);
+      }
+      // Hover ring on the last token of the hovered pool (the one a drag
+      // would pick up) when not dragging.
+      if (!drag && hover && hover.type === "pool" && hover.side === side && count > 0) {
+        var hs = spots[spots.length - 1];
+        if (hs) {
+          c.save();
+          c.beginPath();
+          c.arc(hs.x, hs.y, hs.r + 3, 0, Math.PI * 2);
+          c.setLineWidth(2);
+          c.setStrokeStyle("rgba(255,255,255,0.7)");
+          c.stroke();
+          c.restore();
+        }
+      }
+      // Buttons
+      var btns = destinyButtons(side, lay);
+      drawRoundButton(
+        c,
+        btns.minus,
+        "−",
+        !!(hover && hover.type === "minus" && hover.side === side),
+      );
+      drawRoundButton(
+        c,
+        btns.plus,
+        "+",
+        !!(hover && hover.type === "plus" && hover.side === side),
+      );
+    }
+
+    // Drag ghost + drop hint
+    if (drag && drag.x !== undefined) {
+      var overSide = drag.x < lay.midX ? "light" : "dark";
+      if (overSide !== drag.side) {
+        // Flipping: preview the ghost as the TARGET side's point.
+        drawDestinyToken(c, overSide, drag.x, drag.y, drag.r, 0.85);
+      } else {
+        drawDestinyToken(c, drag.side, drag.x, drag.y, drag.r, 0.6);
+      }
+    }
+  }
+
+  // Hit-test helpers ------------------------------------------------------
+
+  function destinyHit(x, y) {
+    var lay = destinyLayout();
+    if (!lay) return null;
+    var counts = destinyCounts();
+    var sides = ["light", "dark"];
+    for (var s = 0; s < sides.length; s++) {
+      var side = sides[s];
+      var btns = destinyButtons(side, lay);
+      if (dist(x, y, btns.minus.x, btns.minus.y) <= btns.minus.r + 3) {
+        return { type: "minus", side: side };
+      }
+      if (dist(x, y, btns.plus.x, btns.plus.y) <= btns.plus.r + 3) {
+        return { type: "plus", side: side };
+      }
+      var count = side === "light" ? counts.light : counts.dark;
+      var spots = destinyTokenSpots(side, count, lay);
+      for (var i = 0; i < spots.length; i++) {
+        if (dist(x, y, spots[i].x, spots[i].y) <= spots[i].r) {
+          return { type: "pool", side: side, r: spots[i].r };
+        }
+      }
+    }
+    return null;
+  }
+
+  function dist(x0, y0, x1, y1) {
+    var dx = x1 - x0;
+    var dy = y1 - y0;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // Mutations -------------------------------------------------------------
+
+  function destinyVarName(side) {
+    return side === "light" ? "lightSidePoints" : "darkSidePoints";
+  }
+
+  function flipDestinyPoint(fromSide) {
+    var counts = destinyCounts();
+    if ((fromSide === "light" ? counts.light : counts.dark) <= 0) return;
+    var toSide = fromSide === "light" ? "dark" : "light";
+    api.updateCampaignVariable(destinyVarName(fromSide), function (v) {
+      return Math.max(0, (v || 0) - 1);
+    });
+    api.updateCampaignVariable(destinyVarName(toSide), function (v) {
+      return (v || 0) + 1;
+    });
+  }
+
+  function addDestinyPoint(side) {
+    var counts = destinyCounts();
+    if (counts.light + counts.dark >= MAX_POINTS) return;
+    api.updateCampaignVariable(destinyVarName(side), function (v) {
+      return (v || 0) + 1;
+    });
+  }
+
+  function removeDestinyPoint(side) {
+    api.updateCampaignVariable(destinyVarName(side), function (v) {
+      return Math.max(0, (v || 0) - 1);
+    });
+  }
+
+  // Event handlers --------------------------------------------------------
+
+  function onDestinyLoad() {
+    api.preloadImage(LS_IMG);
+    api.preloadImage(DS_IMG);
+    Promise.all([api.preloadImage(LS_IMG), api.preloadImage(DS_IMG)]).then(
+      paintDestiny,
+      paintDestiny,
+    );
+  }
+
+  function onDestinyDown() {
+    var hit = destinyHit(event.x, event.y);
+    if (hit && hit.type === "pool") {
+      api.setSession("destinyDrag", {
+        side: hit.side,
+        r: hit.r,
+        x: event.x,
+        y: event.y,
+      });
+      paintDestiny();
+    }
+  }
+
+  function onDestinyMove() {
+    var drag = api.getSession("destinyDrag");
+    if (drag) {
+      drag.x = event.x;
+      drag.y = event.y;
+      api.setSession("destinyDrag", drag);
+      paintDestiny();
+      return;
+    }
+    var hit = destinyHit(event.x, event.y);
+    var prev = api.getSession("destinyHover");
+    var changed =
+      (hit ? hit.type + hit.side : "") !== (prev ? prev.type + prev.side : "");
+    if (changed) {
+      api.setSession("destinyHover", hit);
+      paintDestiny();
+    }
+  }
+
+  function onDestinyUp() {
+    var lay = destinyLayout();
+    var drag = api.getSession("destinyDrag");
+    api.setSession("destinyDrag", null);
+    if (drag && lay) {
+      var overSide = event.x < lay.midX ? "light" : "dark";
+      if (overSide !== drag.side) {
+        flipDestinyPoint(drag.side);
+      }
+    }
+    paintDestiny();
+  }
+
+  function onDestinyClick() {
+    // Clicks that were real drags are handled by mouseup; only buttons here.
+    var hit = destinyHit(event.x, event.y);
+    if (!hit) return;
+    if (hit.type === "plus") addDestinyPoint(hit.side);
+    if (hit.type === "minus") removeDestinyPoint(hit.side);
+  }
+
+  function onDestinyLeave() {
+    api.setSession("destinyDrag", null);
+    api.setSession("destinyHover", null);
+    paintDestiny();
+  }
+</script>
+
+<div style="width: 100%; height: 100%; min-height: 220px; background: #0b0b10">
+  <canvas
+    field="destinyCanvas"
+    autosize="true"
+    style="width: 100%; height: 100%; display: block; cursor: pointer"
+    onload="onDestinyLoad()"
+    onresize="paintDestiny()"
+    onrecordchange="paintDestiny()"
+    onmousedown="onDestinyDown()"
+    onmousemove="onDestinyMove()"
+    onmouseup="onDestinyUp()"
+    onclick="onDestinyClick()"
+    onmouseleave="onDestinyLeave()"
+  ></canvas>
+</div>
