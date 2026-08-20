@@ -239,6 +239,12 @@
   function equipGridItem(index, newValue) {
     const itemDataPath = "data.inventory." + index;
     api.setValue(itemDataPath + ".data.carried", newValue, function () {
+      // The in-memory `record` this script closes over is a snapshot — unlike a
+      // component onchange (which re-renders against a fresh one), this callback
+      // still sees the PREVIOUS carried state, so soak, defense and encumbrance would land one step
+      // behind: still counting the item just unequipped, or missing the one just
+      // equipped. Mirror the new value across before handing off.
+      syncInventoryItemValue(itemDataPath, "carried", newValue);
       onItemEquippedFor(itemDataPath, newValue);
     });
   }

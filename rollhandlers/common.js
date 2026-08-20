@@ -1194,6 +1194,21 @@ function getArmorDefense(armor) {
   };
 }
 
+// Mirrors a just-changed item field onto the in-memory record's inventory entry.
+// getBestArmor() reads record.data.inventory, and a handler invoked from an
+// api.setValue callback still sees the pre-change snapshot — so soak, defense and encumbrance would
+// be computed from the PREVIOUS state. api.getValue is always fresh, so sync the
+// fresh value across before re-deriving. No-op for items that aren't inventory
+// rows (a compendium item record has no parent inventory).
+function syncInventoryItemValue(itemDataPath, key, value) {
+  if (!itemDataPath || !itemDataPath.startsWith("data.inventory.")) return;
+  const index = parseInt(itemDataPath.split(".")[2], 10);
+  if (isNaN(index)) return;
+  const entry = record?.data?.inventory?.[index];
+  if (!entry) return;
+  entry.data = { ...(entry.data || {}), [key]: value };
+}
+
 function getBestArmor(record) {
   const inventory = record?.data?.inventory || [];
   const equippedArmor = inventory.filter(
