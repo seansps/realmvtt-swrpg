@@ -460,12 +460,22 @@
       item?.fields?.firingArc?.hidden !== false
     ) {
       valuesToSet[`${pathToFields}.firingArc.hidden`] = false;
-      valuesToSet[`${pathToFields}.personalScale.hidden`] = false;
     } else if (
       !subType?.toLowerCase()?.includes("vehicle") &&
       item?.fields?.firingArc?.hidden !== true
     ) {
       valuesToSet[`${pathToFields}.firingArc.hidden`] = true;
+    }
+
+    if (
+      subType?.toLowerCase()?.includes("vehicle") &&
+      item?.fields?.personalScale?.hidden !== false
+    ) {
+      valuesToSet[`${pathToFields}.personalScale.hidden`] = false;
+    } else if (
+      !subType?.toLowerCase()?.includes("vehicle") &&
+      item?.fields?.personalScale?.hidden !== true
+    ) {
       valuesToSet[`${pathToFields}.personalScale.hidden`] = true;
     }
 
@@ -1141,13 +1151,15 @@
   ></dropdown>
 
   <!-- Some vehicle-mounted weapons use personal scale for their entire profile -->
-  <checkbox
-    field="personalScale"
-    label="Personal Scale Weapon"
-    textalign="left"
-    size="sm"
-    hidden="true"
-  ></checkbox>
+  <div style="margin-top: 8px">
+    <checkbox
+      field="personalScale"
+      label="Personal Scale Weapon"
+      textalign="left"
+      size="sm"
+      hidden="true"
+    ></checkbox>
+  </div>
 
   <!-- Description -->
 
