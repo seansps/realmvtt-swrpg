@@ -106,6 +106,16 @@
     });
   }
 
+  // Removing a talent from the list has to re-derive characteristics (a talent
+  // may have granted a characteristicBonus) and everything downstream of them.
+  function onChangeTalents() {
+    const valuesToSet = {};
+    updateAttributes(record, valuesToSet);
+    if (Object.keys(valuesToSet).length > 0) {
+      api.setValues(valuesToSet);
+    }
+  }
+
   function onDropTalent(type, recordLink) {
     const talent = recordLink?.value;
     if (!talent) return;
@@ -203,6 +213,7 @@
       listtype="character_talents_list"
       field="talents"
       variant="striped"
+      onchange="onChangeTalents()"
     ></list>
   </div>
 

@@ -211,7 +211,10 @@
     characteristics.forEach((char) => {
       const value = record.data?.wizard?.[char];
       if (value !== undefined) {
+        // Store as the base too - talent/item characteristicBonus modifiers are
+        // layered on top of the base by recalcCharacteristicBonuses.
         valuesToSet[`data.${char}`] = value;
+        valuesToSet[`data.${char}Base`] = value;
       }
     });
 

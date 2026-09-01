@@ -585,7 +585,7 @@
           textalign="center"
           field="brawn"
           label="Brawn"
-          onchange="updateAttribute({ record, attribute: 'brawn', value })"
+          onchange="onCharacteristicChanged(record, 'brawn', value)"
           onclick="rollCheck('brawn');"
         ></numberfield>
         <button
@@ -613,7 +613,7 @@
           field="agility"
           label="Agility"
           textalign="center"
-          onchange="updateAttribute({ record, attribute: 'agility', value })"
+          onchange="onCharacteristicChanged(record, 'agility', value)"
           onclick="rollCheck('agility');"
         ></numberfield>
         <button
@@ -641,7 +641,7 @@
           field="intellect"
           textalign="center"
           label="Intellect"
-          onchange="updateAttribute({ record, attribute: 'intellect', value })"
+          onchange="onCharacteristicChanged(record, 'intellect', value)"
           onclick="rollCheck('intellect');"
         ></numberfield>
         <button
@@ -669,7 +669,7 @@
           textalign="center"
           field="cunning"
           label="Cunning"
-          onchange="updateAttribute({ record, attribute: 'cunning', value })"
+          onchange="onCharacteristicChanged(record, 'cunning', value)"
           onclick="rollCheck('cunning');"
         ></numberfield>
         <button
@@ -697,7 +697,7 @@
           textalign="center"
           field="willpower"
           label="Willpower"
-          onchange="updateAttribute({ record, attribute: 'willpower', value })"
+          onchange="onCharacteristicChanged(record, 'willpower', value)"
           onclick="rollCheck('willpower');"
         ></numberfield>
         <button
@@ -725,7 +725,7 @@
           textalign="center"
           field="presence"
           label="Presence"
-          onchange="updateAttribute({ record, attribute: 'presence', value })"
+          onchange="onCharacteristicChanged(record, 'presence', value)"
           onclick="rollCheck('presence');"
         ></numberfield>
         <button

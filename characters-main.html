@@ -21,12 +21,15 @@
       const valuesToSet = {
         "data.speciesName": speciesName,
         "fields.species.hidden": false,
-        "data.brawn": speciesObj?.data?.brawn || 0,
-        "data.agility": speciesObj?.data?.agility || 0,
-        "data.intellect": speciesObj?.data?.intellect || 0,
-        "data.cunning": speciesObj?.data?.cunning || 0,
-        "data.willpower": speciesObj?.data?.willpower || 0,
-        "data.presence": speciesObj?.data?.presence || 0,
+        // Species scores are the player's starting BASE - talent/item
+        // characteristicBonus modifiers are re-applied on top by
+        // recalcCharacteristicBonuses via updateAttributes below.
+        "data.brawnBase": speciesObj?.data?.brawn || 0,
+        "data.agilityBase": speciesObj?.data?.agility || 0,
+        "data.intellectBase": speciesObj?.data?.intellect || 0,
+        "data.cunningBase": speciesObj?.data?.cunning || 0,
+        "data.willpowerBase": speciesObj?.data?.willpower || 0,
+        "data.presenceBase": speciesObj?.data?.presence || 0,
         "data.xp": xpCur,
         "fields.speciesDetailsLabel.hidden": true,
       };
@@ -649,7 +652,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('brawn')"
-        onchange="updateAttribute({ record, attribute: 'brawn', value })"
+        onchange="onCharacteristicChanged(record, 'brawn', value)"
         onload="onLoadCharacter()"
       ></attribute>
       <attribute
@@ -667,7 +670,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('agility')"
-        onchange="updateAttribute({ record, attribute: 'agility', value })"
+        onchange="onCharacteristicChanged(record, 'agility', value)"
       ></attribute>
       <attribute
         field="intellect"
@@ -684,7 +687,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('intellect')"
-        onchange="updateAttribute({ record, attribute: 'intellect', value })"
+        onchange="onCharacteristicChanged(record, 'intellect', value)"
       ></attribute>
       <attribute
         field="cunning"
@@ -701,7 +704,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('cunning')"
-        onchange="updateAttribute({ record, attribute: 'cunning', value })"
+        onchange="onCharacteristicChanged(record, 'cunning', value)"
       ></attribute>
       <attribute
         field="willpower"
@@ -718,7 +721,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('willpower')"
-        onchange="updateAttribute({ record, attribute: 'willpower', value })"
+        onchange="onCharacteristicChanged(record, 'willpower', value)"
       ></attribute>
       <attribute
         field="presence"
@@ -735,7 +738,7 @@
         buttonvariant="outline"
         buttonposition="bottom"
         onclick="rollCheck('presence')"
-        onchange="updateAttribute({ record, attribute: 'presence', value })"
+        onchange="onCharacteristicChanged(record, 'presence', value)"
       ></attribute>
     </div>
   </div>
