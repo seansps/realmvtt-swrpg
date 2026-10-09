@@ -120,22 +120,25 @@
     onConditionChange(thisRecord, deletedItem);
   }
 
-  function onChangeWounds() {
+  // Read from the just-patched `record` the onchange hands us, NOT api.getValue:
+  // getValue resolves the open window's store copy, which is only refreshed by
+  // the websocket watch and can still hold the pre-edit value here, leaving the
+  // *Remaining field (and the combat tracker bars) one edit behind.
+  function recalcVehicleRemaining(current, threshold) {
     const vehicleDataPath = getNearestParentDataPath(dataPath);
     const prefix = vehicleDataPath ? `${vehicleDataPath}.` : "";
-    const wounds = api.getValue(`${prefix}data.wounds`);
-    const woundThreshold = api.getValue(`${prefix}data.woundThreshold`);
-    const woundsRemaining = Math.max(woundThreshold - wounds, 0);
-    api.setValue(`${prefix}data.woundsRemaining`, woundsRemaining);
+    const readInt = (field) =>
+      parseInt(api.getValueOnRecord(record, `${prefix}data.${field}`) || "0", 10) || 0;
+    const remaining = Math.max(readInt(threshold) - readInt(current), 0);
+    api.setValue(`${prefix}data.${current}Remaining`, remaining);
+  }
+
+  function onChangeWounds() {
+    recalcVehicleRemaining("wounds", "woundThreshold");
   }
 
   function onChangeStrain() {
-    const vehicleDataPath = getNearestParentDataPath(dataPath);
-    const prefix = vehicleDataPath ? `${vehicleDataPath}.` : "";
-    const strain = api.getValue(`${prefix}data.strain`);
-    const strainThreshold = api.getValue(`${prefix}data.strainThreshold`);
-    const strainRemaining = Math.max(strainThreshold - strain, 0);
-    api.setValue(`${prefix}data.strainRemaining`, strainRemaining);
+    recalcVehicleRemaining("strain", "strainThreshold");
   }
 </script>
 
