@@ -277,10 +277,11 @@
     }
   }
 
-  function onItemQualitiesChange(moreValuesToSet = undefined) {
+  function onItemQualitiesChange(moreValuesToSet = undefined, newQualities = undefined) {
     const nearestParentDataPath = getNearestParentDataPath(dataPath);
     const item = api.getValue(nearestParentDataPath) || record;
-    const qualities = item?.data?.special || [];
+    // The record isn't updated yet during onchange, so prefer the new value
+    const qualities = newQualities || item?.data?.special || [];
 
     // If this is an nested item, just return. (Like a weapon attachment)
     let pathToFields = "fields";
@@ -827,9 +828,10 @@
         placeholder="Select Item Qualities..."
         multiselect="28"
         searchable="true"
-        onchange="onItemQualitiesChange();"
+        onchange="onItemQualitiesChange(undefined, value);"
         options='[{"label": "Accurate (Passive)", "value": "accurate"}, 
         {"label": "Auto-Fire (Active)", "value": "auto-fire"}, 
+        {"label": "Auto-Fire Only (Passive)", "value": "auto-fire-only"}, 
         {"label": "Breach (Passive)", "value": "breach"}, 
         {"label": "Burn (Active)", "value": "burn"}, 
         {"label": "Blast (Active)", "value": "blast"}, 

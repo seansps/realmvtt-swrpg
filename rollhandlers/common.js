@@ -930,6 +930,14 @@ function getTagsForQualities(weapon) {
     });
   }
 
+  if (qualities.includes("auto-fire-only")) {
+    tags.push({
+      name: "Auto-Fire Only (Passive)",
+      tooltip:
+        "This weapon can only be fired using Auto-Fire. It cannot make a normal attack.",
+    });
+  }
+
   if (qualities.includes("auto-fire")) {
     tags.push({
       name: "Auto-Fire (Active)",
@@ -2463,6 +2471,17 @@ function rollAttack(
   // (e.g. a forward-mounted light repeating blaster on a speeder bike).
   if (weapon.data?.personalScale === true) {
     scale = "personal";
+  }
+  if (
+    attackType === "attack" &&
+    (weapon.data?.special || []).includes("auto-fire-only")
+  ) {
+    api.showNotification(
+      `${weapon.name} can only be fired using Auto-Fire.`,
+      "red",
+      "Auto-Fire Only",
+    );
+    return;
   }
   const isMelee = weapon.data?.type === "melee weapon";
   let skill = weapon.data?.weaponSkill || "";

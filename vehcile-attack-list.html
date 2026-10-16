@@ -27,8 +27,10 @@
     // If we have stun-setting or auto-fire qualities, we need to show the stun and auto-fire buttons
     const stunSetting = itemQualities.includes("stun-setting");
     const stunButtonShown = weapon.fields?.stunBtn?.hidden === false;
-    const autoFire = itemQualities.includes("auto-fire");
+    const autoFireOnly = itemQualities.includes("auto-fire-only");
+    const autoFire = itemQualities.includes("auto-fire") || autoFireOnly;
     const autoFireButtonShown = weapon.fields?.autoFireBtn?.hidden === false;
+    const attackButtonShown = weapon.fields?.attackBtn?.hidden !== true;
     if (stunSetting && !stunButtonShown) {
       valuesToSet[`${pathToFields}.stunBtn.hidden`] = false;
     } else if (!stunSetting && stunButtonShown) {
@@ -39,6 +41,13 @@
       valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = false;
     } else if (!autoFire && autoFireButtonShown) {
       valuesToSet[`${pathToFields}.autoFireBtn.hidden`] = true;
+    }
+
+    // Auto-Fire Only weapons can't make a normal attack
+    if (autoFireOnly && attackButtonShown) {
+      valuesToSet[`${pathToFields}.attackBtn.hidden`] = true;
+    } else if (!autoFireOnly && !attackButtonShown) {
+      valuesToSet[`${pathToFields}.attackBtn.hidden`] = false;
     }
 
     // Determine if we need to show the attachments list
