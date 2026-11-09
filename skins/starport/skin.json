@@ -1,0 +1,740 @@
+{
+  "name": "Starport",
+  "description": "A handheld datapad: gunmetal bezel, scanline screen, holo-blue readouts and amber keys.",
+  "colorScheme": "dark",
+  "radius": 3,
+  "palette": {
+    "colors": {
+      "primary": [
+        "#e6f9ff",
+        "#c2f0ff",
+        "#99e5ff",
+        "#73daff",
+        "#5cd6ff",
+        "#2fc4f0",
+        "#12a8d6",
+        "#0e88ae",
+        "#0b6a88",
+        "#084d63"
+      ],
+      "secondary": [
+        "#fff7e0",
+        "#ffecb3",
+        "#ffdd80",
+        "#ffcd4d",
+        "#ffbf26",
+        "#f5ac0a",
+        "#d99400",
+        "#b37a00",
+        "#8c5f00",
+        "#664500"
+      ],
+      "tertiary": [
+        "#ffe3e8",
+        "#ffc9d1",
+        "#ffaeb9",
+        "#ff94a2",
+        "#ff798a",
+        "#ff5f73",
+        "#dc143c",
+        "#c51235",
+        "#ae102f",
+        "#970e28"
+      ],
+      "dark": [
+        "#cfe3ec",
+        "#a9c3cf",
+        "#86a2b0",
+        "#58707d",
+        "#33444f",
+        "#1f2c35",
+        "#14202a",
+        "#0d1820",
+        "#091219",
+        "#050b10"
+      ],
+      "red": [
+        "#ffe3e8",
+        "#ffc9d1",
+        "#ffaeb9",
+        "#ff94a2",
+        "#ff798a",
+        "#ff5f73",
+        "#dc143c",
+        "#c51235",
+        "#ae102f",
+        "#970e28"
+      ],
+      "yellow": [
+        "#fff7e0",
+        "#ffecb3",
+        "#ffdd80",
+        "#ffcd4d",
+        "#ffbf26",
+        "#f5ac0a",
+        "#d99400",
+        "#b37a00",
+        "#8c5f00",
+        "#664500"
+      ],
+      "cyan": [
+        "#e6f9ff",
+        "#c2f0ff",
+        "#99e5ff",
+        "#73daff",
+        "#5cd6ff",
+        "#2fc4f0",
+        "#12a8d6",
+        "#0e88ae",
+        "#0b6a88",
+        "#084d63"
+      ]
+    },
+    "primaryShade": 7,
+    "other": {
+      "windowBgColor": "#07131c",
+      "windowHeaderBgColor": "#1b2129",
+      "windowHeaderFontColor": "#d6f4ff",
+      "windowHeaderButtonHoverBgColor": "rgba(92,214,255,0.12)",
+      "windowBorderColor": "#000000",
+      "windowDividerColor": "rgba(92,214,255,0.22)",
+      "chatCardBgColor": "#07131c",
+      "chatCardFontColor": "#d6f4ff",
+      "chatCardBorderColor": "#1d4557",
+      "chatCardDividerColor": "rgba(92,214,255,0.22)"
+    }
+  },
+  "tokens": {
+    "accent": "#5cd6ff",
+    "accent-glow": "rgba(92,214,255,0.4)",
+    "accent-subtle": "rgba(92,214,255,0.1)",
+    "bg": "#050b10",
+    "surface": "#0b1720",
+    "surface-elev": "#10202b",
+    "text": "#d6f4ff",
+    "text-dim": "#86aebf",
+    "text-muted": "rgba(134,174,191,0.7)",
+    "border": "rgba(92,214,255,0.22)",
+    "border-strong": "rgba(92,214,255,0.45)",
+    "divider": "rgba(92,214,255,0.14)",
+    "danger": "#ff5f73",
+    "success": "#4ccf8a",
+    "display-name": "#5cd6ff"
+  },
+  "fonts": [
+    {
+      "family": "Orbitron",
+      "src": "fonts/Orbitron-wght.ttf",
+      "weight": 600
+    },
+    {
+      "family": "Exo 2",
+      "src": "fonts/Exo2-wght.ttf",
+      "weight": 600
+    }
+  ],
+  "fontRoles": {
+    "heading": "Exo 2",
+    "windowTitle": "Orbitron",
+    "modalTitle": "Orbitron"
+  },
+  "frames": {
+    "appBar": {
+      "texture": {
+        "src": "frames/bezel-dark.png",
+        "scale": 2
+      },
+      "background": "#12161c",
+      "border": "#000000"
+    },
+    "drawer": {
+      "texture": {
+        "src": "frames/bezel.png",
+        "scale": 2
+      },
+      "background": "#1b2129",
+      "border": "#000000",
+      "shadow": "rgba(0,0,0,0.8)"
+    },
+    "drawerTab": {
+      "background": "#12161c",
+      "border": "#2c3540",
+      "radius": 3,
+      "textColor": "#86aebf",
+      "hover": {
+        "border": "#5cd6ff",
+        "textColor": "#d6f4ff"
+      }
+    },
+    "drawerTabActive": {
+      "background": "#0b3a4d",
+      "border": "#5cd6ff",
+      "radius": 3,
+      "textColor": "#d6f4ff",
+      "shadow": "rgba(92,214,255,0.35)"
+    },
+    "window": {
+      "texture": {
+        "src": "frames/bezel.png",
+        "scale": 2
+      },
+      "background": "#1b2129",
+      "border": "#000000",
+      "radius": 8,
+      "shadow": "rgba(0,0,0,0.9)"
+    },
+    "windowHeader": {
+      "background": "rgba(0,0,0,0)",
+      "textColor": "#d6f4ff"
+    },
+    "recordWindowHeader": {
+      "background": "rgba(0,0,0,0)",
+      "textColor": "#d6f4ff"
+    },
+    "windowContent": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "textColor": "#d6f4ff"
+    },
+    "recordBody": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "textColor": "#d6f4ff",
+      "tokens": {
+        "bg": "rgba(0,0,0,0)",
+        "surface": "rgba(92,214,255,0.035)",
+        "surface-elev": "rgba(92,214,255,0.07)"
+      }
+    },
+    "tabList": {
+      "background": "rgba(0,0,0,0)"
+    },
+    "tab": {
+      "textColor": "#86aebf",
+      "hover": {
+        "textColor": "#d6f4ff"
+      }
+    },
+    "tabActive": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "rgba(0,0,0,0)",
+      "borderWidth": 0,
+      "radius": 0,
+      "textColor": "#5cd6ff"
+    },
+    "sheetCorner": {
+      "hidden": true
+    },
+    "attributeCard": {
+      "background": "rgba(92,214,255,0.05)",
+      "border": "rgba(92,214,255,0.45)",
+      "radius": 3,
+      "padding": [
+        5,
+        4,
+        6,
+        4
+      ],
+      "hover": {
+        "border": "#5cd6ff"
+      }
+    },
+    "attributeLabel": {
+      "textColor": "#5cd6ff"
+    },
+    "sheetField": {
+      "background": "rgba(92,214,255,0.05)",
+      "border": "rgba(92,214,255,0.3)",
+      "radius": 3,
+      "textColor": "#d6f4ff",
+      "hover": {
+        "border": "#5cd6ff"
+      }
+    },
+    "chatCard": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "#1d4557",
+      "radius": 4,
+      "textColor": "#d6f4ff"
+    },
+    "chatCardWhisper": {
+      "texture": {
+        "src": "frames/screen-whisper.png",
+        "scale": 2
+      },
+      "background": "#0f1024",
+      "border": "#4b4fa8",
+      "radius": 4,
+      "textColor": "#d6f4ff"
+    },
+    "chatCardPrivate": {
+      "texture": {
+        "src": "frames/screen-amber.png",
+        "scale": 2
+      },
+      "background": "#17130a",
+      "border": "#8c5f00",
+      "radius": 4,
+      "textColor": "#d6f4ff"
+    },
+    "chatInput": {
+      "background": "#081620",
+      "border": "#1d4557",
+      "radius": 4,
+      "textColor": "#d6f4ff"
+    },
+    "tooltip": {
+      "background": "#050b10",
+      "border": "#5cd6ff",
+      "radius": 3,
+      "padding": [
+        4,
+        8,
+        4,
+        8
+      ],
+      "textColor": "#d6f4ff"
+    },
+    "modal": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "#2c3540",
+      "borderWidth": 3,
+      "radius": 8,
+      "shadow": "rgba(0,0,0,0.9)"
+    },
+    "panel": {
+      "texture": {
+        "src": "frames/bezel.png",
+        "scale": 2
+      },
+      "background": "#1b2129",
+      "border": "#000000",
+      "radius": 6,
+      "shadow": "rgba(0,0,0,0.6)"
+    },
+    "toolbar": {
+      "texture": {
+        "src": "frames/bezel.png",
+        "scale": 2
+      },
+      "background": "#1b2129",
+      "border": "#000000",
+      "radius": 6,
+      "gap": 3,
+      "padding": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "shadow": "rgba(0,0,0,0.6)"
+    },
+    "sceneButton": {
+      "size": 28,
+      "iconSize": 16,
+      "background": "#12161c",
+      "border": "#2c3540",
+      "radius": 4,
+      "textColor": "#86aebf",
+      "shadow": "rgba(0,0,0,0.5)",
+      "hover": {
+        "border": "#5cd6ff",
+        "textColor": "#d6f4ff"
+      }
+    },
+    "sceneButtonActive": {
+      "background": "#0b3a4d",
+      "border": "#5cd6ff",
+      "textColor": "#d6f4ff",
+      "shadow": "rgba(92,214,255,0.45)"
+    },
+    "sceneTab": {
+      "background": "#12161c",
+      "border": "#2c3540",
+      "radius": 4,
+      "textColor": "#86aebf",
+      "hover": {
+        "border": "#5cd6ff",
+        "textColor": "#d6f4ff"
+      }
+    },
+    "sceneTabActive": {
+      "background": "#0b3a4d",
+      "border": "#5cd6ff",
+      "radius": 4,
+      "textColor": "#d6f4ff"
+    },
+    "hotbar": {
+      "background": "rgba(0,0,0,0)",
+      "border": "rgba(0,0,0,0)",
+      "gap": 0
+    },
+    "hotbarTabs": {
+      "texture": {
+        "src": "frames/bezel-dark.png",
+        "scale": 2
+      },
+      "background": "#12161c",
+      "border": "rgba(0,0,0,0)",
+      "radius": 0,
+      "padding": [
+        3,
+        4,
+        0,
+        4
+      ],
+      "gap": 2
+    },
+    "hotbarTab": {
+      "textColor": "#86aebf"
+    },
+    "hotbarTabActive": {
+      "background": "#0b3a4d",
+      "radius": 3,
+      "textColor": "#d6f4ff"
+    },
+    "hotbarRow": {
+      "texture": {
+        "src": "frames/bezel.png",
+        "scale": 2
+      },
+      "background": "#1b2129",
+      "border": "#000000",
+      "radius": 6,
+      "padding": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "gap": 4,
+      "shadow": "rgba(0,0,0,0.6)"
+    },
+    "hotbarDivider": {
+      "hidden": true
+    },
+    "hotbarSlot": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "#1d4557",
+      "radius": 3,
+      "hover": {
+        "border": "#5cd6ff"
+      }
+    },
+    "hotbarSlotFilled": {
+      "border": "#2b6a85"
+    },
+    "ctRowActive": {
+      "background": "rgba(92,214,255,0.14)",
+      "border": "#5cd6ff",
+      "radius": 3
+    },
+    "loadingCard": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "#2c3540",
+      "borderWidth": 3,
+      "radius": 8,
+      "textColor": "#d6f4ff"
+    },
+    "pauseCard": {
+      "texture": {
+        "src": "frames/screen.png",
+        "scale": 2
+      },
+      "background": "#07131c",
+      "border": "#2c3540",
+      "borderWidth": 3,
+      "radius": 8,
+      "textColor": "#d6f4ff"
+    },
+    "loadingLogo": {
+      "textColor": "#ffb347"
+    },
+    "pauseIcon": {
+      "background": "#0b3a4d",
+      "border": "#5cd6ff",
+      "textColor": "#d6f4ff",
+      "radius": 4
+    },
+    "sceneDecal": {
+      "textColor": "#ffb347"
+    }
+  },
+  "tags": {
+    "base": {
+      "radius": 3,
+      "border": "rgba(0,0,0,0.5)",
+      "textColor": "#ffffff",
+      "fontWeight": 600,
+      "uppercase": true
+    },
+    "variants": {
+      "trait": {
+        "background": "#1d3542"
+      },
+      "action": {
+        "background": "#8c5f00"
+      },
+      "force": {
+        "background": "#3a3f8a"
+      }
+    },
+    "default": "trait",
+    "match": {
+      "action": [
+        "attack",
+        "melee",
+        "ranged",
+        "action",
+        "maneuver",
+        "incidental"
+      ],
+      "force": [
+        "force",
+        "force *"
+      ]
+    }
+  },
+  "macroButtons": {
+    "style": {
+      "background": "#0d1a22",
+      "border": "#1d4557",
+      "radius": 3,
+      "textColor": "#d6f4ff",
+      "hover": {
+        "background": "#112330",
+        "border": "#5cd6ff",
+        "textColor": "#ffffff",
+        "shadow": "rgba(92,214,255,0.4)"
+      }
+    },
+    "layout": "stacked",
+    "row": true,
+    "kinds": {
+      "effect": {
+        "background": "#0f1a33",
+        "border": "#4b4fa8",
+        "textColor": "#d6f4ff",
+        "hover": {
+          "background": "#141f40",
+          "border": "#7b80e0",
+          "shadow": "rgba(123,128,224,0.45)"
+        },
+        "icon": "IconSparkles"
+      }
+    },
+    "variants": {
+      "effect": {
+        "background": "#0f1a33",
+        "border": "#4b4fa8",
+        "textColor": "#d6f4ff",
+        "hover": {
+          "background": "#141f40",
+          "border": "#7b80e0",
+          "shadow": "rgba(123,128,224,0.45)"
+        },
+        "icon": "IconSparkles"
+      },
+      "plain": {
+        "background": "#0d1a22",
+        "border": "#1d4557",
+        "textColor": "#d6f4ff",
+        "hover": {
+          "background": "#112330",
+          "border": "#5cd6ff",
+          "shadow": "rgba(92,214,255,0.4)"
+        }
+      },
+      "check": {
+        "background": "#0b2a38",
+        "border": "#12a8d6",
+        "textColor": "#d6f4ff",
+        "hover": {
+          "background": "#0e3446",
+          "border": "#5cd6ff",
+          "shadow": "rgba(92,214,255,0.4)"
+        },
+        "icon": "ability"
+      },
+      "attack": {
+        "background": "#2a1f05",
+        "border": "#d99400",
+        "textColor": "#fff7e0",
+        "hover": {
+          "background": "#3a2a06",
+          "border": "#f5ac0a",
+          "shadow": "rgba(245,172,10,0.45)"
+        },
+        "icon": "proficiency"
+      },
+      "damage": {
+        "background": "#2a0b12",
+        "border": "#ae102f",
+        "textColor": "#ffe3e8",
+        "hover": {
+          "background": "#3a0f19",
+          "border": "#dc143c",
+          "shadow": "rgba(220,20,60,0.5)"
+        },
+        "icon": "IconHeartBroken"
+      },
+      "strain": {
+        "background": "#12183a",
+        "border": "#4b5ac0",
+        "textColor": "#e2e7ff",
+        "hover": {
+          "background": "#18204a",
+          "border": "#7b8af0",
+          "shadow": "rgba(75,90,192,0.5)"
+        },
+        "icon": "IconHeartbeat"
+      },
+      "critical": {
+        "background": "#2a1d00",
+        "border": "#b37a00",
+        "textColor": "#fff7e0",
+        "hover": {
+          "background": "#3a2900",
+          "border": "#ffbf26",
+          "shadow": "rgba(245,172,10,0.5)"
+        },
+        "icon": "triumph"
+      },
+      "healing": {
+        "background": "#0b2619",
+        "border": "#2f9e6a",
+        "textColor": "#dcf7e9",
+        "hover": {
+          "background": "#103322",
+          "border": "#4ccf8a",
+          "shadow": "rgba(76,207,138,0.45)"
+        },
+        "icon": "IconHeartPlus"
+      }
+    },
+    "match": {
+      "effect": [
+        "apply_*"
+      ],
+      "check": [
+        "roll_*"
+      ],
+      "attack": [
+        "roll_guided_attack",
+        "*_attack"
+      ],
+      "critical": [
+        "roll_critical_*"
+      ],
+      "damage": [
+        "apply_damage",
+        "apply_blast_damage"
+      ],
+      "strain": [
+        "apply_strain"
+      ],
+      "healing": [
+        "apply_healing",
+        "roll_healing*"
+      ]
+    },
+    "buttons": {
+      "Apply_Damage": {
+        "icon": "IconHeartBroken",
+        "label": "Wounds"
+      },
+      "Apply_Blast_Damage": {
+        "icon": "IconBomb",
+        "label": "Blast"
+      },
+      "Apply_Strain": {
+        "icon": "IconHeartbeat",
+        "label": "Strain"
+      },
+      "Apply_Healing": {
+        "icon": "IconHeartPlus",
+        "label": "Heal"
+      },
+      "Roll_Guided_Attack": {
+        "icon": "proficiency",
+        "label": "Guided"
+      },
+      "Roll_Critical_Injury": {
+        "icon": "triumph",
+        "label": "Crit Injury"
+      },
+      "Roll_Critical_Hit": {
+        "icon": "triumph",
+        "label": "Crit Hit"
+      }
+    }
+  },
+  "sheetButtons": {
+    "base": {
+      "textColor": "#ffffff",
+      "border": "rgba(0,0,0,0.6)",
+      "radius": 3,
+      "fontWeight": 600
+    },
+    "variants": {
+      "attack": {
+        "background": "#8c5f00",
+        "border": "#d99400",
+        "hover": {
+          "background": "#a36f00"
+        }
+      },
+      "use": {
+        "background": "#0b4a63",
+        "border": "#12a8d6",
+        "hover": {
+          "background": "#0e5a78"
+        }
+      },
+      "roll": {
+        "background": "#0b3a4d",
+        "border": "#12a8d6",
+        "hover": {
+          "background": "#0e4a62"
+        }
+      },
+      "critical": {
+        "background": "#970e28",
+        "border": "#dc143c",
+        "hover": {
+          "background": "#ae102f"
+        }
+      }
+    }
+  },
+  "scrollbar": {
+    "thumb": "rgba(92,214,255,0.4)",
+    "thumbHover": "#5cd6ff"
+  }
+}

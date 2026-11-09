@@ -1913,6 +1913,7 @@
     }
   ],
   "settings": {
+    "skin": "starport",
     "otherSettings": {
       "advDisRolls": [],
       "advName": "",
