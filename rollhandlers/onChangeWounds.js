@@ -8,4 +8,14 @@ if (woundsRemaining < 0) {
 if (woundsRemaining > woundThreshold) {
   woundsRemaining = woundThreshold;
 }
-api.setValue("data.woundsRemaining", woundsRemaining);
+const valuesToSet = { "data.woundsRemaining": woundsRemaining };
+
+// Minions: recalculate group size (skill ranks and, if enabled, the name count)
+if (
+  record.recordType === "npcs" &&
+  (!record.data?.type || record.data?.type === "minion")
+) {
+  recalculateThresholds(record, valuesToSet);
+}
+
+api.setValues(valuesToSet);

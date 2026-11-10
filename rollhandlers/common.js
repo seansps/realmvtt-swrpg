@@ -1399,6 +1399,19 @@ function getBestArmor(record) {
 
 // Recalculates the thresholds for a character or NPC and other derived
 // values based on the current effects and modifiers, equipments, etc.
+// Campaign setting "minionCountInName": when "yes", minion group names carry the
+// number of remaining minions as a suffix, e.g. "Stormtrooper [3]".
+function isMinionCountInNameEnabled() {
+  return api.getSetting("minionCountInName") === "yes";
+}
+
+// Returns the name with any existing " [N]" suffix replaced by the given count (never negative)
+function getMinionGroupName(name, count) {
+  const baseName = String(name || "").replace(/\s*\[\d+\]\s*$/, "");
+  const safeCount = Math.max(0, Number.isFinite(count) ? Math.floor(count) : 0);
+  return `${baseName} [${safeCount}]`;
+}
+
 function recalculateThresholds(record, moreValuesToSet = undefined) {
   const valuesToSet = { ...(moreValuesToSet || {}) };
 
@@ -1642,34 +1655,49 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
     isNPC && (!record?.data?.type || record?.data?.type === "minion");
   // If this is a minion, recalculate skill ranks
   if (isMinion) {
+    // Number of minions left in the group
+    const woundsPerMinion = parseInt(record?.data?.woundsPerMinion || "0", 10);
+    const totalWounds = parseInt(
+      valuesToSet["data.wounds"] !== undefined
+        ? valuesToSet["data.wounds"]
+        : record?.data?.wounds || "0",
+      10,
+    );
+    const woundThreshold = parseInt(
+      valuesToSet["data.woundThreshold"] !== undefined
+        ? valuesToSet["data.woundThreshold"]
+        : record?.data?.woundThreshold || "0",
+      10,
+    );
+    const minionsDefeated = Math.max(
+      0,
+      Math.floor((totalWounds - 1) / woundsPerMinion),
+    );
+    const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
+    const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
+
+    // Optionally keep the group size in the name, e.g. "Stormtrooper [3]"
+    if (
+      record?.recordType === "npcs" &&
+      Number.isFinite(minionsRemaining) &&
+      isMinionCountInNameEnabled()
+    ) {
+      const currentName =
+        valuesToSet["name"] !== undefined ? valuesToSet["name"] : record?.name;
+      const newName = getMinionGroupName(currentName, minionsRemaining);
+      if (newName !== record?.name) {
+        valuesToSet["name"] = newName;
+      } else {
+        delete valuesToSet["name"];
+      }
+    }
+
     const skills = record?.data?.skills || [];
     // A minion group gains one skill rank for each member of the group beyond the first
     skills.forEach((skill, index) => {
       if (skill.data?.careerOrMinionSkill) {
         // They have this skill, so we need to set the rank equal to
         // number of remaining minions - 1
-        const woundsPerMinion = parseInt(
-          record?.data?.woundsPerMinion || "0",
-          10,
-        );
-        const totalWounds = parseInt(
-          valuesToSet["data.wounds"] !== undefined
-            ? valuesToSet["data.wounds"]
-            : record?.data?.wounds || "0",
-          10,
-        );
-        const woundThreshold = parseInt(
-          valuesToSet["data.woundThreshold"] !== undefined
-            ? valuesToSet["data.woundThreshold"]
-            : record?.data?.woundThreshold || "0",
-          10,
-        );
-        const minionsDefeated = Math.max(
-          0,
-          Math.floor((totalWounds - 1) / woundsPerMinion),
-        );
-        const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
-        const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
         const rank = Math.max(0, minionsRemaining - 1);
         // Only set if changed
         if (skills[index].data?.rank !== rank) {
@@ -2963,13 +2991,25 @@ function getHealingMacro(healing, deduct = false) {
       oldValues["data.woundsRemaining"] = target.data?.woundsRemaining;
       valuesToSet["data.wounds"] = Math.max(0, target.data?.wounds - healingValue);
       valuesToSet["data.woundsRemaining"] = Math.max(0, target.data?.woundThreshold - valuesToSet["data.wounds"]);
+
+      // If it's a minion, recalculate thresholds to update skill ranks
+      if (
+        target.recordType === "npcs" &&
+        (!target.data?.type || target.data?.type === "minion")
+      ) {
+        recalculateThresholds(target, valuesToSet);
+        if (valuesToSet["name"] !== undefined) {
+          oldValues["name"] = target.name;
+        }
+      }
+
       api.setValuesOnRecord(target, valuesToSet);
       api.floatText(target, '+' + healingValue, "#1bc91b");
     }
     // UNDO macro using api.setValuesOnRecord to avoid race conditions
     const undoMacro = Object.keys(oldValues).length > 0 ? 
   \`\\\`\\\`\\\`Undo
-  const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+  const oldValuesObj = JSON.parse(decodeURIComponent('\$\{encodeURIComponent(JSON.stringify(oldValues)).replace(/'/g, "%27")\}\'));
   if (isGM) { 
     api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
       api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
@@ -3101,6 +3141,9 @@ function getDamageMacro({
       // If this is a minion, recalculate thresholds to update skill ranks
       if (isMinion) {
         recalculateThresholds(target, valuesToSet);
+        if (valuesToSet["name"] !== undefined) {
+          oldValues["name"] = target.name;
+        }
       }
       
       api.setValuesOnRecord(target, valuesToSet);
@@ -3166,7 +3209,7 @@ function getDamageMacro({
     // UNDO macro using api.setValuesOnRecord to avoid race conditions
     const undoMacro = Object.keys(oldValues).length > 0 ? 
   \`\\\`\\\`\\\`Undo
-  const oldValuesObj = JSON.parse('\$\{JSON.stringify(oldValues)\}\');
+  const oldValuesObj = JSON.parse(decodeURIComponent('\$\{encodeURIComponent(JSON.stringify(oldValues)).replace(/'/g, "%27")\}\'));
   if (isGM) { 
     api.setValuesOnTokenById('\$\{target._id\}', '\$\{target.recordType\}', oldValuesObj, () => { 
       api.editMessage(null, '~\$\{message.replace(/\\n/g, " ").trim()\}~'); 
