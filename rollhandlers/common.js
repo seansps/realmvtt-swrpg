@@ -1400,7 +1400,7 @@ function getBestArmor(record) {
 // Recalculates the thresholds for a character or NPC and other derived
 // values based on the current effects and modifiers, equipments, etc.
 // Campaign setting "minionCountInName": when "yes", minion group names carry the
-// number of remaining minions as a suffix, e.g. "Stormtrooper [3]".
+// number of remaining minions as a suffix, e.g. "Name [3]".
 function isMinionCountInNameEnabled() {
   return api.getSetting("minionCountInName") === "yes";
 }
@@ -1676,7 +1676,7 @@ function recalculateThresholds(record, moreValuesToSet = undefined) {
     const totalMinions = Math.ceil(woundThreshold / woundsPerMinion);
     const minionsRemaining = Math.max(0, totalMinions - minionsDefeated);
 
-    // Optionally keep the group size in the name, e.g. "Stormtrooper [3]"
+    // Optionally keep the group size in the name, e.g. "Name [3]"
     if (
       record?.recordType === "npcs" &&
       Number.isFinite(minionsRemaining) &&

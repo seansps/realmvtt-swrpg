@@ -3389,7 +3389,7 @@
       {
         "name": "Show Minion Count in Name",
         "key": "minionCountInName",
-        "description": "Append the number of minions remaining in a group to the NPC's name, e.g. \"Stormtrooper [3]\". Updates automatically as the group size changes or minions are defeated or healed.",
+        "description": "Show the number of minions remaining in the group's name.",
         "values": [
           {
             "label": "No",
